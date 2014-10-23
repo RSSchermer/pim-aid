@@ -1,0 +1,18 @@
+@(drugTypeForm: Form[DrugTypeWithGroups], action: Call, genericTypes: List[DrugType], drugGroups: List[DrugGroup])
+
+@import helper.twitterBootstrap._
+
+@helper.form(action = action) {
+    <fieldset>
+        @helper.inputText(drugTypeForm("name"))
+        @helper.select(drugTypeForm("genericTypeId"),
+            Seq("" -> "") ++ genericTypes.toSeq.map(gt => gt.id.get.toString -> gt.name))
+        @helper.select(drugTypeForm("drugGroupIds"),
+            drugGroups.toSeq.map(dg => dg.id.get.toString -> dg.name), 'multiple -> "multiple")
+    </fieldset>
+
+    <div class="actions">
+        <input type="submit" value="Save" class="btn btn-primary"> or
+        <a href="@routes.DrugTypesController.list()" class="btn">Cancel</a>
+    </div>
+}

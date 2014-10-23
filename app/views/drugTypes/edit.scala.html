@@ -1,0 +1,7 @@
+@(drugTypeId: Long, drugTypeForm: Form[DrugTypeWithGroups], genericTypes: List[DrugType], drugGroups: List[DrugGroup])
+
+@admin("Editing a drug type", "drugTypes") {
+    <h1>Editing a drug type</h1>
+
+    @drugTypes.form(drugTypeForm, routes.DrugTypesController.update(drugTypeId), genericTypes, drugGroups)
+}

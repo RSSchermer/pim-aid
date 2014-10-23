@@ -1,0 +1,9 @@
+@(ruleId: Long, ruleForm: Form[RuleWithSuggestions])
+
+@import helper.twitterBootstrap._
+
+@admin("Editing a rule", "rules") {
+    <h1>Editing a rule</h1>
+
+    @rules.form(ruleForm, routes.RulesController.update(ruleId))
+}

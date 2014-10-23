@@ -1,0 +1,14 @@
+@(drugGroup: DrugGroup)
+
+@admin("Deleting a drug group", "drugGroups") {
+    <h1>Are you sure you want to delete this drug group?</h1>
+
+    <dl>
+        <dt>Name</dt><dd>@drugGroup.name</dd>
+    </dl>
+
+    @helper.form(routes.DrugGroupsController.delete(drugGroup.id.get)) {
+        <input type="submit" value="Delete" class="btn btn-danger"> or
+        <a href="@routes.DrugGroupsController.list()" class="btn">Cancel</a>
+    }
+}

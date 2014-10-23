@@ -1,0 +1,28 @@
+@(rules: List[Rule])(implicit flash: play.api.mvc.Flash)
+
+@admin("Rule list", "rules") {
+    @flash.get("success").map { message =>
+        <div class="alert alert-success">
+            @message
+        </div>
+    }
+
+    <table class="table table-striped">
+        <tr>
+            <th>Condition Expression</th>
+            <th>Source</th>
+            <th></th>
+            <th></th>
+        </tr>
+        @for(r <- rules){
+            <tr>
+                <td>@r.conditionExpression</td>
+                <td>@r.source</td>
+                <td><a href="@routes.RulesController.edit(r.id.get)">Edit</a></td>
+                <td><a href="@routes.RulesController.remove(r.id.get)">Delete</a></td>
+            </tr>
+        }
+    </table>
+
+    <a class="btn btn-primary" href="@routes.RulesController.create()">Add new rule</a>
+}

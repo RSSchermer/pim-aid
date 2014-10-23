@@ -1,0 +1,26 @@
+@(drugGroups: List[DrugGroup])(implicit flash: play.api.mvc.Flash)
+
+@admin("Drug group list", "drugGroups") {
+    @flash.get("success").map { message =>
+        <div class="alert alert-success">
+            @message
+        </div>
+    }
+
+    <table class="table table-striped">
+        <tr>
+            <th>Name</th>
+            <th></th>
+            <th></th>
+        </tr>
+        @for(dg <- drugGroups){
+            <tr>
+                <td>@dg.name</td>
+                <td><a href="@routes.DrugGroupsController.edit(dg.id.get)">Edit</a></td>
+                <td><a href="@routes.DrugGroupsController.remove(dg.id.get)">Delete</a></td>
+            </tr>
+        }
+    </table>
+
+    <a class="btn btn-primary" href="@routes.DrugGroupsController.create()">Add new drug group</a>
+}

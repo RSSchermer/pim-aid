@@ -1,0 +1,19 @@
+@(drugGroupTermForm: Form[DrugGroupTerm], drugGroups: List[DrugGroup])
+
+@import helper.twitterBootstrap._
+
+@expressionTerms("Creating a new drug group term", "drugGroupTerms") {
+    <h1>Creating a new drug group term</h1>
+
+    @helper.form(routes.DrugGroupTermsController.save()) {
+        <fieldset>
+            @helper.inputText(drugGroupTermForm("label"))
+            @helper.select(drugGroupTermForm("drugGroupId"), drugGroups.toSeq.map(dt => dt.id.get.toString -> dt.name))
+        </fieldset>
+
+        <div class="actions">
+            <input type="submit" value="Save" class="btn btn-primary"> or
+            <a href="@routes.DrugGroupTermsController.list()" class="btn">Cancel</a>
+        </div>
+    }
+}
