@@ -1,0 +1,43 @@
+@(title: String)(content: Html)
+
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <title>MedicatieHulp - @title</title>
+
+        <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="@routes.Assets.at("stylesheets/print.css")" media="print">
+        <link rel="stylesheet" href="@routes.Assets.at("stylesheets/public.css")" media="screen">
+        <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
+    </head>
+    <body>
+        <div class="container page-container">
+            <header class="page-header">
+                <ul class="nav pull-right">
+                    <li>
+                        <a href="@routes.StepsController.suggestionList()">
+                            <i class="fa fa-chevron-right"></i> Terug naar website
+                        </a>
+                    </li>
+                </ul>
+
+                <h3 class="text-muted">MedicatieHulp</h3>
+            </header>
+
+            <article>
+            @content
+            </article>
+
+            <ul class="nav pull-right">
+                <li>
+                    <a href="@routes.StepsController.suggestionList()">
+                        <i class="fa fa-chevron-right"></i> Terug naar website
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <script>window.print();</script>
+    </body>
+</html>

@@ -8,10 +8,17 @@ medicationApp.controller('medicationListCtrl', function ($scope, Restangular) {
   });
 
   $scope.submitDrug = function () {
-    drugs.post({ userInput: $scope.userInput }).then(function (drug) {
+    drugs.post({ id: null, userInput: $scope.userInput, source: null, drugType: null }).then(function (drug) {
       $scope.drugs.push(drug);
-    }, function (error) {
-      console.log(error);
+      $scope.error = null;
+      $scope.userInput = null;
+    }, function () {
+      $scope.error = "Dit medicijn kon niet gevonden worden.";
     })
+  };
+
+  $scope.removeDrug = function (drug) {
+    drug.remove();
+    $scope.drugs.splice($scope.drugs.indexOf(drug), 1);
   }
 });

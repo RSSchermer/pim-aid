@@ -1,0 +1,19 @@
+@(label: String, statementTermForm: Form[StatementTerm])
+
+@import helper.twitterBootstrap._
+
+@expressionTerms("Editing a statement term", "statementTerms") {
+    <h1>Editing a question term</h1>
+
+    @helper.form(routes.StatementTermsController.update(label)) {
+        <fieldset>
+            <input type="hidden" name="label" value='@label'>
+            @helper.inputText(statementTermForm("statement"))
+        </fieldset>
+
+        <div class="actions">
+            <input type="submit" value="Save" class="btn btn-primary"> or
+            <a href="@routes.StatementTermsController.list()" class="btn">Cancel</a>
+        </div>
+    }
+}

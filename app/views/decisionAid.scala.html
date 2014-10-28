@@ -1,0 +1,21 @@
+@(title: String, currentStep: Int = 1, completedStep: Int = 0)(content: Html)
+
+@public(title, "decisionAid") {
+    <ul class="steps">
+        <li class="@("current".when(currentStep ==  1))">
+            <a>Stap 1: Medicatielijst</a>
+        </li>
+
+        <li class="@("current".when(currentStep ==  2))">
+            <a>Stap 2: Aanvullende informatie</a>
+        </li>
+
+        <li class="@("current".when(currentStep ==  3))">
+            <a>Stap 3: Advies</a>
+        </li>
+    </ul>
+
+    <div class="decision-aid-content-container">
+        @content
+    </div>
+}

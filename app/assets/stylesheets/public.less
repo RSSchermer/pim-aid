@@ -1,0 +1,156 @@
+@import "lib/bootstrap/less/bootstrap.less";
+
+@font-size-base: 14pt;
+@max-page-width: 980px;
+
+.page-container {
+  max-width: @max-page-width;
+}
+
+.page-header {
+  border-bottom: 2px solid #ddd;
+  margin-top: 0;
+}
+
+.jumbotron {
+  padding: 25px;
+
+  h1 {
+    margin-top: 0;
+    font-size: @font-size-base * 3;
+  }
+
+  .start-btn {
+    float: right;
+    margin-top: 50px;
+  }
+}
+
+.decision-aid-content-container {
+  padding: 10px;
+
+  .medication-list-form {
+    margin-bottom: 20px;
+  }
+
+  .statement-list {
+    input[type="checkbox"] {
+      @scale: 1.5;
+      /* Double-sized Checkboxes */
+      -ms-transform: scale(@scale); /* IE */
+      -moz-transform: scale(@scale); /* FF */
+      -webkit-transform: scale(@scale); /* Safari and Chrome */
+      -o-transform: scale(@scale); /* Opera */
+      padding: 10px;
+      margin-right: 18px;
+      cursor: pointer;
+    }
+
+    label {
+      cursor: pointer;
+    }
+  }
+
+  .statement-list, .suggestion-list, .medication-list {
+    padding: 10px 40px;
+  }
+
+  .drug-remove-btn {
+    cursor: pointer;
+  }
+
+  .step-controls {
+    text-align: center;
+    margin-top: 20px;
+  }
+}
+
+footer {
+  margin-top: 30px;
+  text-align: center;
+  color: @gray-light;
+  border-top: 1px solid #ddd;
+  padding: 25px;
+}
+
+.steps {
+  list-style: none;
+  overflow: hidden;
+  color: #aaa;
+  font-size: @font-size-base * 1.2;
+  border-top: 1px solid #dedede;
+  border-bottom: 1px solid #dedede;
+  background: #fafafa;
+  padding: 0;
+  margin-bottom: 20px;
+}
+
+.steps li {
+  float: left;
+  line-height: 60px;
+}
+
+.steps li a {
+  color: #aaa;
+  text-decoration: none;
+  padding: 0 10px 0 40px;
+  display: block;
+  float: left;
+  background: #fafafa;
+}
+
+.steps li a::after {
+  position: relative;
+  display: block;
+  margin-top: -30px;
+  margin-left: auto;
+  margin-right: -25px;
+  height: 30px;
+  width: 30px;
+  content: " ";
+  -webkit-transform: skew(-40deg);
+  background: #fafafa;
+  border-right: 1px solid #d6d6d6;
+  -moz-transform: skew(-40deg);
+  -o-transform: skew(-40deg);
+  transform: skew(-40deg);
+}
+
+.steps li a::before {
+  float: right;
+  display: block;
+  margin-bottom: -30px;
+  margin-left: auto;
+  margin-right: -25px;
+  height: 30px;
+  width: 30px;
+  content: " ";
+  -webkit-transform: skew(40deg);
+  background: #fafafa;
+  border-right: 1px solid #d6d6d6;
+  -moz-transform: skew(40deg);
+  -o-transform: skew(40deg);
+  transform: skew(40deg);
+}
+
+.steps li:first-child a {
+  padding-left: 10px;
+}
+
+.steps li a:link:hover {
+  color: #333;
+}
+
+.steps li.current {
+  color: @gray-dark;
+  background: white;
+}
+
+.steps li.current a {
+  color: @gray-dark;
+  background: white;
+}
+
+.steps li.current a::before, .steps li.current a::after {
+  background: white;
+}

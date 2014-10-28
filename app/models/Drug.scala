@@ -1,6 +1,7 @@
 package models
 
 import play.api.db.slick.Config.driver.simple._
+import play.api.db.slick._
 
 case class Drug(id: Option[Long], userInput: String, userToken: String, source: Option[String],
                 resolvedDrugTypeId: Option[Long])
@@ -15,4 +16,12 @@ class Drugs(tag: Tag) extends Table[Drug](tag, "DRUGS") {
   def * = (id.?, userInput, userToken, source.?, resolvedDrugTypeId.?) <> (Drug.tupled, Drug.unapply)
 
   def resolvedDrugType = foreignKey("DRUGS_RESOLVED_TYPE_FK", resolvedDrugTypeId, TableQuery[DrugTypes])(_.id)
+}
+
+object Drugs {
+  val all = TableQuery[Drugs]
+
+  def insert(drug: Drug)(implicit s: Session) = {
+    all returning all.map(_.id) += drug
+  }
 }

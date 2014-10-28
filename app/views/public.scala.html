@@ -1,0 +1,55 @@
+@(title: String, nav: String = "")(content: Html)
+
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <title>MedicatieHulp - @title</title>
+
+        <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+        <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/public.css")">
+        <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
+    </head>
+    <body>
+        <div class="container page-container">
+            <header class="page-header">
+                <ul class="nav nav-pills pull-right">
+                    <li class="@("active".when(nav == "introduction"))">
+                        <a href="@routes.StaticPagesController.introduction()">
+                            <i class="fa fa-home"></i> Introductie
+                        </a>
+                    </li>
+
+                    <li class="@("active".when(nav == "decisionAid"))">
+                        <a href="@routes.StepsController.medicationList()">
+                            <i class="fa fa-calculator"></i> Mijn MedicatieHulp
+                        </a>
+                    </li>
+
+                    <li class="@("active".when(nav == "privacy"))">
+                        <a href="@routes.StaticPagesController.privacy()">
+                            <i class="fa fa-eye"></i> Privacy
+                        </a>
+                    </li>
+
+                    <li class="@("active".when(nav == "contact"))">
+                        <a href="@routes.StaticPagesController.contact()">
+                            <i class="fa fa-envelope"></i> Contact
+                        </a>
+                    </li>
+
+                </ul>
+
+                <h3 class="text-muted">MedicatieHulp</h3>
+            </header>
+
+            <article>
+                @content
+            </article>
+
+            <footer>
+                &copy; Copyright 2014
+            </footer>
+        </div>
+    </body>
+</html>

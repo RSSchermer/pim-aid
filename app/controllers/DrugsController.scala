@@ -9,69 +9,53 @@ import play.api.libs.functional.syntax._
 import models._
 
 object DrugsController extends Controller with UserSessionAware {
-  val drugs = TableQuery[Drugs]
-  val drugTypes = TableQuery[DrugTypes]
+  case class DrugJson(id: Option[Long], userInput: String, source: Option[String])
 
-  case class DrugWithType(id: Option[Long], userInput: String, source: Option[String], drugType: Option[DrugType])
-
-  implicit val drugTypeWrites: Writes[DrugType] = (
-      (JsPath \ "id").write[Option[Long]] and
-      (JsPath \ "name").write[String] and
-      (JsPath \ "genericTypeId").write[Option[Long]]
-    )(unlift(DrugType.unapply))
-
-  implicit val drugWrites: Writes[DrugWithType] = (
+  implicit val drugWrites: Writes[DrugJson] = (
       (JsPath \ "id").write[Option[Long]] and
       (JsPath \ "userInput").write[String] and
-      (JsPath \ "source").write[Option[String]] and
-      (JsPath \ "drugType").write[Option[DrugType]]
-    )(unlift(DrugWithType.unapply))
+      (JsPath \ "source").write[Option[String]]
+    )(unlift(DrugJson.unapply))
 
-  implicit val drugTypeReads: Reads[DrugType] = (
-      (JsPath \ "id").read[Option[Long]] and
-      (JsPath \ "name").read[String] and
-      (JsPath \ "genericTypeId").read[Option[Long]]
-    )(DrugType.apply _)
-
-  implicit val drugReads: Reads[DrugWithType] = (
+  implicit val drugReads: Reads[DrugJson] = (
       (JsPath \ "id").read[Option[Long]] and
       (JsPath \ "userInput").read[String] and
-      (JsPath \ "source").read[Option[String]] and
-      (JsPath \ "drugType").read[Option[DrugType]]
-    )(DrugWithType.apply _)
+      (JsPath \ "source").read[Option[String]]
+    )(DrugJson.apply _)
 
   def list = DBAction { implicit rs =>
-    val userDrugs = drugs.filter(_.userToken === currentUserSession(rs.session.get("token")).token)
-    val drugDrugTypes = for {
-      drug <- userDrugs
-      drugType <- drugTypes if drug.resolvedDrugTypeId === drug.id
-    } yield (drug, drugType.?)
+    val token = currentUserSession(rs).token
 
-    Ok(Json.toJson(drugDrugTypes.list.map {
-      case (Drug(id, input, _, source, _), drugType) => DrugWithType(id, input, source, drugType)
-    }))
+    Ok(Json.toJson(UserSessions.drugListFor(token).map{
+      case Drug(id, userInput, _, source, _) => DrugJson(id, userInput, source)
+    })).withSession("token" -> token)
   }
 
   def save = DBAction(BodyParsers.parse.json) { implicit rs =>
-    rs.body.validate[DrugWithType].fold(
+    val token = currentUserSession(rs).token
+
+    rs.body.validate[DrugJson].fold(
       errors => {
         BadRequest(Json.obj("status" ->"KO", "message" -> JsError.toFlatJson(errors)))
+          .withSession("token" -> token)
       },
       drug => {
-        drugTypes.filter(_.name === drug.userInput).firstOption match {
+        DrugTypes.all.filter(_.name.toLowerCase === drug.userInput.toLowerCase).firstOption match {
           case Some(drugType) =>
-            val token = currentUserSession(rs.session.get("token")).token
+            val drugId = Drugs.insert(Drug(id = drug.id, userInput = drug.userInput, userToken = token,
+                                           source = drug.source, resolvedDrugTypeId = drugType.id))
 
-            drugs.insert(Drug(id = drug.id, userInput = drug.userInput, userToken = token, source = drug.source,
-              resolvedDrugTypeId = drugType.id))
-
-            Ok(Json.obj(
-              "status" -> "OK",
-              "message" -> Json.toJson(DrugWithType(drug.id, drug.userInput, drug.source, Some(drugType)))
-            ))
+            Ok(Json.toJson(DrugJson(Some(drugId), drug.userInput, drug.source))).withSession("token" -> token)
           case _ => BadRequest(Json.obj("status" ->"KO", "message" -> "Could not resolve user input to drug type."))
+            .withSession("token" -> token)
         }
       }
     )
+  }
+
+  def delete(id: Long) = DBAction { implicit rs =>
+    val token = currentUserSession(rs).token
+    UserSessions.drugsFor(token).filter(_.id === id).delete
+    Ok.withSession("token" -> token)
   }
 }

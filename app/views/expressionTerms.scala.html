@@ -17,13 +17,13 @@
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                 <ul class="nav navbar-nav">
                     <li class="@("active".when(termNav == "drugTypeTerms"))">
-                        <a href="@routes.DrugTypeTermsController.list">Drug type terms</a>
+                        <a href="@routes.DrugTypeTermsController.list()">Drug type terms</a>
                     </li>
                     <li class="@("active".when(termNav == "drugGroupTerms"))">
-                        <a href="@routes.DrugGroupTermsController.list">Drug group terms</a>
+                        <a href="@routes.DrugGroupTermsController.list()">Drug group terms</a>
                     </li>
-                    <li class="@("active".when(termNav == "questionTerms"))">
-                        <a href="@routes.QuestionTermsController.list">Question terms</a>
+                    <li class="@("active".when(termNav == "statementTerms"))">
+                        <a href="@routes.StatementTermsController.list()">Statement terms</a>
                     </li>
                 </ul>
             </div>

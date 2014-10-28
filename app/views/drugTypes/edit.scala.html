@@ -1,4 +1,4 @@
-@(drugTypeId: Long, drugTypeForm: Form[DrugTypeWithGroups], genericTypes: List[DrugType], drugGroups: List[DrugGroup])
+@(drugTypeId: Long, drugTypeForm: Form[(DrugType, List[Long])], genericTypes: List[DrugType], drugGroups: List[DrugGroup])
 
 @admin("Editing a drug type", "drugTypes") {
     <h1>Editing a drug type</h1>

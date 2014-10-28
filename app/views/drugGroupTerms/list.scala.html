@@ -1,4 +1,4 @@
-@(drugGroupTerms: List[(String, String)])(implicit flash: play.api.mvc.Flash)
+@(drugGroupTerms: List[(DrugGroupTerm, DrugGroup)])(implicit flash: play.api.mvc.Flash)
 
 @expressionTerms("Drug group term list", "drugGroupTerms") {
     @flash.get("success").map { message =>
@@ -14,12 +14,12 @@
             <th></th>
             <th></th>
         </tr>
-        @for((label, groupName) <- drugGroupTerms){
+        @for((term, group) <- drugGroupTerms){
             <tr>
-                <td>@label</td>
-                <td>@groupName</td>
-                <td><a href="@routes.DrugGroupTermsController.edit(label)">Edit</a></td>
-                <td><a href="@routes.DrugGroupTermsController.remove(label)">Delete</a></td>
+                <td>@term.label</td>
+                <td>@group.name</td>
+                <td><a href="@routes.DrugGroupTermsController.edit(term.label)">Edit</a></td>
+                <td><a href="@routes.DrugGroupTermsController.remove(term.label)">Delete</a></td>
             </tr>
         }
     </table>

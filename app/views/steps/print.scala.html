@@ -1,0 +1,37 @@
+@(medicationList: List[Drug], selectedStatements: List[StatementTerm], suggestions: List[Suggestion])
+
+@printLayout("Resultaten printen") {
+    <p>U heeft aangegeven de volgende medicatie te gebruiken:</p>
+
+    <ul>
+        @for(drug <- medicationList) {
+            <li>@drug.userInput</li>
+        }
+    </ul>
+
+    @if(selectedStatements.isEmpty) {
+        <p>Daarnaast heeft u aangegeven dat geen van de stellingen op u van toepassing was.</p>
+    } else {
+        <p>Daarnaast heeft u aangegeven dat de volgende stellingen op u van toepassing zijn:</p>
+
+        <ul>
+            @for(statement <- selectedStatements) {
+                <li>@statement.statement</li>
+            }
+        </ul>
+    }
+
+    @if(suggestions.isEmpty) {
+        <p>Op basis daarvan heeft de Medicatiehulp geen specifieke suggesties voor u.</p>
+    } else {
+        <p>De Medicatiehulp heeft uw gegevens vergeleken met de richtlijnen. Op basis daarvan heeft de Medicatiehulp de
+            volgende suggesties voor u gegenereert:
+        </p>
+
+        <ul>
+            @for(suggestion <- suggestions) {
+                <li>@suggestion.text</li>
+            }
+        </ul>
+    }
+}

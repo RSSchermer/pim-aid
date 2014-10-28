@@ -1,4 +1,4 @@
-@(drugTypeForm: Form[DrugTypeWithGroups], genericTypes: List[DrugType], drugGroups: List[DrugGroup])
+@(drugTypeForm: Form[(DrugType, List[Long])], genericTypes: List[DrugType], drugGroups: List[DrugGroup])
 
 @admin("Creating a new drug type", "drugTypes") {
     <h1>Creating a new drug type</h1>

@@ -1,6 +1,5 @@
-@(ruleId: Long, ruleForm: Form[RuleWithSuggestions])
+@(ruleId: Long, ruleForm: Form[(Rule, List[Suggestion])])
 
-@import helper.twitterBootstrap._
 
 @admin("Editing a rule", "rules") {
     <h1>Editing a rule</h1>

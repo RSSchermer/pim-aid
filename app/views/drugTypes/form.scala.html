@@ -1,4 +1,4 @@
-@(drugTypeForm: Form[DrugTypeWithGroups], action: Call, genericTypes: List[DrugType], drugGroups: List[DrugGroup])
+@(drugTypeForm: Form[(DrugType, List[Long])], action: Call, genericTypes: List[DrugType], drugGroups: List[DrugGroup])
 
 @import helper.twitterBootstrap._
 

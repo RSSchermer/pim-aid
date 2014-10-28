@@ -2,38 +2,17 @@ package controllers
 
 import play.api.mvc._
 import play.api.db.slick.Session
-import play.api.db.slick.Config.driver.simple._
 
 import models._
 
 trait UserSessionAware extends Controller {
-  val userSessions = TableQuery[UserSessions]
-
-  def generateToken(len: Int = 6): String = {
-    val rand = new scala.util.Random(System.nanoTime)
-    val sb = new StringBuilder(len)
-    val ab = "0123456789abcdefghijklmnopqrstuvwxyz"
-
-    for (i <- 0 until len) {
-      sb.append(ab(rand.nextInt(ab.length)))
-    }
-
-    sb.toString()
-  }
-
-  def createUserSession(token: String = generateToken())(implicit s: Session): UserSession = {
-    val newUserSession = new UserSession(token)
-    userSessions.insert(newUserSession)
-    newUserSession
-  }
-
-  def currentUserSession(token: Option[String])(implicit s: Session): UserSession = {
-    token match {
-      case Some(t) => userSessions.filter(_.token === t).firstOption match {
+  def currentUserSession(request: Request[AnyRef])(implicit s: Session): UserSession = {
+    request.session.get("token") match {
+      case Some(token) => UserSessions.find(token) match {
         case Some(userSession) => userSession
-        case _ => createUserSession()
+        case _ => UserSessions.create()
       }
-      case _ => createUserSession()
+      case _ => UserSessions.create()
     }
   }
 
