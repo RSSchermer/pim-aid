@@ -1,4 +1,4 @@
-@(drugTypes: List[DrugType])(implicit flash: play.api.mvc.Flash)
+@(drugTypes: List[MedicationProduct])(implicit flash: play.api.mvc.Flash)
 
 @admin("Drug type list", "drugTypes") {
     @flash.get("success").map { message =>

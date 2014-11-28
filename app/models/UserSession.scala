@@ -4,28 +4,26 @@ import play.api.db.slick.Config.driver.simple._
 import play.api.db.slick.Session
 import utils.ConditionExpressionParser
 
-case class UserSession(token: String)
+case class UserToken(value: String) extends MappedTo[String]
+
+case class UserSession(token: UserToken)
 
 class UserSessions(tag: Tag) extends Table[UserSession](tag, "USER_SESSIONS") {
-  def token = column[String]("token", O.PrimaryKey)
+  def token = column[UserToken]("token", O.PrimaryKey)
 
   def * = token <> (UserSession, UserSession.unapply)
 }
 
 object UserSessions {
   val all = TableQuery[UserSessions]
-  val drugs = TableQuery[Drugs]
-  val drugTypes = TableQuery[DrugTypes]
-  val statementTermsUserSessions = TableQuery[StatementTermsUserSessions]
-  val rules = TableQuery[Rules]
 
-  def one(token: String) = all.filter(_.token === token)
+  def one(token: UserToken) = all.filter(_.token === token)
 
-  def find(token: String)(implicit s: Session) = one(token).firstOption
+  def find(token: UserToken)(implicit s: Session) = one(token).firstOption
 
   def insert(userSession: UserSession)(implicit s: Session) = all.insert(userSession)
 
-  def generateToken(len: Int = 12): String = {
+  def generateToken(len: Int = 12): UserToken = {
     val rand = new scala.util.Random(System.nanoTime)
     val sb = new StringBuilder(len)
     val ab = "0123456789abcdefghijklmnopqrstuvwxyz"
@@ -34,63 +32,72 @@ object UserSessions {
       sb.append(ab(rand.nextInt(ab.length)))
     }
 
-    sb.toString()
+    UserToken(sb.toString())
   }
 
-  def create(token: String = generateToken())(implicit s: Session): UserSession = {
+  def create(token: UserToken = generateToken())(implicit s: Session): UserSession = {
     val newUserSession = UserSession(token)
     insert(newUserSession)
     newUserSession
   }
 
-  def drugsFor(token: String) = drugs.filter(_.userToken === token)
+  def drugsFor(token: UserToken) = TableQuery[Drugs].filter(_.userToken === token)
 
-  def drugListFor(token: String)(implicit s: Session): List[Drug] = drugsFor(token).list
+  def drugListFor(token: UserToken)(implicit s: Session): List[Drug] = drugsFor(token).list
 
-  def drugTypeListFor(token: String)(implicit s: Session): List[DrugType] = {
+  def drugWithMedicationProductListFor(token: UserToken)(implicit s: Session)
+  : List[(Drug, Option[MedicationProduct])] = {
     (for {
-      (d, dt) <- drugs rightJoin drugTypes on (_.resolvedDrugTypeId === _.id)
-    } yield (d.userToken, dt)).filter(_._1 === token).map(_._2).list
+      drug <- drugsFor(token)
+      product <- TableQuery[MedicationProducts] if drug.resolvedMedicationProductId === product.id
+    } yield (drug, product.?)).list
   }
 
-  /**
-   * Checks for any of the selected drug types, if it or its associated generic type, is the type referenced by the
-   * drug type term.
-   *
-   * @param term The drug type term
-   * @param selectedDrugTypes The drug types that the user's medication list resolved to
-   * @return
-   */
-  def evaluateDrugTypeTerm(term: DrugTypeTerm, selectedDrugTypes: List[DrugType]): Boolean = {
-    selectedDrugTypes.exists(dType =>
-      dType.id.getOrElse(-1) == term.drugTypeId || dType.genericTypeId.getOrElse(-1) == term.drugTypeId)
+  def genericTypesFor(token: UserToken)(implicit s: Session) = {
+    for {
+      (((drug, drugType), drugTypeGenericType), genericType) <-
+        drugsFor(token) rightJoin
+        TableQuery[MedicationProducts] on (_.resolvedMedicationProductId === _.id) rightJoin
+        TableQuery[GenericTypesMedicationProducts] on (_._2.id === _.medicationProductId) rightJoin
+        TableQuery[GenericTypes] on (_._2.genericTypeId === _.id)
+    } yield genericType
   }
 
-  /**
-   * Checks for any of the selected drug types or the associated generic drug type, if it is part of the drug group
-   * associated with the drug group term.
-   *
-   * @param term The drug group term
-   * @param selectedDrugTypes The drug types that the user's medication list resolved to
-   * @param drugGroupsTypes A list of the all drug type/drug group relations, passed in to save queries
-   * @return
-   */
-  def evaluateDrugGroupTerm(term: DrugGroupTerm, selectedDrugTypes: List[DrugType],
-                            drugGroupsTypes: List[DrugGroupType]): Boolean = {
-    // If there is going to be performance bottleneck, this'll be it
-    selectedDrugTypes.exists(dType => drugGroupsTypes.exists(x =>
-      x.drugGroupId == term.drugGroupId &&
-        (x.drugTypeId == dType.id.getOrElse(-1) || x.drugTypeId == dType.genericTypeId.getOrElse(-1))))
+  def genericTypeListFor(token: UserToken)(implicit s: Session): List[GenericType] = genericTypesFor(token).list
+
+  def drugGroupListFor(token: UserToken)(implicit s: Session): List[DrugGroup] = {
+    (for {
+      ((genericType, drugGroupType), drugGroup) <-
+        genericTypesFor(token) rightJoin
+        TableQuery[DrugGroupsGenericTypes] on (_.id === _.genericTypeId) rightJoin
+        TableQuery[DrugGroups] on (_._2.drugGroupId === _.id)
+    } yield drugGroup).list
   }
 
-  def relevantStatementTermsFor(token: String)(implicit s: Session): List[StatementTerm] = {
+  def selectedStatementTermsFor(token: UserToken)(implicit s: Session): List[StatementTerm] = {
+    (for {
+      (session, statementTerm) <-
+      TableQuery[StatementTermsUserSessions] rightJoin TableQuery[ExpressionTerms] on (_.statementTermLabel === _.label)
+      if session.userSessionToken === token
+    } yield statementTerm).list.asInstanceOf[List[StatementTerm]]
+  }
+
+  def updateSelectedStatementTerms(token: UserToken, statementTermLabels: List[StatementTermLabel])
+                                  (implicit s: Session) =
+  {
+    TableQuery[StatementTermsUserSessions].filter(_.userSessionToken === token).delete
+    statementTermLabels.map(StatementTermUserSession(token, _))
+      .foreach { x => TableQuery[StatementTermsUserSessions].insert(x) }
+  }
+
+  def relevantStatementTermsFor(token: UserToken)(implicit s: Session): List[StatementTerm] = {
     val expressionTerms = TableQuery[ExpressionTerms].list
-    val drugGroupsTypes = TableQuery[DrugGroupsTypes].list
-    val drugTypes = drugTypeListFor(token)
+    val drugGroups = drugGroupListFor(token)
+    val genericTypes = genericTypeListFor(token)
 
-    val variableMap = expressionTerms.map(t => (t.label, t match {
-      case term: DrugTypeTerm => evaluateDrugTypeTerm(term, drugTypes)
-      case term: DrugGroupTerm => evaluateDrugGroupTerm(term, drugTypes, drugGroupsTypes)
+    val variableMap = expressionTerms.map(t => (t.label.value, t match {
+      case term: GenericTypeTerm => term.evaluate(genericTypes)
+      case term: DrugGroupTerm => term.evaluate(drugGroups)
       case StatementTerm(_, _) => true
     })).toMap
 
@@ -100,43 +107,33 @@ object UserSessions {
       term <- TableQuery[ExpressionTerms] if termRule.expressionTermLabel === term.label
     } yield (termRule.ruleId, term)).list
 
-    rules.list.flatMap(r => parser.parse(r.conditionExpression) match {
+    TableQuery[Rules].list.flatMap(r => parser.parse(r.conditionExpression) match {
       case parser.Success(true, _) => ruleWithExpressionTerms.filter(_._1 == r.id.get).map(_._2)
       case _ => List()
     }).collect{ case t: StatementTerm => t }
   }
 
-  def selectedStatementTermsFor(token: String)(implicit s: Session): List[StatementTerm] = {
-    (for {
-      us <- statementTermsUserSessions
-      s <- TableQuery[ExpressionTerms] if us.statementTermLabel === s.label
-    } yield (us.userSessionToken, s)).filter(_._1 === token).map(_._2).list.asInstanceOf[List[StatementTerm]]
-  }
-
-  def updateSelectedStatementTerms(token: String, statementTermLabels: List[String])(implicit s: Session) = {
-    statementTermsUserSessions.filter(_.userSessionToken === token).delete
-    statementTermLabels.map(StatementTermUserSession(token, _)).foreach { x => statementTermsUserSessions.insert(x) }
-  }
-
-  def suggestionListFor(token: String)(implicit s: Session): List[Suggestion] = {
+  def suggestionListFor(token: UserToken)(implicit s: Session): List[Suggestion] = {
     val expressionTerms = TableQuery[ExpressionTerms].list
-    val drugGroupsTypes = TableQuery[DrugGroupsTypes].list
-    val drugTypes = drugTypeListFor(token)
+    val drugGroups = drugGroupListFor(token)
+    val genericTypes = genericTypeListFor(token)
     val selectedStatements = selectedStatementTermsFor(token)
 
-    val variableMap = expressionTerms.map(t => (t.label, t match {
-      case term: DrugTypeTerm => evaluateDrugTypeTerm(term, drugTypes)
-      case term: DrugGroupTerm => evaluateDrugGroupTerm(term, drugTypes, drugGroupsTypes)
-      case term: StatementTerm => selectedStatements.contains(term)
+    val variableMap = expressionTerms.map(t => (t.label.value, t match {
+      case term: GenericTypeTerm => term.evaluate(genericTypes)
+      case term: DrugGroupTerm => term.evaluate(drugGroups)
+      case term: StatementTerm => term.evaluate(selectedStatements)
     })).toMap
 
     val parser = new ConditionExpressionParser(variableMap)
     val ruleWithSuggestions: List[(Long, Suggestion)] = (for {
-      rule <- rules
-      suggestion <- TableQuery[Suggestions] if suggestion.ruleId === rule.id
+      ((rule, ruleSuggestion), suggestion) <-
+        TableQuery[Rules] rightJoin
+        TableQuery[RulesSuggestions] on (_.id === _.ruleId) rightJoin
+        TableQuery[Suggestions] on (_._2.suggestionId === _.id)
     } yield (rule.id, suggestion)).list
 
-    val trueRuleIds = rules.list.filter(r => parser.parse(r.conditionExpression) match {
+    val trueRuleIds = TableQuery[Rules].list.filter(r => parser.parse(r.conditionExpression) match {
       case parser.Success(true, _) => true
       case _ => false
     }).map(_.id.get)

@@ -8,13 +8,30 @@ medicationApp.controller('medicationListCtrl', function ($scope, Restangular) {
   });
 
   $scope.submitDrug = function () {
-    drugs.post({ id: null, userInput: $scope.userInput, source: null, drugType: null }).then(function (drug) {
+    drugs.post({
+      id: null,
+      userInput: $scope.userInput,
+      source: null,
+      drugType: null,
+      resolvedDrugTypeId: null,
+      resolvedDrugTypeName: null
+    }).then(function (drug) {
       $scope.drugs.push(drug);
-      $scope.error = null;
+      $scope.unresolved = false;
       $scope.userInput = null;
-    }, function () {
-      $scope.error = "Dit medicijn kon niet gevonden worden.";
+    }, function (error) {
+      console.log(error);
+      $scope.unresolved = true;
+      $scope.alternatives = error.data.alternatives
     })
+  };
+
+  $scope.resolveDrug = function (drug) {
+    drugs.post(drug).then(function (drug) {
+      $scope.drugs.push(drug);
+      $scope.unresolved = false;
+      $scope.userInput = null;
+    });
   };
 
   $scope.removeDrug = function (drug) {

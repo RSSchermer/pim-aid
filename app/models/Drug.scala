@@ -1,21 +1,24 @@
 package models
 
 import play.api.db.slick.Config.driver.simple._
-import play.api.db.slick._
+import play.api.db.slick.Session
 
-case class Drug(id: Option[Long], userInput: String, userToken: String, source: Option[String],
-                resolvedDrugTypeId: Option[Long])
+case class DrugID(value: Long) extends MappedTo[Long]
+
+case class Drug(id: Option[DrugID], userInput: String, userToken: UserToken, source: Option[String],
+                resolvedMedicationProductId: Option[MedicationProductID])
 
 class Drugs(tag: Tag) extends Table[Drug](tag, "DRUGS") {
-  def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
+  def id = column[DrugID]("id", O.PrimaryKey, O.AutoInc)
   def userInput = column[String]("userInput", O.NotNull)
-  def userToken = column[String]("userToken", O.NotNull)
+  def userToken = column[UserToken]("userToken", O.NotNull)
   def source = column[String]("source", O.Nullable)
-  def resolvedDrugTypeId = column[Long]("resolved_drug_type_id", O.Nullable)
+  def resolvedMedicationProductId = column[MedicationProductID]("resolved_medication_product_id", O.Nullable)
 
-  def * = (id.?, userInput, userToken, source.?, resolvedDrugTypeId.?) <> (Drug.tupled, Drug.unapply)
+  def * = (id.?, userInput, userToken, source.?, resolvedMedicationProductId.?) <> (Drug.tupled, Drug.unapply)
 
-  def resolvedDrugType = foreignKey("DRUGS_RESOLVED_TYPE_FK", resolvedDrugTypeId, TableQuery[DrugTypes])(_.id)
+  def resolvedMedicationProduct = foreignKey("DRUGS_RESOLVED_MEDICATION_PRODUCT_FK", resolvedMedicationProductId,
+    TableQuery[MedicationProducts])(_.id)
 }
 
 object Drugs {

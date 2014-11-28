@@ -20,39 +20,39 @@ object DrugTypesController extends Controller {
   )
 
   def mapForm(id: Option[Long], name: String, genericTypeId: Option[Long], drugGroupIds: Seq[Long]) = {
-    (DrugType(id = id, name = name, genericTypeId = genericTypeId), drugGroupIds.toList)
+    (MedicationProduct(id = id, name = name, genericTypeId = genericTypeId), drugGroupIds.toList)
   }
 
-  def unmapForm(t: (DrugType, List[Long])): Option[(Option[Long], String, Option[Long], Seq[Long])] = {
+  def unmapForm(t: (MedicationProduct, List[Long])): Option[(Option[Long], String, Option[Long], Seq[Long])] = {
     t match {
-      case (DrugType(id, name, genericTypeId), drugGroupIds) => Some(id, name, genericTypeId, drugGroupIds.toSeq)
+      case (MedicationProduct(id, name, genericTypeId), drugGroupIds) => Some(id, name, genericTypeId, drugGroupIds.toSeq)
     }
   }
 
   def list = DBAction { implicit rs =>
-    Ok(html.drugTypes.list(DrugTypes.list))
+    Ok(html.drugTypes.list(GenericTypes.list))
   }
 
   def create = DBAction { implicit rs =>
-    Ok(html.drugTypes.create(drugTypeForm, DrugTypes.genericTypes, DrugGroups.list))
+    Ok(html.drugTypes.create(drugTypeForm, GenericTypes.genericTypes, DrugGroups.list))
   }
 
   def save = DBAction { implicit rs =>
     drugTypeForm.bindFromRequest.fold(
       formWithErrors =>
-        BadRequest(html.drugTypes.create(formWithErrors, DrugTypes.genericTypes, DrugGroups.list)),
+        BadRequest(html.drugTypes.create(formWithErrors, GenericTypes.genericTypes, DrugGroups.list)),
       {
         case (drugType, drugGroupIds) =>
-          DrugTypes.insert(drugType, drugGroupIds)
+          GenericTypes.insert(drugType, drugGroupIds)
           Redirect(routes.DrugTypesController.list()).flashing("success" -> "The drug type was created successfully.")
       }
     )
   }
 
   def edit(id: Long) = DBAction { implicit rs =>
-    DrugTypes.findWithGroupIds(id) match {
+    GenericTypes.findWithGroupIds(id) match {
       case Some((drugType, drugGroupIds)) =>
-        Ok(html.drugTypes.edit(id, drugTypeForm.fill((drugType, drugGroupIds)), DrugTypes.genericTypes(id),
+        Ok(html.drugTypes.edit(id, drugTypeForm.fill((drugType, drugGroupIds)), GenericTypes.genericTypes(id),
           DrugGroups.list))
       case _ => NotFound
     }
@@ -61,24 +61,24 @@ object DrugTypesController extends Controller {
   def update(id: Long) = DBAction { implicit rs =>
     drugTypeForm.bindFromRequest.fold(
       formWithErrors =>
-        BadRequest(html.drugTypes.edit(id, formWithErrors, DrugTypes.genericTypes(id), DrugGroups.list)),
+        BadRequest(html.drugTypes.edit(id, formWithErrors, GenericTypes.genericTypes(id), DrugGroups.list)),
       {
         case (drugType, drugGroupIds) =>
-          DrugTypes.update(id, drugType, drugGroupIds)
+          GenericTypes.update(id, drugType, drugGroupIds)
           Redirect(routes.DrugTypesController.list()).flashing("success" -> "The drug type was updated successfully.")
       }
     )
   }
 
   def remove(id: Long) = DBAction { implicit rs =>
-    DrugTypes.find(id) match {
+    GenericTypes.find(id) match {
       case Some(drugType) => Ok(html.drugTypes.remove(drugType))
       case _ => NotFound
     }
   }
 
   def delete(id: Long) = DBAction { implicit rs =>
-    DrugTypes.delete(id)
+    GenericTypes.delete(id)
     Redirect(routes.DrugTypesController.list()).flashing("success" -> "The drug type was deleted successfully.")
   }
 }

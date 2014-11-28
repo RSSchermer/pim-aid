@@ -17,12 +17,26 @@
                         </button>
                     </div>
 
-                    <div class="text-danger">{{error}}</div>
+                    <div class="text-danger" ng-show="unresolved">
+                        Dit medicijn kon niet gevonden worden. Bedoelde u:
+
+                        <ul>
+                            <li ng-repeat="alternative in alternatives">
+                                <a class="drug-resolve-btn" ng-click="resolveDrug(alternative)">
+                                    {{alternative.resolvedDrugTypeName}}
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
                 </form>
 
                 <table class="table">
                     <tr ng-repeat="drug in drugs">
-                        <td>{{drug.userInput}}</td>
+                        <td>
+                            <span ng-if="drug.resolvedDrugTypeName">{{drug.resolvedDrugTypeName}}</span>
+                            <span ng-if="!drug.resolvedDrugTypeName">{{drug.userInput}}</span>
+                        </td>
+
                         <td>
                             <a class="drug-remove-btn" ng-click="removeDrug(drug)">
                                 <i class="fa fa-times"></i> Verwijderen

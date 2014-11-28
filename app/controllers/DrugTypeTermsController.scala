@@ -14,22 +14,22 @@ object DrugTypeTermsController extends Controller {
       "label" -> nonEmptyText.verifying("Must alphanumeric characters, dashes and underscores only.",
         label => label.matches("""[A-Za-z0-9\-_]+""")),
       "drugTypeId" -> longNumber
-    )(DrugTypeTerm.apply)(DrugTypeTerm.unapply)
+    )(GenericTypeTerm.apply)(GenericTypeTerm.unapply)
   )
 
   def list = DBAction { implicit rs =>
-    Ok(html.drugTypeTerms.list(DrugTypeTerms.listWithDrugType))
+    Ok(html.drugTypeTerms.list(GenericTypeTerms.listWithDrugType))
   }
 
   def create = DBAction { implicit rs =>
-    Ok(html.drugTypeTerms.create(drugTypeTermForm, DrugTypes.list))
+    Ok(html.drugTypeTerms.create(drugTypeTermForm, GenericTypes.list))
   }
 
   def save = DBAction { implicit rs =>
     drugTypeTermForm.bindFromRequest.fold(
-      formWithErrors => BadRequest(html.drugTypeTerms.create(formWithErrors, DrugTypes.list)),
+      formWithErrors => BadRequest(html.drugTypeTerms.create(formWithErrors, GenericTypes.list)),
       drugTypeTerm => {
-        DrugTypeTerms.insert(drugTypeTerm)
+        GenericTypeTerms.insert(drugTypeTerm)
         Redirect(routes.DrugTypeTermsController.list())
           .flashing("success" -> "The expression term was created successfully.")
       }
@@ -37,17 +37,17 @@ object DrugTypeTermsController extends Controller {
   }
 
   def edit(label: String) = DBAction { implicit rs =>
-    DrugTypeTerms.find(label) match {
-      case Some(term) => Ok(html.drugTypeTerms.edit(label, drugTypeTermForm.fill(term), DrugTypes.list))
+    GenericTypeTerms.find(label) match {
+      case Some(term) => Ok(html.drugTypeTerms.edit(label, drugTypeTermForm.fill(term), GenericTypes.list))
       case _ => NotFound
     }
   }
 
   def update(label: String) = DBAction { implicit rs =>
     drugTypeTermForm.bindFromRequest.fold(
-      formWithErrors => BadRequest(html.drugTypeTerms.edit(label, formWithErrors, DrugTypes.list)),
+      formWithErrors => BadRequest(html.drugTypeTerms.edit(label, formWithErrors, GenericTypes.list)),
       term => {
-        DrugTypeTerms.update(label, term)
+        GenericTypeTerms.update(label, term)
         Redirect(routes.DrugTypeTermsController.list())
           .flashing("success" -> "The expression term was updated successfully.")
       }
@@ -55,14 +55,14 @@ object DrugTypeTermsController extends Controller {
   }
 
   def remove(label: String) = DBAction { implicit rs =>
-    DrugTypeTerms.find(label) match {
+    GenericTypeTerms.find(label) match {
       case Some(term) => Ok(html.drugTypeTerms.remove(term))
       case _ => NotFound
     }
   }
 
   def delete(label: String) = DBAction { implicit rs =>
-    DrugTypeTerms.delete(label)
+    GenericTypeTerms.delete(label)
     Redirect(routes.DrugTypeTermsController.list())
       .flashing("success" -> "The expression term was deleted successfully.")
   }

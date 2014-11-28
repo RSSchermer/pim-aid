@@ -1,4 +1,4 @@
-@(drugTypeTerms: List[(DrugTypeTerm, DrugType)])(implicit flash: play.api.mvc.Flash)
+@(drugTypeTerms: List[(GenericTypeTerm, MedicationProduct)])(implicit flash: play.api.mvc.Flash)
 
 @expressionTerms("Drug type term list", "drugTypeTerms") {
     @flash.get("success").map { message =>
