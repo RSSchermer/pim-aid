@@ -15,7 +15,9 @@ case class DrugGroupTerm(override val label: String, drugGroupId: DrugGroupID) e
   def evaluate(drugGroups: List[DrugGroup]): Boolean = drugGroups.exists(x => x.id.getOrElse(-1) == drugGroupId)
 }
 
-case class StatementTerm(override val label: String, statement: String) extends ExpressionTerm {
+case class StatementTerm(override val label: String, statementTemplate: String, displayCondition: Option[String])
+  extends ExpressionTerm
+{
   def evaluate(statementTerms: List[StatementTerm]): Boolean = statementTerms.exists(x => x.label == label)
 }
 
@@ -23,23 +25,25 @@ class ExpressionTerms(tag: Tag) extends Table[ExpressionTerm](tag, "EXPRESSION_T
   def label = column[String]("label", O.PrimaryKey)
   def genericTypeId = column[GenericTypeID]("drug_type_id", O.Nullable)
   def drugGroupId = column[DrugGroupID]("drug_group_id", O.Nullable)
-  def statement = column[String]("statement", O.Nullable)
+  def statementTemplate = column[String]("statement_template", O.Nullable)
+  def displayCondition = column[String]("display_condition", O.Nullable)
 
-  def * = (label, genericTypeId.?, drugGroupId.?, statement.?) <> (defaultApply, defaultUnapply)
-  def defaultApply(tuple: (String, Option[GenericTypeID], Option[DrugGroupID], Option[String]))
+  def * = (label, genericTypeId.?, drugGroupId.?, statementTemplate.?, displayCondition.?) <> (defaultApply, defaultUnapply)
+  def defaultApply(tuple: (String, Option[GenericTypeID], Option[DrugGroupID], Option[String], Option[String]))
   : ExpressionTerm = {
     tuple match {
-      case (label, Some(drugTypeId), _, _) => GenericTypeTerm(label, drugTypeId)
-      case (label, _, Some(drugGroupId), _) => DrugGroupTerm(label, drugGroupId)
-      case (label, _, _, Some(statement)) => StatementTerm(label, statement)
+      case (label, Some(drugTypeId), _, _, _) => GenericTypeTerm(label, drugTypeId)
+      case (label, _, Some(drugGroupId), _, _) => DrugGroupTerm(label, drugGroupId)
+      case (label, _, _, Some(statement), displayCondition) => StatementTerm(label, statement, displayCondition)
     }
   }
   def defaultUnapply(term: ExpressionTerm)
-  : Option[(String, Option[GenericTypeID], Option[DrugGroupID], Option[String])] = {
+  : Option[(String, Option[GenericTypeID], Option[DrugGroupID], Option[String], Option[String])] = {
     term match {
-      case GenericTypeTerm(label, drugTypeId) => Some(label.value, Some(drugTypeId), None, None)
-      case DrugGroupTerm(label, drugGroupId) => Some(label.value, None, Some(drugGroupId), None)
-      case StatementTerm(label, statement) => Some(label.value, None, None, Some(statement))
+      case GenericTypeTerm(label, drugTypeId) => Some(label.value, Some(drugTypeId), None, None, None)
+      case DrugGroupTerm(label, drugGroupId) => Some(label.value, None, Some(drugGroupId), None, None)
+      case StatementTerm(label, statement, displayCondition) =>
+        Some(label.value, None, None, Some(statement), displayCondition)
     }
   }
 
@@ -106,7 +110,7 @@ object GenericTypeTerms {
 }
 
 object StatementTerms {
-  val all = ExpressionTerms.all.filter(_.statement.isNotNull)
+  val all = ExpressionTerms.all.filter(_.statementTemplate.isNotNull)
 
   def list(implicit s: Session): List[StatementTerm] = all.list.asInstanceOf[List[StatementTerm]]
 
@@ -120,7 +124,7 @@ object StatementTerms {
   def insert(term: StatementTerm)(implicit s: Session) = ExpressionTerms.all.insert(term)
 
   def update(label: String, term: StatementTerm)(implicit s: Session) =
-    one(label).map(x => x.statement).update(term.statement)
+    one(label).map(x => (x.statementTemplate, x.displayCondition.?)).update((term.statementTemplate, term.displayCondition))
 
   def delete(label: String)(implicit s: Session) = one(label).delete
 }

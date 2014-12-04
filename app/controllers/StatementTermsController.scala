@@ -1,19 +1,22 @@
 package controllers
 
+import controllers.constraints.ConditionExpressionConstraint
 import play.api.mvc._
 import play.api.data._
 import play.api.data.Forms._
 import play.api.db.slick._
+import play.api.db.slick.Session
 
 import views._
 import models._
 
 object StatementTermsController extends Controller {
-  val statementTermForm = Form(
+  def statementTermForm(implicit s: Session) = Form(
     mapping(
       "label" -> nonEmptyText.verifying("Must alphanumeric characters, dashes and underscores only.",
         label => label.matches("""[A-Za-z0-9\-_]+""")),
-      "statement" -> nonEmptyText
+      "statementTemplate" -> nonEmptyText,
+      "displayCondition" -> optional(text.verifying(ConditionExpressionConstraint.apply))
     )(StatementTerm.apply)(StatementTerm.unapply)
   )
 

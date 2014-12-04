@@ -21,7 +21,7 @@
             @for(statementTerm <- statementTerms){
                 <tr>
                     <td>@statementTerm.label</td>
-                    <td>@statementTerm.statement</td>
+                    <td>@statementTerm.statementTemplate</td>
                     <td><a href="@routes.StatementTermsController.edit(statementTerm.label)">Edit</a></td>
                     <td><a href="@routes.StatementTermsController.remove(statementTerm.label)">Delete</a></td>
                 </tr>

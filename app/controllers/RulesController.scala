@@ -1,15 +1,14 @@
 package controllers
 
+import controllers.constraints.ConditionExpressionConstraint
 import play.api.mvc._
 import play.api.data._
 import play.api.data.Forms._
-import play.api.data.validation._
 import play.api.db.slick._
 import play.api.db.slick.Session
 
 import views._
 import models._
-import utils._
 
 object RulesController extends Controller {
   def ruleForm(implicit s: Session) = Form(
@@ -19,23 +18,11 @@ object RulesController extends Controller {
         (ruleId: RuleID) => ruleId.value
       )),
       "name" -> nonEmptyText,
-      "conditionExpression" -> nonEmptyText.verifying(conditionExpressionConstraint),
+      "conditionExpression" -> nonEmptyText.verifying(ConditionExpressionConstraint.apply),
       "source" -> optional(text),
       "note" -> optional(text)
     )(Rule.apply)(Rule.unapply)
   )
-
-  def conditionExpressionConstraint(implicit s: Session): Constraint[String] =
-    Constraint[String]("constraints.parsableExpression")({ expression =>
-      val variableMap: Map[String, Boolean] = ExpressionTerms.list.map(t => (t.label, false)).toMap
-      val parser = new ConditionExpressionParser(variableMap)
-
-      parser.parse(expression) match {
-        case parser.Success(_,_) => Valid
-        case parser.NoSuccess(msg,_) => Invalid("Error during parsing: %s.".format(msg))
-        case _ => Invalid("Unknown error during parsing, please check for errors.")
-      }
-    })
 
   def list = DBAction { implicit rs =>
     Ok(html.rules.list(Rules.list))

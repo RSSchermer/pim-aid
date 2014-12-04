@@ -8,7 +8,8 @@
     @helper.form(routes.StatementTermsController.update(label)) {
         <fieldset>
             <input type="hidden" name="label" value='@label'>
-            @helper.inputText(statementTermForm("statement"))
+            @helper.textarea(statementTermForm("statementTemplate"))
+            @helper.textarea(statementTermForm("displayCondition"))
         </fieldset>
 
         <div class="actions">

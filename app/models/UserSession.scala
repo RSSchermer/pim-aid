@@ -97,7 +97,7 @@ object UserSessions {
     val variableMap = expressionTerms.map(t => (t.label, t match {
       case term: GenericTypeTerm => term.evaluate(genericTypes)
       case term: DrugGroupTerm => term.evaluate(drugGroups)
-      case StatementTerm(_, _) => true
+      case StatementTerm(_, _, _) => true
     })).toMap
 
     val parser = new ConditionExpressionParser(variableMap)
