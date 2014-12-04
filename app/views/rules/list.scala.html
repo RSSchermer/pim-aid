@@ -7,21 +7,28 @@
         </div>
     }
 
-    <table class="table table-striped">
-        <tr>
-            <th>Condition Expression</th>
-            <th>Source</th>
-            <th></th>
-            <th></th>
-        </tr>
-        @for(r <- rules){
+    <table class="table table-striped data-table">
+        <thead>
             <tr>
-                <td>@r.conditionExpression</td>
-                <td>@r.source</td>
-                <td><a href="@routes.RulesController.edit(r.id.get)">Edit</a></td>
-                <td><a href="@routes.RulesController.remove(r.id.get)">Delete</a></td>
+                <th>Name</th>
+                <th>Condition Expression</th>
+                <th>Source</th>
+                <th></th>
+                <th></th>
             </tr>
-        }
+        </thead>
+
+        <tbody>
+            @for(r <- rules){
+                <tr>
+                    <td><a href="@routes.RuleSuggestionTemplatesController.list(r.id.get.value)">@r.name</a></td>
+                    <td>@r.conditionExpression</td>
+                    <td>@r.source</td>
+                    <td><a href="@routes.RulesController.edit(r.id.get.value)">Edit</a></td>
+                    <td><a href="@routes.RulesController.remove(r.id.get.value)">Delete</a></td>
+                </tr>
+            }
+        </tbody>
     </table>
 
     <a class="btn btn-primary" href="@routes.RulesController.create()">Add new rule</a>

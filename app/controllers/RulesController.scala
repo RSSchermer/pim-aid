@@ -14,17 +14,15 @@ import utils._
 object RulesController extends Controller {
   def ruleForm(implicit s: Session) = Form(
     mapping(
-      "id" -> optional(longNumber),
+      "id" -> optional(longNumber.transform(
+        (id: Long) => RuleID(id),
+        (ruleId: RuleID) => ruleId.value
+      )),
+      "name" -> nonEmptyText,
       "conditionExpression" -> nonEmptyText.verifying(conditionExpressionConstraint),
       "source" -> optional(text),
-      "note" -> optional(text),
-      "suggestions" -> seq(mapping(
-        "id" -> optional(longNumber),
-        "text" -> nonEmptyText,
-        "explanatoryNote" -> optional(text),
-        "ruleId" -> optional(longNumber)
-      )(Suggestion.apply)(Suggestion.unapply))
-    )(mapForm)(unmapForm)
+      "note" -> optional(text)
+    )(Rule.apply)(Rule.unapply)
   )
 
   def conditionExpressionConstraint(implicit s: Session): Constraint[String] =
@@ -39,18 +37,6 @@ object RulesController extends Controller {
       }
     })
 
-  def mapForm(id: Option[Long], ce: String, source: Option[String], note: Option[String], sSeq: Seq[Suggestion]) = {
-    (Rule(id = id, conditionExpression = ce, source = source, note = note), sSeq.toList)
-  }
-
-  def unmapForm(t: (Rule, List[Suggestion])):
-    Option[(Option[Long], String, Option[String], Option[String], Seq[Suggestion])] =
-  {
-    t match {
-      case (Rule(id, ce, source, note), sList) => Some(id, ce, source, note, sList.toSeq)
-    }
-  }
-
   def list = DBAction { implicit rs =>
     Ok(html.rules.list(Rules.list))
   }
@@ -62,41 +48,42 @@ object RulesController extends Controller {
   def save = DBAction { implicit rs =>
     ruleForm.bindFromRequest.fold(
       formWithErrors => BadRequest(html.rules.create(formWithErrors)),
-      {
-        case (rule, suggestionList) =>
-          Rules.insert(rule, suggestionList)
-          Redirect(routes.RulesController.list()).flashing("success" -> "The rule was created successfully.")
+      rule => {
+        Rules.insert(rule)
+        Redirect(routes.RulesController.list())
+          .flashing("success" -> "The rule was created successfully.")
       }
     )
   }
 
   def edit(id: Long) = DBAction { implicit rs =>
-    Rules.findWithSuggestions(id) match {
-      case Some((rule, suggestionList)) => Ok(html.rules.edit(id, ruleForm.fill((rule, suggestionList))))
+    Rules.find(RuleID(id)) match {
+      case Some(rule) => Ok(html.rules.edit(RuleID(id), ruleForm.fill(rule)))
       case _ => NotFound
     }
   }
 
   def update(id: Long) = DBAction { implicit rs =>
     ruleForm.bindFromRequest.fold(
-      formWithErrors => BadRequest(html.rules.edit(id, formWithErrors)),
-      {
-        case (rule, suggestionList) =>
-          Rules.update(id, rule, suggestionList)
-          Redirect(routes.RulesController.list()).flashing("success" -> "The rule was updated successfully.")
+      formWithErrors => BadRequest(html.rules.edit(RuleID(id), formWithErrors)),
+      rule => {
+        Rules.update(RuleID(id), rule)
+        Redirect(routes.RulesController.list())
+          .flashing("success" -> "The rule was updated successfully.")
       }
     )
   }
 
   def remove(id: Long) = DBAction { implicit rs =>
-    Rules.find(id) match {
+    Rules.find(RuleID(id)) match {
       case Some(rule) => Ok(html.rules.remove(rule))
       case _ => NotFound
     }
   }
 
   def delete(id: Long) = DBAction { implicit rs =>
-    Rules.delete(id)
-    Redirect(routes.RulesController.list()).flashing("success" -> "The rule was deleted successfully.")
+    Rules.delete(RuleID(id))
+    Redirect(routes.RulesController.list())
+      .flashing("success" -> "The rule was deleted successfully.")
   }
 }

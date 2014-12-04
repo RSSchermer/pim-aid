@@ -1,0 +1,46 @@
+@(
+    drugGroup: DrugGroup,
+    drugGroupGenericTypes: List[GenericType],
+    drugGroupGenericTypeForm: Form[DrugGroupGenericType]
+)(implicit flash: play.api.mvc.Flash, session: play.api.db.slick.Session)
+
+@admin("Generic type list for "+ drugGroup.name, "drugGroups") {
+    @flash.get("success").map { message =>
+        <div class="alert alert-success">
+            @message
+        </div>
+    }
+
+    <h1>Generic type list for @drugGroup.name</h1>
+
+    <a href="@routes.DrugGroupsController.list()">Back to list</a>
+
+    @helper.form(action = routes.DrugGroupGenericTypesController.save(drugGroup.id.get.value)) {
+        <fieldset>
+            <input type="hidden" name="drugGroupId" value='@drugGroup.id.get.value'>
+            @helper.select(drugGroupGenericTypeForm("genericTypeId"), GenericTypes.list.toSeq.map(gt => gt.id.get.value.toString -> gt.name))
+        </fieldset>
+
+        <div class="actions">
+            <input type="submit" value="Add generic type" class="btn btn-primary">
+        </div>
+    }
+
+    <table class="table table-striped data-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th></th>
+            </tr>
+        </thead>
+
+        <tbody>
+            @for(genericType <- drugGroupGenericTypes){
+                <tr>
+                    <td>@genericType.name</td>
+                    <td><a href="@routes.DrugGroupGenericTypesController.remove(drugGroup.id.get.value, genericType.id.get.value)">Delete</a></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

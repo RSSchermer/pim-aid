@@ -1,0 +1,7 @@
+@(suggestionTemplateForm: Form[SuggestionTemplate])
+
+@admin("Creating a new suggestion", "suggestionTemplates") {
+    <h1>Creating a new suggestion</h1>
+
+    @suggestionTemplates.form(suggestionTemplateForm, routes.SuggestionTemplatesController.save())
+}

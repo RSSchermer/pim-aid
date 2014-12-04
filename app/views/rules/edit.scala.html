@@ -1,8 +1,8 @@
-@(ruleId: Long, ruleForm: Form[(Rule, List[Suggestion])])
+@(ruleId: RuleID, ruleForm: Form[Rule])
 
 
 @admin("Editing a rule", "rules") {
     <h1>Editing a rule</h1>
 
-    @rules.form(ruleForm, routes.RulesController.update(ruleId))
+    @rules.form(ruleForm, routes.RulesController.update(ruleId.value))
 }

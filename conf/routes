@@ -3,81 +3,117 @@
 # ~~~~
 
 # Home page
-GET           /                                            controllers.StaticPagesController.introduction
+GET           /                                                                                controllers.StaticPagesController.introduction
 
-GET           /privacy                                     controllers.StaticPagesController.privacy
+GET           /privacy                                                                         controllers.StaticPagesController.privacy
 
-GET           /about                                       controllers.StaticPagesController.about
+GET           /about                                                                           controllers.StaticPagesController.about
 
-GET           /contact                                     controllers.StaticPagesController.contact
+GET           /contact                                                                         controllers.StaticPagesController.contact
 
-GET           /medication_list                             controllers.StepsController.medicationList
-GET           /statement_selection                         controllers.StepsController.statementSelection
-POST          /statement_selection                         controllers.StepsController.saveStatementSelection
-GET           /suggestion_list                             controllers.StepsController.suggestionList
-GET           /print                                       controllers.StepsController.print
+GET           /medication_list                                                                 controllers.StepsController.medicationList
+GET           /statement_selection                                                             controllers.StepsController.statementSelection
+POST          /statement_selection                                                             controllers.StepsController.saveStatementSelection
+GET           /suggestion_list                                                                 controllers.StepsController.suggestionList
+GET           /print                                                                           controllers.StepsController.print
 
 # Map static resources from the /public folder to the /assets URL path
-GET           /assets/*file                                controllers.Assets.at(path="/public", file)
+GET           /assets/*file                                                                    controllers.Assets.at(path="/public", file)
 
 # Drugs
-GET           /drugs                                       controllers.DrugsController.list
-POST          /drugs                                       controllers.DrugsController.save
-DELETE        /drugs/:id                                   controllers.DrugsController.delete(id: Long)
+GET           /drugs                                                                           controllers.DrugsController.list
+POST          /drugs                                                                           controllers.DrugsController.save
+DELETE        /drugs/:id                                                                       controllers.DrugsController.delete(id: Long)
 
 # Admin
-GET           /admin                                       controllers.RulesController.list
+GET           /admin                                                                           controllers.RulesController.list
 
 # Rules
-GET           /admin/rules                                 controllers.RulesController.list
-GET           /admin/rules/new                             controllers.RulesController.create
-POST          /admin/rules                                 controllers.RulesController.save
-GET           /admin/rules/:id/edit                        controllers.RulesController.edit(id: Long)
-POST          /admin/rules/:id                             controllers.RulesController.update(id: Long)
-GET           /admin/rules/:id/delete                      controllers.RulesController.remove(id: Long)
-POST          /admin/rules/:id/delete                      controllers.RulesController.delete(id: Long)
+GET           /admin/rules                                                                     controllers.RulesController.list
+GET           /admin/rules/new                                                                 controllers.RulesController.create
+POST          /admin/rules                                                                     controllers.RulesController.save
+GET           /admin/rules/:id/edit                                                            controllers.RulesController.edit(id: Long)
+POST          /admin/rules/:id                                                                 controllers.RulesController.update(id: Long)
+GET           /admin/rules/:id/delete                                                          controllers.RulesController.remove(id: Long)
+POST          /admin/rules/:id/delete                                                          controllers.RulesController.delete(id: Long)
+
+# Rule suggestion templates
+GET           /admin/rules/:ruleId/suggestions                                                 controllers.RuleSuggestionTemplatesController.list(ruleId: Long)
+POST          /admin/rules/:ruleId/suggestions                                                 controllers.RuleSuggestionTemplatesController.save(ruleId: Long)
+GET           /admin/rules/:ruleId/suggestions/:suggestionTemplateId/delete                    controllers.RuleSuggestionTemplatesController.remove(ruleId: Long, suggestionTemplateId: Long)
+POST          /admin/rules/:ruleId/suggestions/:suggestionTemplateId/delete                    controllers.RuleSuggestionTemplatesController.delete(ruleId: Long, suggestionTemplateId: Long)
+
+# Suggestion templates
+GET           /admin/suggestions                                                               controllers.SuggestionTemplatesController.list
+GET           /admin/suggestions/new                                                           controllers.SuggestionTemplatesController.create
+POST          /admin/suggestions                                                               controllers.SuggestionTemplatesController.save
+GET           /admin/suggestions/:id/edit                                                      controllers.SuggestionTemplatesController.edit(id: Long)
+POST          /admin/suggestions/:id                                                           controllers.SuggestionTemplatesController.update(id: Long)
+GET           /admin/suggestions/:id/delete                                                    controllers.SuggestionTemplatesController.remove(id: Long)
+POST          /admin/suggestions/:id/delete                                                    controllers.SuggestionTemplatesController.delete(id: Long)
 
 # Drug groups
-GET           /admin/drug_groups                           controllers.DrugGroupsController.list
-GET           /admin/drug_groups/new                       controllers.DrugGroupsController.create
-POST          /admin/drug_groups                           controllers.DrugGroupsController.save
-GET           /admin/drug_groups/:id/edit                  controllers.DrugGroupsController.edit(id: Long)
-POST          /admin/drug_groups/:id                       controllers.DrugGroupsController.update(id: Long)
-GET           /admin/drug_groups/:id/delete                controllers.DrugGroupsController.remove(id: Long)
-POST          /admin/drug_groups/:id/delete                controllers.DrugGroupsController.delete(id: Long)
+GET           /admin/drug_groups                                                               controllers.DrugGroupsController.list
+GET           /admin/drug_groups/new                                                           controllers.DrugGroupsController.create
+POST          /admin/drug_groups                                                               controllers.DrugGroupsController.save
+GET           /admin/drug_groups/:id/edit                                                      controllers.DrugGroupsController.edit(id: Long)
+POST          /admin/drug_groups/:id                                                           controllers.DrugGroupsController.update(id: Long)
+GET           /admin/drug_groups/:id/delete                                                    controllers.DrugGroupsController.remove(id: Long)
+POST          /admin/drug_groups/:id/delete                                                    controllers.DrugGroupsController.delete(id: Long)
 
-# Drug types
-GET           /admin/drug_types                            controllers.DrugTypesController.list
-GET           /admin/drug_types/new                        controllers.DrugTypesController.create
-POST          /admin/drug_types                            controllers.DrugTypesController.save
-GET           /admin/drug_types/:id/edit                   controllers.DrugTypesController.edit(id: Long)
-POST          /admin/drug_types/:id                        controllers.DrugTypesController.update(id: Long)
-GET           /admin/drug_types/:id/delete                 controllers.DrugTypesController.remove(id: Long)
-POST          /admin/drug_types/:id/delete                 controllers.DrugTypesController.delete(id: Long)
+# Drug group generic types
+GET           /admin/drug_groups/:drugGroupId/generic_types                                    controllers.DrugGroupGenericTypesController.list(drugGroupId: Long)
+POST          /admin/drug_groups/:drugGroupId/generic_types                                    controllers.DrugGroupGenericTypesController.save(drugGroupId: Long)
+GET           /admin/drug_groups/:drugGroupId/generic_types/:genericTypeId/delete              controllers.DrugGroupGenericTypesController.remove(drugGroupId: Long, genericTypeId: Long)
+POST          /admin/drug_groups/:drugGroupId/generic_types/:genericTypeId/delete              controllers.DrugGroupGenericTypesController.delete(drugGroupId: Long, genericTypeId: Long)
 
-# Drug type terms
-GET           /admin/drug_type_terms                       controllers.DrugTypeTermsController.list
-GET           /admin/drug_type_terms/new                   controllers.DrugTypeTermsController.create
-POST          /admin/drug_type_terms                       controllers.DrugTypeTermsController.save
-GET           /admin/drug_type_terms/:label/edit           controllers.DrugTypeTermsController.edit(label: String)
-POST          /admin/drug_type_terms/:label                controllers.DrugTypeTermsController.update(label: String)
-GET           /admin/drug_type_terms/:label/delete         controllers.DrugTypeTermsController.remove(label: String)
-POST          /admin/drug_type_terms/:label/delete         controllers.DrugTypeTermsController.delete(label: String)
+# Generic types
+GET           /admin/generic_types                                                             controllers.GenericTypesController.list
+GET           /admin/generic_types/new                                                         controllers.GenericTypesController.create
+POST          /admin/generic_types                                                             controllers.GenericTypesController.save
+GET           /admin/generic_types/:id/edit                                                    controllers.GenericTypesController.edit(id: Long)
+POST          /admin/generic_types/:id                                                         controllers.GenericTypesController.update(id: Long)
+GET           /admin/generic_types/:id/delete                                                  controllers.GenericTypesController.remove(id: Long)
+POST          /admin/generic_types/:id/delete                                                  controllers.GenericTypesController.delete(id: Long)
+
+# Medication products
+GET           /admin/medication_products                                                       controllers.MedicationProductsController.list
+GET           /admin/medication_products/new                                                   controllers.MedicationProductsController.create
+POST          /admin/medication_products                                                       controllers.MedicationProductsController.save
+GET           /admin/medication_products/:id/edit                                              controllers.MedicationProductsController.edit(id: Long)
+POST          /admin/medication_products/:id                                                   controllers.MedicationProductsController.update(id: Long)
+GET           /admin/medication_products/:id/delete                                            controllers.MedicationProductsController.remove(id: Long)
+POST          /admin/medication_products/:id/delete                                            controllers.MedicationProductsController.delete(id: Long)
+
+# Medication product generic types
+GET           /admin/medication_products/:productId/generic_types                              controllers.MedicationProductGenericTypesController.list(productId: Long)
+POST          /admin/medication_products/:productId/generic_types                              controllers.MedicationProductGenericTypesController.save(productId: Long)
+GET           /admin/medication_products/:productId/generic_types/:genericTypeId/delete        controllers.MedicationProductGenericTypesController.remove(productId: Long, genericTypeId: Long)
+POST          /admin/medication_products/:productId/generic_types/:genericTypeId/delete        controllers.MedicationProductGenericTypesController.delete(productId: Long, genericTypeId: Long)
+
+# Generic type terms
+GET           /admin/generic_type_terms                                                        controllers.GenericTypeTermsController.list
+GET           /admin/generic_type_terms/new                                                    controllers.GenericTypeTermsController.create
+POST          /admin/generic_type_terms                                                        controllers.GenericTypeTermsController.save
+GET           /admin/generic_type_terms/:label/edit                                            controllers.GenericTypeTermsController.edit(label: String)
+POST          /admin/generic_type_terms/:label                                                 controllers.GenericTypeTermsController.update(label: String)
+GET           /admin/generic_type_terms/:label/delete                                          controllers.GenericTypeTermsController.remove(label: String)
+POST          /admin/generic_type_terms/:label/delete                                          controllers.GenericTypeTermsController.delete(label: String)
 
 # Drug group terms
-GET           /admin/drug_group_terms                      controllers.DrugGroupTermsController.list
-GET           /admin/drug_group_terms/new                  controllers.DrugGroupTermsController.create
-POST          /admin/drug_group_terms                      controllers.DrugGroupTermsController.save
-GET           /admin/drug_group_terms/:label/edit          controllers.DrugGroupTermsController.edit(label: String)
-POST          /admin/drug_group_terms/:label               controllers.DrugGroupTermsController.update(label: String)
-GET           /admin/drug_group_terms/:label/delete        controllers.DrugGroupTermsController.remove(label: String)
-POST          /admin/drug_group_terms/:label/delete        controllers.DrugGroupTermsController.delete(label: String)
+GET           /admin/drug_group_terms                                                          controllers.DrugGroupTermsController.list
+GET           /admin/drug_group_terms/new                                                      controllers.DrugGroupTermsController.create
+POST          /admin/drug_group_terms                                                          controllers.DrugGroupTermsController.save
+GET           /admin/drug_group_terms/:label/edit                                              controllers.DrugGroupTermsController.edit(label: String)
+POST          /admin/drug_group_terms/:label                                                   controllers.DrugGroupTermsController.update(label: String)
+GET           /admin/drug_group_terms/:label/delete                                            controllers.DrugGroupTermsController.remove(label: String)
+POST          /admin/drug_group_terms/:label/delete                                            controllers.DrugGroupTermsController.delete(label: String)
 
 # Question terms
-GET           /admin/statement_terms                       controllers.StatementTermsController.list
-GET           /admin/statement_terms/new                   controllers.StatementTermsController.create
-POST          /admin/statement_terms                       controllers.StatementTermsController.save
-GET           /admin/statement_terms/:label/edit           controllers.StatementTermsController.edit(label: String)
-POST          /admin/statement_terms/:label                controllers.StatementTermsController.update(label: String)
-GET           /admin/statement_terms/:label/delete         controllers.StatementTermsController.remove(label: String)
-POST          /admin/statement_terms/:label/delete         controllers.StatementTermsController.delete(label: String)
+GET           /admin/statement_terms                                                           controllers.StatementTermsController.list
+GET           /admin/statement_terms/new                                                       controllers.StatementTermsController.create
+POST          /admin/statement_terms                                                           controllers.StatementTermsController.save
+GET           /admin/statement_terms/:label/edit                                               controllers.StatementTermsController.edit(label: String)
+POST          /admin/statement_terms/:label                                                    controllers.StatementTermsController.update(label: String)
+GET           /admin/statement_terms/:label/delete                                             controllers.StatementTermsController.remove(label: String)
+POST          /admin/statement_terms/:label/delete                                             controllers.StatementTermsController.delete(label: String)

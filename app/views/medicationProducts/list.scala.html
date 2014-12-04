@@ -1,0 +1,31 @@
+@(medicationProducts: List[MedicationProduct])(implicit flash: play.api.mvc.Flash)
+
+@admin("Medication product list", "medicationProducts") {
+    @flash.get("success").map { message =>
+        <div class="alert alert-success">
+            @message
+        </div>
+    }
+
+    <table class="table table-striped data-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th></th>
+                <th></th>
+            </tr>
+        </thead>
+
+        <tbody>
+            @for(medicationProduct <- medicationProducts){
+                <tr>
+                    <td><a href="@routes.MedicationProductGenericTypesController.list(medicationProduct.id.get.value)">@medicationProduct.name</a></td>
+                    <td><a href="@routes.MedicationProductsController.edit(medicationProduct.id.get.value)">Edit</a></td>
+                    <td><a href="@routes.MedicationProductsController.remove(medicationProduct.id.get.value)">Delete</a></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <a class="btn btn-primary" href="@routes.MedicationProductsController.create()">Add new medication product</a>
+}

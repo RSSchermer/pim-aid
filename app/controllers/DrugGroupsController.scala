@@ -12,7 +12,10 @@ import models._
 object DrugGroupsController extends Controller {
   val drugGroupForm = Form(
     mapping(
-      "id" -> optional(longNumber),
+      "id" -> optional(longNumber.transform(
+        (id: Long) => DrugGroupID(id),
+        (drugGroupId: DrugGroupID) => drugGroupId.value
+      )),
       "name" -> nonEmptyText
     )(DrugGroup.apply)(DrugGroup.unapply)
   )
@@ -29,38 +32,43 @@ object DrugGroupsController extends Controller {
     drugGroupForm.bindFromRequest.fold(
       formWithErrors => BadRequest(html.drugGroups.create(formWithErrors)),
       drugGroup => {
-        DrugGroups.insert(drugGroup)
-        Redirect(routes.DrugGroupsController.list()).flashing("success" -> "The drug group was created successfully.")
+        val id = DrugGroups.insert(drugGroup)
+
+        Redirect(routes.DrugGroupGenericTypesController.list(id.value))
+          .flashing("success" -> "The drug group was created successfully.")
       }
     )
   }
 
   def edit(id: Long) = DBAction { implicit rs =>
-    DrugGroups.find(id) match {
-      case Some(drugGroup) => Ok(html.drugGroups.edit(id, drugGroupForm.fill(drugGroup)))
+    DrugGroups.find(DrugGroupID(id)) match {
+      case Some(drugGroup) =>
+        Ok(html.drugGroups.edit(DrugGroupID(id), drugGroupForm.fill(drugGroup)))
       case _ => NotFound
     }
   }
 
   def update(id: Long) = DBAction { implicit rs =>
     drugGroupForm.bindFromRequest.fold(
-      formWithErrors => BadRequest(html.drugGroups.edit(id, formWithErrors)),
+      formWithErrors => BadRequest(html.drugGroups.edit(DrugGroupID(id), formWithErrors)),
       drugGroup => {
-        DrugGroups.update(id, drugGroup)
-        Redirect(routes.DrugGroupsController.list()).flashing("success" -> "The drug group was updated successfully.")
+        DrugGroups.update(DrugGroupID(id), drugGroup)
+        Redirect(routes.DrugGroupsController.list())
+          .flashing("success" -> "The drug group was updated successfully.")
       }
     )
   }
 
   def remove(id: Long) = DBAction { implicit rs =>
-    DrugGroups.find(id) match {
+    DrugGroups.find(DrugGroupID(id)) match {
       case Some(drugGroup) => Ok(html.drugGroups.remove(drugGroup))
       case _ => NotFound
     }
   }
 
   def delete(id: Long) = DBAction { implicit rs =>
-    DrugGroups.delete(id)
-    Redirect(routes.DrugGroupsController.list()).flashing("success" -> "The drug group was deleted successfully.")
+    DrugGroups.delete(DrugGroupID(id))
+    Redirect(routes.DrugGroupsController.list())
+      .flashing("success" -> "The drug group was deleted successfully.")
   }
 }

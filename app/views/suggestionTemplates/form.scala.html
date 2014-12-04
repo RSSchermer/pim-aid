@@ -1,0 +1,16 @@
+@(suggestionTemplateForm: Form[SuggestionTemplate], action: Call)
+
+@import helper.twitterBootstrap._
+
+@helper.form(action = action) {
+    <fieldset class = "rule-fields">
+        @helper.inputText(suggestionTemplateForm("name"))
+        @helper.textarea(suggestionTemplateForm("text"))
+        @helper.textarea(suggestionTemplateForm("explanatoryNote"))
+    </fieldset>
+
+    <div class="actions">
+        <input type="submit" value="Save" class="btn btn-primary"> or
+        <a href="@routes.SuggestionTemplatesController.list()" class="btn">Cancel</a>
+    </div>
+}

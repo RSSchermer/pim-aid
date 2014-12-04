@@ -1,6 +1,7 @@
 package models
 
 import play.api.db.slick.Config.driver.simple._
+import play.api.db.slick.Session
 
 case class GenericTypeMedicationProduct(genericTypeId: GenericTypeID, medicationProductId: MedicationProductID)
 
@@ -17,4 +18,17 @@ class GenericTypesMedicationProducts(tag: Tag)
     TableQuery[GenericTypes])(_.id)
   def medicationProduct = foreignKey("GENERIC_TYPES_MEDICATION_PRODUCT_MEDICATION_PRODUCT_FK", medicationProductId, 
     TableQuery[MedicationProducts])(_.id)
+}
+
+object GenericTypesMedicationProducts {
+  val all = TableQuery[GenericTypesMedicationProducts]
+
+  def one(genericTypeId: GenericTypeID, medicationProductId: MedicationProductID) =
+    all.filter(x => x.genericTypeId === genericTypeId && x.medicationProductId === medicationProductId)
+
+  def insert(genericTypeMedicationProduct: GenericTypeMedicationProduct)(implicit s: Session) =
+    all.insert(genericTypeMedicationProduct)
+
+  def delete(genericTypeId: GenericTypeID, medicationProductId: MedicationProductID)(implicit s: Session) =
+    one(genericTypeId, medicationProductId).delete
 }

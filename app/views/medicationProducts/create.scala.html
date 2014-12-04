@@ -1,0 +1,7 @@
+@(medicationProductForm: Form[MedicationProduct])
+
+@admin("Creating a new medication product", "medicationProducts") {
+    <h1>Creating a new medication product</h1>
+
+    @medicationProducts.form(medicationProductForm, routes.MedicationProductsController.save())
+}

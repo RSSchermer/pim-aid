@@ -7,21 +7,26 @@
         </div>
     }
 
-    <table class="table table-striped">
-        <tr>
-            <th>Label</th>
-            <th>Statement</th>
-            <th></th>
-            <th></th>
-        </tr>
-        @for(qt <- statementTerms){
+    <table class="table table-striped data-table">
+        <thead>
             <tr>
-                <td>@qt.label</td>
-                <td>@qt.statement</td>
-                <td><a href="@routes.StatementTermsController.edit(qt.label)">Edit</a></td>
-                <td><a href="@routes.StatementTermsController.remove(qt.label)">Delete</a></td>
+                <th>Label</th>
+                <th>Statement</th>
+                <th></th>
+                <th></th>
             </tr>
-        }
+        </thead>
+
+        <tbody>
+            @for(statementTerm <- statementTerms){
+                <tr>
+                    <td>@statementTerm.label</td>
+                    <td>@statementTerm.statement</td>
+                    <td><a href="@routes.StatementTermsController.edit(statementTerm.label)">Edit</a></td>
+                    <td><a href="@routes.StatementTermsController.remove(statementTerm.label)">Delete</a></td>
+                </tr>
+            }
+        </tbody>
     </table>
 
     <a class="btn btn-primary" href="@routes.StatementTermsController.create()">Add new statement term</a>

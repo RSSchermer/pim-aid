@@ -1,0 +1,49 @@
+@(
+    rule: Rule,
+    ruleSuggestionTemplates: List[SuggestionTemplate],
+    ruleSuggestionTemplateForm: Form[RuleSuggestionTemplate]
+)(implicit flash: play.api.mvc.Flash, session: play.api.db.slick.Session)
+
+@admin("Suggestion list for "+ rule.name, "rules") {
+    @flash.get("success").map { message =>
+        <div class="alert alert-success">
+            @message
+        </div>
+    }
+    <h1>Suggestion list for @rule.name</h1>
+
+    <a href="@routes.RulesController.list()">Back to list</a>
+
+    <p>@rule.conditionExpression</p>
+
+    @helper.form(action = routes.RuleSuggestionTemplatesController.save(rule.id.get.value)) {
+        <fieldset>
+            <input type="hidden" name="ruleId" value='@rule.id.get.value'>
+            @helper.select(ruleSuggestionTemplateForm("suggestionTemplateId"), SuggestionTemplates.list.toSeq.map(gt => gt.id.get.value.toString -> gt.name))
+        </fieldset>
+
+        <div class="actions">
+            <input type="submit" value="Add suggestion" class="btn btn-primary">
+        </div>
+    }
+
+    <table class="table table-striped data-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Text</th>
+                <th></th>
+            </tr>
+        </thead>
+
+        <tbody>
+            @for(suggestionTemplate <- ruleSuggestionTemplates){
+                <tr>
+                    <td>@suggestionTemplate.name</td>
+                    <td>@suggestionTemplate.text</td>
+                    <td><a href="@routes.RuleSuggestionTemplatesController.remove(rule.id.get.value, suggestionTemplate.id.get.value)">Delete</a></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

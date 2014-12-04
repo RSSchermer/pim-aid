@@ -1,0 +1,14 @@
+@(drugGroup: DrugGroup, genericType: GenericType)
+
+@expressionTerms("Removing a generic type", "drugGroups") {
+    <h1>Are you sure you want to remove this generic type from group <em>@drugGroup.name</em>?</h1>
+
+    <dl>
+        <dt>GenericType</dt><dd>@genericType.name</dd>
+    </dl>
+
+    @helper.form(routes.DrugGroupGenericTypesController.delete(drugGroup.id.get.value, genericType.id.get.value)) {
+        <input type="submit" value="Remove" class="btn btn-danger"> or
+        <a href="@routes.DrugGroupGenericTypesController.list(drugGroup.id.get.value)" class="btn">Cancel</a>
+    }
+}

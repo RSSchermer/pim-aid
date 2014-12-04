@@ -2,13 +2,13 @@ package models
 
 import play.api.db.slick.Config.driver.simple._
 
-case class StatementTermUserSession(userSessionToken: UserToken, statementTermLabel: StatementTermLabel)
+case class StatementTermUserSession(userSessionToken: UserToken, statementTermLabel: String)
 
 class StatementTermsUserSessions(tag: Tag)
   extends Table[StatementTermUserSession](tag, "STATEMENT_TERMS_USER_SESSIONS")
 {
   def userSessionToken = column[UserToken]("user_session_token")
-  def statementTermLabel = column[StatementTermLabel]("statement_term_label")
+  def statementTermLabel = column[String]("statement_term_label")
 
   def * = (userSessionToken, statementTermLabel) <> (StatementTermUserSession.tupled, StatementTermUserSession.unapply)
 
@@ -16,5 +16,5 @@ class StatementTermsUserSessions(tag: Tag)
   def userSession = foreignKey("STATEMENT_TERMS_USER_SESSIONS_USER_SESSION_FK", userSessionToken,
     TableQuery[UserSessions])(_.token)
   def statementTerm = foreignKey("STATEMENT_TERMS_USER_SESSIONS_STATEMENT_TERM_FK", statementTermLabel,
-    TableQuery[ExpressionTerms])(_.label.asInstanceOf[StatementTermLabel])
+    TableQuery[ExpressionTerms])(_.label)
 }

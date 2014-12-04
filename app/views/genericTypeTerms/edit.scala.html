@@ -1,0 +1,19 @@
+@(label: String, drugTypeTermForm: Form[GenericTypeTerm])(implicit session: play.api.db.slick.Session)
+
+@import helper.twitterBootstrap._
+
+@expressionTerms("Editing a generic type term", "genericTypeTerms") {
+    <h1>Editing a generic type term</h1>
+
+    @helper.form(routes.GenericTypeTermsController.update(label)) {
+        <fieldset>
+            <input type="hidden" name="label" value='@label'>
+            @helper.select(drugTypeTermForm("genericTypeId"), GenericTypes.list.toSeq.map(dt => dt.id.get.value.toString -> dt.name))
+        </fieldset>
+
+        <div class="actions">
+            <input type="submit" value="Save" class="btn btn-primary"> or
+            <a href="@routes.GenericTypeTermsController.list()" class="btn">Cancel</a>
+        </div>
+    }
+}

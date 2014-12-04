@@ -8,7 +8,7 @@ import models._
 trait UserSessionAware extends Controller {
   def currentUserSession(request: Request[AnyRef])(implicit s: Session): UserSession = {
     request.session.get("token") match {
-      case Some(token) => UserSessions.find(token) match {
+      case Some(token) => UserSessions.find(UserToken(token)) match {
         case Some(userSession) => userSession
         case _ => UserSessions.create()
       }

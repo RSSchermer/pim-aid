@@ -1,0 +1,7 @@
+@(suggestionTemplateId: SuggestionTemplateID, suggestionTemplateForm: Form[SuggestionTemplate])
+
+@admin("Editing a suggestion", "suggestionTemplates") {
+    <h1>Editing a suggestion</h1>
+
+    @suggestionTemplates.form(suggestionTemplateForm, routes.MedicationProductsController.update(suggestionTemplateId.value))
+}

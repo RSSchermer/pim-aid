@@ -1,0 +1,14 @@
+@(genericTypeForm: Form[GenericType], action: Call)
+
+@import helper.twitterBootstrap._
+
+@helper.form(action = action) {
+    <fieldset>
+        @helper.inputText(genericTypeForm("name"))
+    </fieldset>
+
+    <div class="actions">
+        <input type="submit" value="Save" class="btn btn-primary"> or
+        <a href="@routes.GenericTypesController.list()" class="btn">Cancel</a>
+    </div>
+}

@@ -1,0 +1,33 @@
+@(suggestionTemplates: List[SuggestionTemplate])(implicit flash: play.api.mvc.Flash)
+
+@admin("Suggestion list", "suggestionTemplates") {
+    @flash.get("success").map { message =>
+        <div class="alert alert-success">
+            @message
+        </div>
+    }
+
+    <table class="table table-striped data-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Text</th>
+                <th></th>
+                <th></th>
+            </tr>
+        </thead>
+
+        <tbody>
+            @for(suggestionTemplate <- suggestionTemplates){
+                <tr>
+                    <td>@suggestionTemplate.name</td>
+                    <td>@suggestionTemplate.text</td>
+                    <td><a href="@routes.SuggestionTemplatesController.edit(suggestionTemplate.id.get.value)">Edit</a></td>
+                    <td><a href="@routes.SuggestionTemplatesController.remove(suggestionTemplate.id.get.value)">Delete</a></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <a class="btn btn-primary" href="@routes.SuggestionTemplatesController.create()">Add new suggestion</a>
+}

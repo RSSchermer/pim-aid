@@ -82,8 +82,7 @@ object UserSessions {
     } yield statementTerm).list.asInstanceOf[List[StatementTerm]]
   }
 
-  def updateSelectedStatementTerms(token: UserToken, statementTermLabels: List[StatementTermLabel])
-                                  (implicit s: Session) =
+  def updateSelectedStatementTerms(token: UserToken, statementTermLabels: List[String])(implicit s: Session) =
   {
     TableQuery[StatementTermsUserSessions].filter(_.userSessionToken === token).delete
     statementTermLabels.map(StatementTermUserSession(token, _))
@@ -95,14 +94,14 @@ object UserSessions {
     val drugGroups = drugGroupListFor(token)
     val genericTypes = genericTypeListFor(token)
 
-    val variableMap = expressionTerms.map(t => (t.label.value, t match {
+    val variableMap = expressionTerms.map(t => (t.label, t match {
       case term: GenericTypeTerm => term.evaluate(genericTypes)
       case term: DrugGroupTerm => term.evaluate(drugGroups)
       case StatementTerm(_, _) => true
     })).toMap
 
     val parser = new ConditionExpressionParser(variableMap)
-    val ruleWithExpressionTerms: List[(Long, ExpressionTerm)] = (for {
+    val ruleWithExpressionTerms: List[(RuleID, ExpressionTerm)] = (for {
       termRule <- TableQuery[ExpressionTermsRules]
       term <- TableQuery[ExpressionTerms] if termRule.expressionTermLabel === term.label
     } yield (termRule.ruleId, term)).list
@@ -113,24 +112,24 @@ object UserSessions {
     }).collect{ case t: StatementTerm => t }
   }
 
-  def suggestionListFor(token: UserToken)(implicit s: Session): List[Suggestion] = {
+  def suggestionListFor(token: UserToken)(implicit s: Session): List[SuggestionTemplate] = {
     val expressionTerms = TableQuery[ExpressionTerms].list
     val drugGroups = drugGroupListFor(token)
     val genericTypes = genericTypeListFor(token)
     val selectedStatements = selectedStatementTermsFor(token)
 
-    val variableMap = expressionTerms.map(t => (t.label.value, t match {
+    val variableMap = expressionTerms.map(t => (t.label, t match {
       case term: GenericTypeTerm => term.evaluate(genericTypes)
       case term: DrugGroupTerm => term.evaluate(drugGroups)
       case term: StatementTerm => term.evaluate(selectedStatements)
     })).toMap
 
     val parser = new ConditionExpressionParser(variableMap)
-    val ruleWithSuggestions: List[(Long, Suggestion)] = (for {
+    val ruleWithSuggestions: List[(RuleID, SuggestionTemplate)] = (for {
       ((rule, ruleSuggestion), suggestion) <-
         TableQuery[Rules] rightJoin
-        TableQuery[RulesSuggestions] on (_.id === _.ruleId) rightJoin
-        TableQuery[Suggestions] on (_._2.suggestionId === _.id)
+        TableQuery[RulesSuggestionTemplates] on (_.id === _.ruleId) rightJoin
+        TableQuery[SuggestionTemplates] on (_._2.suggestionTemplateId === _.id)
     } yield (rule.id, suggestion)).list
 
     val trueRuleIds = TableQuery[Rules].list.filter(r => parser.parse(r.conditionExpression) match {

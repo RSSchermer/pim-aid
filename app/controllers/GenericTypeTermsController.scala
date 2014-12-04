@@ -8,29 +8,32 @@ import play.api.db.slick._
 import views._
 import models._
 
-object DrugTypeTermsController extends Controller {
-  val drugTypeTermForm = Form(
+object GenericTypeTermsController extends Controller {
+  val genericTypeTermForm = Form(
     mapping(
       "label" -> nonEmptyText.verifying("Must alphanumeric characters, dashes and underscores only.",
         label => label.matches("""[A-Za-z0-9\-_]+""")),
-      "drugTypeId" -> longNumber
+      "genericTypeId" -> longNumber.transform(
+        (id: Long) => GenericTypeID(id),
+        (genericTypeId: GenericTypeID) => genericTypeId.value
+      )
     )(GenericTypeTerm.apply)(GenericTypeTerm.unapply)
   )
 
   def list = DBAction { implicit rs =>
-    Ok(html.drugTypeTerms.list(GenericTypeTerms.listWithDrugType))
+    Ok(html.genericTypeTerms.list(GenericTypeTerms.listWithGenericType))
   }
 
   def create = DBAction { implicit rs =>
-    Ok(html.drugTypeTerms.create(drugTypeTermForm, GenericTypes.list))
+    Ok(html.genericTypeTerms.create(genericTypeTermForm))
   }
 
   def save = DBAction { implicit rs =>
-    drugTypeTermForm.bindFromRequest.fold(
-      formWithErrors => BadRequest(html.drugTypeTerms.create(formWithErrors, GenericTypes.list)),
+    genericTypeTermForm.bindFromRequest.fold(
+      formWithErrors => BadRequest(html.genericTypeTerms.create(formWithErrors)),
       drugTypeTerm => {
         GenericTypeTerms.insert(drugTypeTerm)
-        Redirect(routes.DrugTypeTermsController.list())
+        Redirect(routes.GenericTypeTermsController.list())
           .flashing("success" -> "The expression term was created successfully.")
       }
     )
@@ -38,17 +41,17 @@ object DrugTypeTermsController extends Controller {
 
   def edit(label: String) = DBAction { implicit rs =>
     GenericTypeTerms.find(label) match {
-      case Some(term) => Ok(html.drugTypeTerms.edit(label, drugTypeTermForm.fill(term), GenericTypes.list))
+      case Some(term) => Ok(html.genericTypeTerms.edit(label, genericTypeTermForm.fill(term)))
       case _ => NotFound
     }
   }
 
   def update(label: String) = DBAction { implicit rs =>
-    drugTypeTermForm.bindFromRequest.fold(
-      formWithErrors => BadRequest(html.drugTypeTerms.edit(label, formWithErrors, GenericTypes.list)),
+    genericTypeTermForm.bindFromRequest.fold(
+      formWithErrors => BadRequest(html.genericTypeTerms.edit(label, formWithErrors)),
       term => {
         GenericTypeTerms.update(label, term)
-        Redirect(routes.DrugTypeTermsController.list())
+        Redirect(routes.GenericTypeTermsController.list())
           .flashing("success" -> "The expression term was updated successfully.")
       }
     )
@@ -56,14 +59,14 @@ object DrugTypeTermsController extends Controller {
 
   def remove(label: String) = DBAction { implicit rs =>
     GenericTypeTerms.find(label) match {
-      case Some(term) => Ok(html.drugTypeTerms.remove(term))
+      case Some(term) => Ok(html.genericTypeTerms.remove(term))
       case _ => NotFound
     }
   }
 
   def delete(label: String) = DBAction { implicit rs =>
     GenericTypeTerms.delete(label)
-    Redirect(routes.DrugTypeTermsController.list())
+    Redirect(routes.GenericTypeTermsController.list())
       .flashing("success" -> "The expression term was deleted successfully.")
   }
 }

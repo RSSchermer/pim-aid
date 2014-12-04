@@ -7,19 +7,24 @@
         </div>
     }
 
-    <table class="table table-striped">
-        <tr>
-            <th>Name</th>
-            <th></th>
-            <th></th>
-        </tr>
-        @for(dg <- drugGroups){
+    <table class="table table-striped data-table">
+        <thead>
             <tr>
-                <td>@dg.name</td>
-                <td><a href="@routes.DrugGroupsController.edit(dg.id.get)">Edit</a></td>
-                <td><a href="@routes.DrugGroupsController.remove(dg.id.get)">Delete</a></td>
+                <th>Name</th>
+                <th></th>
+                <th></th>
             </tr>
-        }
+        </thead>
+
+        <tbody>
+            @for(dg <- drugGroups){
+                <tr>
+                    <td><a href="@routes.DrugGroupGenericTypesController.list(dg.id.get.value)">@dg.name</a></td>
+                    <td><a href="@routes.DrugGroupsController.edit(dg.id.get.value)">Edit</a></td>
+                    <td><a href="@routes.DrugGroupsController.remove(dg.id.get.value)">Delete</a></td>
+                </tr>
+            }
+        </tbody>
     </table>
 
     <a class="btn btn-primary" href="@routes.DrugGroupsController.create()">Add new drug group</a>

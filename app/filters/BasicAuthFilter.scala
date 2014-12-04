@@ -55,11 +55,10 @@ object BasicAuthFilter extends Filter {
 
     requestHeader.headers.get("authorization").map { basicAuth =>
       decodeBasicAuth(basicAuth) match {
-        case Some((user, pass)) => {
+        case Some((user, pass)) =>
           if (username == user && password == pass) {
             return nextFilter(requestHeader)
           }
-        }
         case _ => ;
       }
 

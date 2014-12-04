@@ -1,0 +1,33 @@
+@(genericTypeTerm: List[(GenericTypeTerm, GenericType)])(implicit flash: play.api.mvc.Flash)
+
+@expressionTerms("Generic type term list", "genericTypeTerms") {
+    @flash.get("success").map { message =>
+        <div class="alert alert-success">
+            @message
+        </div>
+    }
+
+    <table class="table table-striped data-table">
+        <thead>
+            <tr>
+                <th>Label</th>
+                <th>Generic type</th>
+                <th></th>
+                <th></th>
+            </tr>
+        </thead>
+
+        <tbody>
+            @for((term, genericType) <- genericTypeTerm){
+                <tr>
+                    <td>@term.label</td>
+                    <td>@genericType.name</td>
+                    <td><a href="@routes.GenericTypeTermsController.edit(term.label)">Edit</a></td>
+                    <td><a href="@routes.GenericTypeTermsController.remove(term.label)">Delete</a></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <a class="btn btn-primary" href="@routes.GenericTypeTermsController.create()">Add new drug type term</a>
+}

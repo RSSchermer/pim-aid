@@ -1,0 +1,7 @@
+@(genericTypeForm: Form[GenericType])
+
+@admin("Creating a new generic type", "genericTypes") {
+    <h1>Creating a new generic type</h1>
+
+    @genericTypes.form(genericTypeForm, routes.GenericTypesController.save())
+}

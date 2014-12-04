@@ -9,7 +9,7 @@ case class ConditionExpressionParser(variableMap: Map[String, Boolean] = Map()) 
   private lazy val b_term: Parser[Boolean] = (b_not_factor ~ rep(("and" | "AND" | "&&") ~ b_not_factor)) ^^
     { case f1 ~ fs => (f1 /: fs)(_ && _._2) }
 
-  private lazy val b_not_factor: Parser[Boolean] = opt("not") ~ b_factor ^^
+  private lazy val b_not_factor: Parser[Boolean] = opt(("not" | "NOT" | "!")) ~ b_factor ^^
     (x => x match { case Some(v) ~ f => !f; case None ~ f => f })
 
   private lazy val b_factor: Parser[Boolean] = b_literal | b_variable | ("(" ~ b_expression ~ ")" ^^

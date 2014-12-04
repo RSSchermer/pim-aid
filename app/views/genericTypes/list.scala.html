@@ -1,0 +1,31 @@
+@(genericTypes: List[GenericType])(implicit flash: play.api.mvc.Flash)
+
+@admin("Generic type list", "genericTypes") {
+    @flash.get("success").map { message =>
+        <div class="alert alert-success">
+            @message
+        </div>
+    }
+
+    <table class="table table-striped data-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th></th>
+                <th></th>
+            </tr>
+        </thead>
+
+        <tbody>
+            @for(genericType <- genericTypes){
+                <tr>
+                    <td>@genericType.name</td>
+                    <td><a href="@routes.GenericTypesController.edit(genericType.id.get.value)">Edit</a></td>
+                    <td><a href="@routes.GenericTypesController.remove(genericType.id.get.value)">Delete</a></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <a class="btn btn-primary" href="@routes.GenericTypesController.create()">Add new generic type</a>
+}

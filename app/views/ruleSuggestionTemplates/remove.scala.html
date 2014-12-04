@@ -1,0 +1,14 @@
+@(rule: Rule, suggestionTemplate: SuggestionTemplate)
+
+@expressionTerms("Removing a suggestion template", "rules") {
+    <h1>Are you sure you want to remove this suggestion from <em>@rule.name</em>?</h1>
+
+    <dl>
+        <dt>Suggestion</dt><dd>@suggestionTemplate.name</dd>
+    </dl>
+
+    @helper.form(routes.RuleSuggestionTemplatesController.delete(rule.id.get.value, suggestionTemplate.id.get.value)) {
+        <input type="submit" value="Remove" class="btn btn-danger"> or
+        <a href="@routes.RuleSuggestionTemplatesController.list(rule.id.get.value)" class="btn">Cancel</a>
+    }
+}

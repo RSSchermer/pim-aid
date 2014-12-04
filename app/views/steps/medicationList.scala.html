@@ -23,7 +23,7 @@
                         <ul>
                             <li ng-repeat="alternative in alternatives">
                                 <a class="drug-resolve-btn" ng-click="resolveDrug(alternative)">
-                                    {{alternative.resolvedDrugTypeName}}
+                                    {{alternative.resolvedMedicationProductName}}
                                 </a>
                             </li>
                         </ul>
@@ -32,10 +32,7 @@
 
                 <table class="table">
                     <tr ng-repeat="drug in drugs">
-                        <td>
-                            <span ng-if="drug.resolvedDrugTypeName">{{drug.resolvedDrugTypeName}}</span>
-                            <span ng-if="!drug.resolvedDrugTypeName">{{drug.userInput}}</span>
-                        </td>
+                        <td>{{drug.resolvedMedicationProductName || drug.userInput}}</td>
 
                         <td>
                             <a class="drug-remove-btn" ng-click="removeDrug(drug)">

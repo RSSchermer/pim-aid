@@ -1,7 +1,7 @@
-@(drugGroupId: Long, drugGroupForm: Form[DrugGroup])
+@(drugGroupId: DrugGroupID, drugGroupForm: Form[DrugGroup])
 
 @admin("Editing a drug group", "drugGroups") {
     <h1>Editing a drug group</h1>
 
-    @drugGroups.form(drugGroupForm, routes.DrugGroupsController.update(drugGroupId))
+    @drugGroups.form(drugGroupForm, routes.DrugGroupsController.update(drugGroupId.value))
 }

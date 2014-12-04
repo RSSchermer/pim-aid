@@ -13,7 +13,10 @@ object DrugGroupTermsController extends Controller {
     mapping(
       "label" -> nonEmptyText.verifying("Alphanumeric characters, dashes and underscores only.",
         l => l.matches("""[A-Za-z0-9\-_]+""")),
-      "drugGroupId" -> longNumber
+      "drugGroupId" -> longNumber.transform(
+        (id: Long) => DrugGroupID(id),
+        (drugGroupId: DrugGroupID) => drugGroupId.value
+      )
     )(DrugGroupTerm.apply)(DrugGroupTerm.unapply)
   )
 
@@ -22,12 +25,12 @@ object DrugGroupTermsController extends Controller {
   }
 
   def create = DBAction { implicit rs =>
-    Ok(html.drugGroupTerms.create(drugGroupTermForm, DrugGroups.list))
+    Ok(html.drugGroupTerms.create(drugGroupTermForm))
   }
 
   def save = DBAction { implicit rs =>
     drugGroupTermForm.bindFromRequest.fold(
-      formWithErrors => BadRequest(html.drugGroupTerms.create(formWithErrors, DrugGroups.list)),
+      formWithErrors => BadRequest(html.drugGroupTerms.create(formWithErrors)),
       drugGroupTerm => {
         DrugGroupTerms.insert(drugGroupTerm)
         Redirect(routes.DrugGroupTermsController.list())
@@ -38,14 +41,14 @@ object DrugGroupTermsController extends Controller {
 
   def edit(label: String) = DBAction { implicit rs =>
     DrugGroupTerms.find(label) match {
-      case Some(term) => Ok(html.drugGroupTerms.edit(label, drugGroupTermForm.fill(term), DrugGroups.list))
+      case Some(term) => Ok(html.drugGroupTerms.edit(label, drugGroupTermForm.fill(term)))
       case _ => NotFound
     }
   }
 
   def update(label: String) = DBAction { implicit rs =>
     drugGroupTermForm.bindFromRequest.fold(
-      formWithErrors => BadRequest(html.drugGroupTerms.edit(label, formWithErrors, DrugGroups.list)),
+      formWithErrors => BadRequest(html.drugGroupTerms.edit(label, formWithErrors)),
       term => {
         DrugGroupTerms.update(label, term)
         Redirect(routes.DrugGroupTermsController.list())

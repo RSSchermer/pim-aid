@@ -1,25 +1,13 @@
-@(ruleForm: Form[(Rule, List[Suggestion])], action: Call)
+@(ruleForm: Form[Rule], action: Call)
 
 @import helper.twitterBootstrap._
 
 @helper.form(action = action) {
     <fieldset class = "rule-fields">
+        @helper.inputText(ruleForm("name"))
         @helper.textarea(ruleForm("conditionExpression"))
         @helper.inputText(ruleForm("source"))
         @helper.textarea(ruleForm("note"))
-
-        <div class="suggestion-fields">
-            @helper.repeat(ruleForm("suggestions"), min = 1) { field =>
-                <fieldset class = "suggestion-fieldset">
-                    @helper.textarea(ruleForm(field.name.toString + ".text"))
-                    @helper.textarea(ruleForm(field.name.toString + ".explanatoryNote"))
-
-                    <a class="remove-suggestion-btn">Remove suggestion</a>
-                </fieldset>
-            }
-        </div>
-
-        <a class="btn btn-default add-suggestion-btn">Add suggestion</a>
     </fieldset>
 
     <div class="actions">

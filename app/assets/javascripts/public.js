@@ -13,8 +13,8 @@ medicationApp.controller('medicationListCtrl', function ($scope, Restangular) {
       userInput: $scope.userInput,
       source: null,
       drugType: null,
-      resolvedDrugTypeId: null,
-      resolvedDrugTypeName: null
+      resolvedMedicationProductId: null,
+      resolvedMedicationProductName: null
     }).then(function (drug) {
       $scope.drugs.push(drug);
       $scope.unresolved = false;

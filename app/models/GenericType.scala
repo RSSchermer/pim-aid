@@ -17,7 +17,7 @@ class GenericTypes(tag: Tag) extends Table[GenericType](tag, "GENERIC_TYPES"){
   def optionApply(t: (Option[GenericTypeID], Option[String])): Option[GenericType] = {
     t match {
       case (Some(id), Some(name)) => Some(GenericType(Some(id), name))
-      case (None, _, _) => None
+      case (None, _) => None
     }
   }
   def optionUnapply(oc: Option[GenericType]): Option[(Option[GenericTypeID], Option[String])] = None
@@ -32,21 +32,14 @@ object GenericTypes {
 
   def find(id: GenericTypeID)(implicit s: Session): Option[GenericType] = one(id).firstOption
 
-  def groupIdListFor(id: GenericTypeID): List[DrugGroupID] =
+  def groupIdListFor(id: GenericTypeID)(implicit s: Session): List[DrugGroupID] =
     TableQuery[DrugGroupsGenericTypes].filter(_.genericTypeId === id).map(_.drugGroupId).list
 
-  def insert(genericType: GenericType, drugGroupIds: List[DrugGroupID])(implicit s: Session) = {
-    val typeId = all returning all.map(_.id) += genericType
+  def insert(genericType: GenericType)(implicit s: Session): GenericTypeID =
+    all returning all.map(_.id) += genericType
 
-    drugGroupIds.foreach(groupId => TableQuery[DrugGroupsGenericTypes].insert(DrugGroupGenericType(groupId, typeId)))
-  }
-
-  def update(id: GenericTypeID, genericType: GenericType, drugGroupIds: List[DrugGroupID])(implicit s: Session) = {
+  def update(id: GenericTypeID, genericType: GenericType)(implicit s: Session) =
     one(id).map(x => x.name).update(genericType.name)
-
-    TableQuery[DrugGroupsGenericTypes].filter(_.genericTypeId === id).delete
-    drugGroupIds.map(x => DrugGroupGenericType(x, id)).foreach(x => TableQuery[DrugGroupsGenericTypes].insert(x))
-  }
 
   def delete(id: GenericTypeID)(implicit s: Session) = {
     TableQuery[DrugGroupsGenericTypes].filter(_.genericTypeId === id).delete

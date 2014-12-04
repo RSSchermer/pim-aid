@@ -23,9 +23,22 @@ object DrugGroups {
 
   def find(id: DrugGroupID)(implicit s: Session): Option[DrugGroup] = one(id).firstOption
 
-  def insert(drugGroup: DrugGroup)(implicit s: Session) = all.insert(drugGroup)
+  def insert(drugGroup: DrugGroup)(implicit s: Session): DrugGroupID =
+    all returning all.map(_.id) += drugGroup
 
   def update(id: DrugGroupID, drugGroup: DrugGroup)(implicit s: Session) = one(id).map(_.name).update(drugGroup.name)
 
-  def delete(id: DrugGroupID)(implicit s: Session) = one(id).delete
+  def delete(id: DrugGroupID)(implicit s: Session) = {
+    TableQuery[DrugGroupsGenericTypes].filter(_.drugGroupId === id).delete
+    one(id).delete
+  }
+
+  def genericTypeListFor(id: DrugGroupID)(implicit s: Session): List[GenericType] = {
+    (for {
+      (_, genericType) <-
+        one(id) innerJoin
+        TableQuery[DrugGroupsGenericTypes] on (_.id === _.drugGroupId) innerJoin
+        TableQuery[GenericTypes] on (_._2.genericTypeId === _.id)
+    } yield genericType).list
+  }
 }

@@ -2,10 +2,10 @@ package models
 
 import play.api.db.slick.Config.driver.simple._
 
-case class ExpressionTermRule(expressionTermLabel: ExpressionTermLabel, ruleId: RuleID)
+case class ExpressionTermRule(expressionTermLabel: String, ruleId: RuleID)
 
 class ExpressionTermsRules(tag: Tag) extends Table[ExpressionTermRule](tag, "EXPRESSION_TERMS_RULES"){
-  def expressionTermLabel = column[ExpressionTermLabel]("expression_term_label")
+  def expressionTermLabel = column[String]("expression_term_label")
   def ruleId = column[RuleID]("rule_id")
 
   def * = (expressionTermLabel, ruleId) <> (ExpressionTermRule.tupled, ExpressionTermRule.unapply)
