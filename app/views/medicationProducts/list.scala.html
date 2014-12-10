@@ -28,4 +28,14 @@
     </table>
 
     <a class="btn btn-primary" href="@routes.MedicationProductsController.create()">Add new medication product</a>
+
+    @helper.form(action = routes.MedicationProductsController.uploadCSV, 'enctype -> "multipart/form-data") {
+
+        <input type="file" name="medicationProducts">
+
+        <p>
+            <button class="btn btn-primary" type="submit">Upload CSV</button>
+        </p>
+
+    }
 }

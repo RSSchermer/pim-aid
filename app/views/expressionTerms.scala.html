@@ -19,11 +19,17 @@
                     <li class="@("active".when(termNav == "genericTypeTerms"))">
                         <a href="@routes.GenericTypeTermsController.list()">Generic type terms</a>
                     </li>
+
                     <li class="@("active".when(termNav == "drugGroupTerms"))">
                         <a href="@routes.DrugGroupTermsController.list()">Drug group terms</a>
                     </li>
+
                     <li class="@("active".when(termNav == "statementTerms"))">
                         <a href="@routes.StatementTermsController.list()">Statement terms</a>
+                    </li>
+
+                    <li class="@("active".when(termNav == "ageTerms"))">
+                        <a href="@routes.AgeTermsController.list()">Age terms</a>
                     </li>
                 </ul>
             </div>

@@ -12,6 +12,8 @@ class DrugGroups(tag: Tag) extends Table[DrugGroup](tag, "DRUG_GROUPS"){
   def name = column[String]("name", O.NotNull)
 
   def * = (id.?, name) <> (DrugGroup.tupled, DrugGroup.unapply)
+
+  def nameIndex = index("DRUG_GROUPS_NAME_INDEX", name, unique = true)
 }
 
 object DrugGroups {

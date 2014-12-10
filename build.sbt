@@ -1,4 +1,4 @@
-name := """play-slick-quickstart"""
+name := """pim-aid"""
 
 version := "1.0-SNAPSHOT"
 
@@ -8,7 +8,9 @@ libraryDependencies ++= Seq(
   "org.webjars" %% "webjars-play" % "2.2.2",
   "com.typesafe.play" %% "play-slick" % "0.7.0",
   "org.webjars" % "bootstrap" % "3.0.2",
-  "com.rockymadden.stringmetric" %% "stringmetric-core" % "0.27.3"
+  "com.rockymadden.stringmetric" %% "stringmetric-core" % "0.27.3",
+  "com.github.tototoshi" %% "scala-csv" % "1.1.2",
+  "postgresql" % "postgresql" % "9.1-901-1.jdbc4"
 )
 
 fork in Test := false

@@ -12,7 +12,7 @@ object GenericTypeTermsController extends Controller {
   val genericTypeTermForm = Form(
     mapping(
       "label" -> nonEmptyText.verifying("Must alphanumeric characters, dashes and underscores only.",
-        label => label.matches("""[A-Za-z0-9\-_]+""")),
+        _.matches("""[A-Za-z0-9\-_]+""")),
       "genericTypeId" -> longNumber.transform(
         (id: Long) => GenericTypeID(id),
         (genericTypeId: GenericTypeID) => genericTypeId.value

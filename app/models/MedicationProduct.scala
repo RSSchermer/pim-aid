@@ -21,6 +21,8 @@ class MedicationProducts(tag: Tag) extends Table[MedicationProduct](tag, "MEDICA
     }
   }
   def optionUnapply(oc: Option[MedicationProduct]): Option[(Option[MedicationProductID], Option[String])] = None
+
+  def nameIndex = index("MEDICATION_PRODUCTS_NAME_INDEX", name, unique = true)
 }
 
 object MedicationProducts {
@@ -31,6 +33,9 @@ object MedicationProducts {
   def one(id: MedicationProductID) = all.filter(_.id === id)
 
   def find(id: MedicationProductID)(implicit s: Session): Option[MedicationProduct] = one(id).firstOption
+
+  def findByName(name: String)(implicit s: Session): Option[MedicationProduct] =
+    all.filter(_.name.toLowerCase === name.toLowerCase).firstOption
 
   def genericTypeListFor(id: MedicationProductID)(implicit s: Session): List[GenericType] = {
     (for {

@@ -12,7 +12,7 @@ object DrugGroupTermsController extends Controller {
   val drugGroupTermForm = Form(
     mapping(
       "label" -> nonEmptyText.verifying("Alphanumeric characters, dashes and underscores only.",
-        l => l.matches("""[A-Za-z0-9\-_]+""")),
+        _.matches("""[A-Za-z0-9\-_]+""")),
       "drugGroupId" -> longNumber.transform(
         (id: Long) => DrugGroupID(id),
         (drugGroupId: DrugGroupID) => drugGroupId.value

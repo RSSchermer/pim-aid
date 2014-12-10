@@ -1,0 +1,27 @@
+@(userToken: UserToken, generalInformationForm: Form[UserSession])
+
+@decisionAid("Algemeen", Step.GeneralInformation) {
+    @helper.form(routes.StepsController.saveGeneralInformation()) {
+        <p>Voordat we kunnen beginnen, heeft de Medicatiehulp eerst uw leeftijd nodig. Type uw leeftijd in het
+        tekstvakje hieronder. Klik vervolgens op de knop met de tekst <em>"Ga door naar Stap 2"</em>:</p>
+
+        <fieldset>
+            <input type="hidden" name="userToken" value='@userToken.value'>
+
+            <div class="age-input-wrapper">
+                @helper.inputText(generalInformationForm("age"), '_label -> "Leeftijd (in jaren):",
+                    'class -> "form-control age-input", 'size -> 3, 'maxlength -> 3)
+            </div>
+        </fieldset>
+
+        <div class="step-controls">
+            <a class="btn btn-default" href="@routes.StaticPagesController.introduction()">
+                <i class="fa fa-chevron-left"></i> Ga terug naar Introductie
+            </a>
+
+            <button type="submit" class="btn btn-primary">
+                Ga door naar Stap 2 <i class="fa fa-chevron-right"></i>
+            </button>
+        </div>
+    }
+}

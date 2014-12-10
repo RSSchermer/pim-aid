@@ -1,6 +1,6 @@
 package controllers
 
-import controllers.constraints.ConditionExpressionConstraint
+import constraints.{MedicationProductTemplateConstraint, ConditionExpressionConstraint}
 import play.api.mvc._
 import play.api.data._
 import play.api.data.Forms._
@@ -14,8 +14,8 @@ object StatementTermsController extends Controller {
   def statementTermForm(implicit s: Session) = Form(
     mapping(
       "label" -> nonEmptyText.verifying("Must alphanumeric characters, dashes and underscores only.",
-        label => label.matches("""[A-Za-z0-9\-_]+""")),
-      "statementTemplate" -> nonEmptyText,
+        _.matches("""[A-Za-z0-9\-_]+""")),
+      "statementTemplate" -> nonEmptyText.verifying(MedicationProductTemplateConstraint.apply),
       "displayCondition" -> optional(text.verifying(ConditionExpressionConstraint.apply))
     )(StatementTerm.apply)(StatementTerm.unapply)
   )

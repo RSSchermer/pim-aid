@@ -1,4 +1,4 @@
-@(medicationList: List[Drug], selectedStatements: List[StatementTerm], suggestions: List[SuggestionTemplate])
+@(medicationList: List[Drug], selectedStatements: List[Statement], suggestions: List[Suggestion])
 
 @printLayout("Resultaten printen") {
     <p>U heeft aangegeven de volgende medicatie te gebruiken:</p>
@@ -16,7 +16,7 @@
 
         <ul>
             @for(statement <- selectedStatements) {
-                <li>@statement.statementTemplate</li>
+                <li>@statement.text</li>
             }
         </ul>
     }
@@ -30,7 +30,14 @@
 
         <ul>
             @for(suggestion <- suggestions) {
-                <li>@suggestion.text</li>
+                <li>
+                    <p>@suggestion.text</p>
+                    @if(suggestion.explanatoryNote.nonEmpty) {
+                        <div class="well">
+                            <em>Toelichting:</em> @suggestion.explanatoryNote
+                        </div>
+                    }
+                </li>
             }
         </ul>
     }

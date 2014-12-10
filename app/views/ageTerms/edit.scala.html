@@ -1,0 +1,21 @@
+@(label: String, ageTermForm: Form[AgeTerm])
+
+@import helper.twitterBootstrap._
+
+@expressionTerms("Editing a age term", "ageTerms") {
+    <h1>Editing a age term</h1>
+
+    @helper.form(routes.AgeTermsController.update(label)) {
+        <fieldset>
+            <input type="hidden" name="label" value='@label'>
+            @helper.select(ageTermForm("comparisonOperator"),
+                Seq(("==", "=="), (">", ">"), (">=", ">="), ("<", "<"), ("<=", "<=")))
+            @helper.inputText(ageTermForm("age"))
+        </fieldset>
+
+        <div class="actions">
+            <input type="submit" value="Save" class="btn btn-primary"> or
+            <a href="@routes.AgeTermsController.list()" class="btn">Cancel</a>
+        </div>
+    }
+}

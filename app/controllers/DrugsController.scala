@@ -11,20 +11,22 @@ import models._
 
 object DrugsController extends Controller with UserSessionAware {
   case class DrugJson(id: Option[Long], userInput: String, resolvedMedicationProductId: Option[Long],
-                      resolvedMedicationProductName: Option[String])
+                      resolvedMedicationProductName: Option[String], unresolvable: Boolean)
 
   implicit val drugWrites: Writes[DrugJson] = (
       (JsPath \ "id").write[Option[Long]] and
       (JsPath \ "userInput").write[String] and
       (JsPath \ "resolvedMedicationProductId").write[Option[Long]] and
-      (JsPath \ "resolvedMedicationProductName").write[Option[String]]
+      (JsPath \ "resolvedMedicationProductName").write[Option[String]] and
+      (JsPath \ "unresolvable").write[Boolean]
     )(unlift(DrugJson.unapply))
 
   implicit val drugReads: Reads[DrugJson] = (
       (JsPath \ "id").read[Option[Long]] and
       (JsPath \ "userInput").read[String] and
       (JsPath \ "resolvedMedicationProductId").read[Option[Long]] and
-      (JsPath \ "resolvedMedicationProductName").read[Option[String]]
+      (JsPath \ "resolvedMedicationProductName").read[Option[String]] and
+      (JsPath \ "unresolvable").read[Boolean]
     )(DrugJson.apply _)
 
   def list = DBAction { implicit rs =>
@@ -36,14 +38,16 @@ object DrugsController extends Controller with UserSessionAware {
           id = Some(id.get.value),
           userInput = userInput,
           resolvedMedicationProductId = Some(productId.get.value),
-          resolvedMedicationProductName = Some(productName)
+          resolvedMedicationProductName = Some(productName),
+          unresolvable = false
         )
       case (Drug(id, userInput, _, _), None) =>
         DrugJson(
           id = Some(id.get.value),
           userInput = userInput,
           resolvedMedicationProductId = None,
-          resolvedMedicationProductName = None
+          resolvedMedicationProductName = None,
+          unresolvable = true
         )
     })).withSession("token" -> token.value)
   }
@@ -57,7 +61,7 @@ object DrugsController extends Controller with UserSessionAware {
           .withSession("token" -> token.value)
       },
       {
-        case DrugJson(_, userInput, Some(resolvedProductId), resolvedDrugTypeName) =>
+        case DrugJson(_, userInput, Some(resolvedProductId), resolvedDrugTypeName, _) =>
           val drugId = Drugs.insert(Drug(
             id = None,
             userInput = userInput,
@@ -69,7 +73,23 @@ object DrugsController extends Controller with UserSessionAware {
             id = Some(drugId.value),
             userInput = userInput,
             resolvedMedicationProductId = Some(resolvedProductId),
-            resolvedMedicationProductName = resolvedDrugTypeName
+            resolvedMedicationProductName = resolvedDrugTypeName,
+            unresolvable = false
+          ))).withSession("token" -> token.value)
+        case DrugJson(_, userInput, None, _, true) =>
+          val drugId = Drugs.insert(Drug(
+            id = None,
+            userInput = userInput,
+            userToken = token,
+            resolvedMedicationProductId = None
+          ))
+
+          Ok(Json.toJson(DrugJson(
+            id = Some(drugId.value),
+            userInput = userInput,
+            resolvedMedicationProductId = None,
+            resolvedMedicationProductName = None,
+            unresolvable = true
           ))).withSession("token" -> token.value)
         case drugJson =>
           val normalizedInput = drugJson.userInput.trim().replaceAll("""\s+""", " ")
@@ -77,7 +97,7 @@ object DrugsController extends Controller with UserSessionAware {
           MedicationProducts.all.filter(_.name.toLowerCase === normalizedInput).firstOption match {
             case Some(medicationProduct) =>
               val drugId = Drugs.insert(Drug(
-                id = Some(DrugID(drugJson.id.get)),
+                id = None,
                 userInput = drugJson.userInput,
                 userToken = token,
                 resolvedMedicationProductId = medicationProduct.id
@@ -87,8 +107,9 @@ object DrugsController extends Controller with UserSessionAware {
                 id = Some(drugId.value),
                 userInput = drugJson.userInput,
                 resolvedMedicationProductId = Some(medicationProduct.id.get.value),
-                resolvedMedicationProductName = Some(medicationProduct.name))
-              )).withSession("token" -> token.value)
+                resolvedMedicationProductName = Some(medicationProduct.name),
+                unresolvable = false
+              ))).withSession("token" -> token.value)
             case _ =>
               val alternatives: List[DrugJson] = MedicationProducts.list
                 .map(x => (JaroWinklerMetric.compare(drugJson.userInput, x.name), x))
@@ -96,7 +117,7 @@ object DrugsController extends Controller with UserSessionAware {
                 .sortBy(_._1)(Ordering[Option[Double]].reverse)
                 .map {
                   case (_, MedicationProduct(id, name)) =>
-                    DrugJson(None, drugJson.userInput, Some(id.get.value), Some(name))
+                    DrugJson(None, drugJson.userInput, Some(id.get.value), Some(name), unresolvable = false)
                 }
                 .take(5)
 
@@ -109,7 +130,7 @@ object DrugsController extends Controller with UserSessionAware {
 
   def delete(id: Long) = DBAction { implicit rs =>
     val token = currentUserSession(rs).token
-    UserSessions.drugsFor(token).filter(_.id === DrugID(id)).delete
+    UserSessions.deleteDrug(token, DrugID(id))
     Ok.withSession("token" -> token.value)
   }
 }

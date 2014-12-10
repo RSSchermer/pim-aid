@@ -1,17 +1,25 @@
-@(title: String, currentStep: Int = 1, completedStep: Int = 0)(content: Html)
+@(title: String, currentStep: Step.Value = Step.MedicationList, completedStep: Int = 0)(content: Html)
 
 @public(title, "decisionAid") {
     <ul class="steps">
-        <li class="@("current".when(currentStep ==  1))">
-            <a>Stap 1: Medicatielijst</a>
+        <li class="@("current".when(currentStep ==  Step.GeneralInformation))">
+            <a>1. Algemeen</a>
         </li>
 
-        <li class="@("current".when(currentStep ==  2))">
-            <a>Stap 2: Aanvullende informatie</a>
+        <li class="@("current".when(currentStep ==  Step.MedicationList))">
+            <a>2. Medicatie</a>
         </li>
 
-        <li class="@("current".when(currentStep ==  3))">
-            <a>Stap 3: Suggesties</a>
+        <li class="@("current".when(currentStep ==  Step.UnconditionalStatementSelection))">
+            <a>3. Stellingen</a>
+        </li>
+
+        <li class="@("current".when(currentStep ==  Step.ConditionalStatementSelection))">
+            <a>4. Aanvullend</a>
+        </li>
+
+        <li class="@("current".when(currentStep ==  Step.SuggestionList))">
+            <a>5. Advies</a>
         </li>
     </ul>
 

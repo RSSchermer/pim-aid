@@ -21,29 +21,49 @@ case class StatementTerm(override val label: String, statementTemplate: String, 
   def evaluate(statementTerms: List[StatementTerm]): Boolean = statementTerms.exists(x => x.label == label)
 }
 
+case class AgeTerm(override val label: String, comparisonOperator: String, age: Int)
+  extends ExpressionTerm
+{
+  def evaluate(userAge: Int): Boolean = comparisonOperator match {
+    case "==" => userAge == age
+    case ">" => userAge > age
+    case ">=" => userAge >= age
+    case "<" => userAge < age
+    case "<=" => userAge <= age
+    case _ => false
+  }
+}
+
 class ExpressionTerms(tag: Tag) extends Table[ExpressionTerm](tag, "EXPRESSION_TERMS"){
   def label = column[String]("label", O.PrimaryKey)
   def genericTypeId = column[GenericTypeID]("drug_type_id", O.Nullable)
   def drugGroupId = column[DrugGroupID]("drug_group_id", O.Nullable)
   def statementTemplate = column[String]("statement_template", O.Nullable)
   def displayCondition = column[String]("display_condition", O.Nullable)
+  def comparisonOperator = column[String]("comparison_operator", O.Nullable)
+  def age = column[Int]("age", O.Nullable)
 
-  def * = (label, genericTypeId.?, drugGroupId.?, statementTemplate.?, displayCondition.?) <> (defaultApply, defaultUnapply)
-  def defaultApply(tuple: (String, Option[GenericTypeID], Option[DrugGroupID], Option[String], Option[String]))
-  : ExpressionTerm = {
+  def * = (label, genericTypeId.?, drugGroupId.?, statementTemplate.?, displayCondition.?, comparisonOperator.?, age.?) <>
+    (defaultApply, defaultUnapply)
+
+  def defaultApply(tuple: (String, Option[GenericTypeID], Option[DrugGroupID], Option[String], Option[String], Option[String], Option[Int])) : ExpressionTerm = {
     tuple match {
-      case (label, Some(drugTypeId), _, _, _) => GenericTypeTerm(label, drugTypeId)
-      case (label, _, Some(drugGroupId), _, _) => DrugGroupTerm(label, drugGroupId)
-      case (label, _, _, Some(statement), displayCondition) => StatementTerm(label, statement, displayCondition)
+      case (label, Some(drugTypeId), _, _, _, _, _) => GenericTypeTerm(label, drugTypeId)
+      case (label, _, Some(drugGroupId), _, _, _, _) => DrugGroupTerm(label, drugGroupId)
+      case (label, _, _, Some(statement), displayCondition, _, _) => StatementTerm(label, statement, displayCondition)
+      case (label, _, _, _, _, Some(comparisonOperator), Some(age)) => AgeTerm(label, comparisonOperator, age)
     }
   }
-  def defaultUnapply(term: ExpressionTerm)
-  : Option[(String, Option[GenericTypeID], Option[DrugGroupID], Option[String], Option[String])] = {
+
+  def defaultUnapply(term: ExpressionTerm): Option[(String, Option[GenericTypeID], Option[DrugGroupID], Option[String], Option[String], Option[String], Option[Int])] = {
     term match {
-      case GenericTypeTerm(label, drugTypeId) => Some(label.value, Some(drugTypeId), None, None, None)
-      case DrugGroupTerm(label, drugGroupId) => Some(label.value, None, Some(drugGroupId), None, None)
+      case GenericTypeTerm(label, drugTypeId) => Some(label.value, Some(drugTypeId), None, None, None, None, None)
+      case DrugGroupTerm(label, drugGroupId) => Some(label.value, None, Some(drugGroupId), None, None, None, None)
       case StatementTerm(label, statement, displayCondition) =>
-        Some(label.value, None, None, Some(statement), displayCondition)
+        Some(label.value, None, None, Some(statement), displayCondition, None, None)
+      case AgeTerm(label, comparisonOperator, age) => {
+        Some(label.value, None, None, None, None, Some(comparisonOperator), Some(age))
+      }
     }
   }
 
@@ -125,6 +145,26 @@ object StatementTerms {
 
   def update(label: String, term: StatementTerm)(implicit s: Session) =
     one(label).map(x => (x.statementTemplate, x.displayCondition.?)).update((term.statementTemplate, term.displayCondition))
+
+  def delete(label: String)(implicit s: Session) = one(label).delete
+}
+
+object AgeTerms {
+  val all = ExpressionTerms.all.filter(x => x.comparisonOperator.isNotNull && x.age.isNotNull)
+
+  def list(implicit s: Session): List[AgeTerm] = all.list.asInstanceOf[List[AgeTerm]]
+
+  def one(label: String) = all.filter(_.label === label)
+
+  def find(label: String)(implicit s: Session): Option[AgeTerm] = one(label).firstOption match {
+    case Some(term) => Some(term.asInstanceOf[AgeTerm])
+    case _ => None
+  }
+
+  def insert(term: AgeTerm)(implicit s: Session) = ExpressionTerms.all.insert(term)
+
+  def update(label: String, term: AgeTerm)(implicit s: Session) =
+    one(label).map(x => (x.comparisonOperator, x.age)).update((term.comparisonOperator, term.age))
 
   def delete(label: String)(implicit s: Session) = one(label).delete
 }

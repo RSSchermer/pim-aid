@@ -1,23 +1,25 @@
 package controllers
 
+import constraints.MedicationProductTemplateConstraint
 import play.api.mvc._
 import play.api.data._
 import play.api.data.Forms._
 import play.api.db.slick._
+import play.api.db.slick.Session
 
 import views._
 import models._
 
 object SuggestionTemplatesController extends Controller {
-  val suggestionTemplateForm = Form(
+  def suggestionTemplateForm(implicit s: Session) = Form(
     mapping(
       "id" -> optional(longNumber.transform(
         (id: Long) => SuggestionTemplateID(id),
         (suggestionTemplateId: SuggestionTemplateID) => suggestionTemplateId.value
       )),
       "name" -> nonEmptyText,
-      "text" -> nonEmptyText,
-      "explanatoryNote" -> optional(text)
+      "text" -> nonEmptyText.verifying(MedicationProductTemplateConstraint.apply),
+      "explanatoryNote" -> optional(text.verifying(MedicationProductTemplateConstraint.apply))
     )(SuggestionTemplate.apply)(SuggestionTemplate.unapply)
   )
 

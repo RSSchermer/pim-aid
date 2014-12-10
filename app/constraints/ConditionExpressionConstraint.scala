@@ -1,4 +1,4 @@
-package controllers.constraints
+package constraints
 
 import models.ExpressionTerms
 import play.api.data.validation.{Constraint, Invalid, Valid}

@@ -1,0 +1,35 @@
+@(ageTerms: List[AgeTerm])(implicit flash: play.api.mvc.Flash)
+
+@expressionTerms("Age term list", "ageTerms") {
+    @flash.get("success").map { message =>
+        <div class="alert alert-success">
+            @message
+        </div>
+    }
+
+    <table class="table table-striped data-table">
+        <thead>
+            <tr>
+                <th>Label</th>
+                <th>Operator</th>
+                <th>Age</th>
+                <th></th>
+                <th></th>
+            </tr>
+        </thead>
+
+        <tbody>
+        @for(ageTerm <- ageTerms){
+            <tr>
+                <td>@ageTerm.label</td>
+                <td>@ageTerm.comparisonOperator</td>
+                <td>@ageTerm.age</td>
+                <td><a href="@routes.AgeTermsController.edit(ageTerm.label)">Edit</a></td>
+                <td><a href="@routes.AgeTermsController.remove(ageTerm.label)">Delete</a></td>
+            </tr>
+        }
+        </tbody>
+    </table>
+
+    <a class="btn btn-primary" href="@routes.AgeTermsController.create()">Add new age term</a>
+}

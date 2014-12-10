@@ -1,13 +1,13 @@
-@(suggestions: List[SuggestionTemplate])
+@(suggestions: List[Suggestion])
 
-@decisionAid("Medicatielijst", 3){
+@decisionAid("Advies", Step.SuggestionList){
     @if(suggestions.isEmpty) {
         Op basis van de door u ingevulde medicijnen en de door u geselecteerde stellingen, heeft de Medicatiehulp
         geen specifiek advies voor u.
 
         <div class="step-controls">
-            <a class="btn btn-default" href="@routes.StepsController.statementSelection()">
-                <i class="fa fa-chevron-left"></i> Ga terug naar Stap 2
+            <a class="btn btn-default" href="@routes.StepsController.conditionalStatementSelection()">
+                <i class="fa fa-chevron-left"></i> Ga terug naar Stap 4
             </a>
         </div>
     } else {
@@ -18,13 +18,20 @@
 
         <ul class="suggestion-list">
             @for(suggestion <- suggestions) {
-                <li><p>@suggestion.text</p></li>
+                <li>
+                    <p>@suggestion.text</p>
+                    @if(suggestion.explanatoryNote.nonEmpty) {
+                        <div class="well">
+                            <em>Toelichting:</em> @suggestion.explanatoryNote
+                        </div>
+                    }
+                </li>
             }
         </ul>
 
         <div class="step-controls">
-            <a class="btn btn-default" href="@routes.StepsController.statementSelection()">
-                <i class="fa fa-chevron-left"></i> Ga terug naar Stap 2
+            <a class="btn btn-default" href="@routes.StepsController.conditionalStatementSelection()">
+                <i class="fa fa-chevron-left"></i> Ga terug naar Stap 4
             </a>
 
             <a class="btn btn-primary" href="@routes.StepsController.print()">

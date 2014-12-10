@@ -21,6 +21,8 @@ class GenericTypes(tag: Tag) extends Table[GenericType](tag, "GENERIC_TYPES"){
     }
   }
   def optionUnapply(oc: Option[GenericType]): Option[(Option[GenericTypeID], Option[String])] = None
+
+  def nameIndex = index("GENERIC_TYPES_NAME_INDEX", name, unique = true)
 }
 
 object GenericTypes {

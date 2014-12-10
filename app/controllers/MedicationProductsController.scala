@@ -1,9 +1,13 @@
 package controllers
 
+import play.api.Play.current
 import play.api.mvc._
 import play.api.data._
 import play.api.data.Forms._
 import play.api.db.slick._
+import java.io.File
+
+import com.github.tototoshi.csv._
 
 import views._
 import models._
@@ -70,5 +74,35 @@ object MedicationProductsController extends Controller {
     MedicationProducts.delete(MedicationProductID(id))
     Redirect(routes.MedicationProductsController.list())
       .flashing("success" -> "The drug type was deleted successfully.")
+  }
+
+  def uploadCSV = DBAction(parse.multipartFormData) { implicit rs =>
+    rs.body.file("medicationProducts").map { medicationProducts =>
+      val tmpDir = new File(s"${current.path}/tmp")
+
+      if (!tmpDir.exists()) {
+        tmpDir.mkdir()
+      }
+
+      val file = new File(s"${current.path}/tmp/medicationProducts.csv")
+
+      medicationProducts.ref.moveTo(file)
+
+      val reader = CSVReader.open(file)
+
+      reader.all().foreach { (x: List[String]) =>
+        val productName = x.head
+
+        if (MedicationProducts.findByName(productName).isEmpty) {
+          MedicationProducts.insert(MedicationProduct(None, productName))
+        }
+      }
+
+      Redirect(routes.MedicationProductsController.list())
+        .flashing("success" -> "The medication products csv was uploaded successfully.")
+    }.getOrElse {
+      Redirect(routes.MedicationProductsController.list()).flashing(
+        "error" -> "Must specify a file for upload.")
+    }
   }
 }
