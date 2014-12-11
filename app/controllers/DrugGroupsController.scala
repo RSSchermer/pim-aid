@@ -106,6 +106,16 @@ object DrugGroupsController extends Controller {
             DrugGroupsGenericTypes.insert(DrugGroupGenericType(drugGroupId, genericTypeId))
           }
 
+          val genericMedicationProductId = MedicationProducts.findByName(genericTypeName) match {
+            case Some(product) => product.id.get
+            case _ => MedicationProducts.insert(MedicationProduct(None, genericTypeName))
+          }
+
+          if (!GenericTypesMedicationProducts.exists(genericTypeId, genericMedicationProductId)) {
+            GenericTypesMedicationProducts
+              .insert(GenericTypeMedicationProduct(genericTypeId, genericMedicationProductId))
+          }
+
           items.tail.foreach { medicationProductItem =>
             val medicationProductName = unescapeHtml4(medicationProductItem.getText.toString).trim
 
