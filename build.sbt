@@ -10,7 +10,8 @@ libraryDependencies ++= Seq(
   "org.webjars" % "bootstrap" % "3.0.2",
   "com.rockymadden.stringmetric" %% "stringmetric-core" % "0.27.3",
   "com.github.tototoshi" %% "scala-csv" % "1.1.2",
-  "postgresql" % "postgresql" % "9.1-901-1.jdbc4"
+  "postgresql" % "postgresql" % "9.1-901-1.jdbc4",
+  "net.sourceforge.htmlcleaner" % "htmlcleaner" % "2.10"
 )
 
 fork in Test := false

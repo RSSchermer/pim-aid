@@ -59,6 +59,7 @@ POST          /admin/suggestions/:id/delete                                     
 # Drug groups
 GET           /admin/drug_groups                                                               controllers.DrugGroupsController.list
 GET           /admin/drug_groups/new                                                           controllers.DrugGroupsController.create
+POST          /admin/drug_groups/importFtkGroup                                                controllers.DrugGroupsController.importFtkGroup
 POST          /admin/drug_groups                                                               controllers.DrugGroupsController.save
 GET           /admin/drug_groups/:id/edit                                                      controllers.DrugGroupsController.edit(id: Long)
 POST          /admin/drug_groups/:id                                                           controllers.DrugGroupsController.update(id: Long)

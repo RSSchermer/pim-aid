@@ -27,7 +27,7 @@ object DrugGroupGenericTypesController extends Controller {
       case Some(drugGroup) =>
         Ok(html.drugGroupGenericTypes.list(
           drugGroup = drugGroup,
-          drugGroupGenericTypes = DrugGroups.genericTypeListFor(DrugGroupID(drugGroupId)),
+          drugGroupGenericTypes = DrugGroups.genericTypeWithMedicationProductsListFor(DrugGroupID(drugGroupId)),
           drugGroupGenericTypeForm = drugGroupGenericTypeForm
         ))
       case _ => NotFound
@@ -41,7 +41,7 @@ object DrugGroupGenericTypesController extends Controller {
           formWithErrors =>
             BadRequest(html.drugGroupGenericTypes.list(
               drugGroup = drugGroup,
-              drugGroupGenericTypes = DrugGroups.genericTypeListFor(DrugGroupID(drugGroupId)),
+              drugGroupGenericTypes = DrugGroups.genericTypeWithMedicationProductsListFor(DrugGroupID(drugGroupId)),
               drugGroupGenericTypeForm = formWithErrors
             )),
           drugGroupGenericType => {

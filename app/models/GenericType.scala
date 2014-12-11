@@ -34,6 +34,9 @@ object GenericTypes {
 
   def find(id: GenericTypeID)(implicit s: Session): Option[GenericType] = one(id).firstOption
 
+  def findByName(name: String)(implicit s: Session): Option[GenericType] =
+    all.filter(_.name.toLowerCase === name.toLowerCase).firstOption
+
   def groupIdListFor(id: GenericTypeID)(implicit s: Session): List[DrugGroupID] =
     TableQuery[DrugGroupsGenericTypes].filter(_.genericTypeId === id).map(_.drugGroupId).list
 

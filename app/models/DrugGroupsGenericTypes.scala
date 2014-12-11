@@ -23,6 +23,9 @@ object DrugGroupsGenericTypes {
   def one(drugGroupId: DrugGroupID, genericTypeId: GenericTypeID) =
     all.filter(x => x.drugGroupId === drugGroupId && x.genericTypeId === genericTypeId)
 
+  def exists(drugGroupId: DrugGroupID, genericTypeId: GenericTypeID)(implicit s: Session): Boolean =
+    one(drugGroupId, genericTypeId).exists.run
+
   def insert(drugGroupGenericType: DrugGroupGenericType)(implicit s: Session) = all.insert(drugGroupGenericType)
 
   def delete(drugGroupId: DrugGroupID, genericTypeId: GenericTypeID)(implicit s: Session) =

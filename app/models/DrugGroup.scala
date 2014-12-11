@@ -25,6 +25,9 @@ object DrugGroups {
 
   def find(id: DrugGroupID)(implicit s: Session): Option[DrugGroup] = one(id).firstOption
 
+  def findByName(name: String)(implicit s: Session): Option[DrugGroup] =
+    all.filter(_.name.toLowerCase === name.toLowerCase).firstOption
+
   def insert(drugGroup: DrugGroup)(implicit s: Session): DrugGroupID =
     all returning all.map(_.id) += drugGroup
 
@@ -35,12 +38,26 @@ object DrugGroups {
     one(id).delete
   }
 
-  def genericTypeListFor(id: DrugGroupID)(implicit s: Session): List[GenericType] = {
-    (for {
+  def genericTypesFor(id: DrugGroupID) = {
+    for {
       (_, genericType) <-
-        one(id) innerJoin
+      one(id) innerJoin
         TableQuery[DrugGroupsGenericTypes] on (_.id === _.drugGroupId) innerJoin
         TableQuery[GenericTypes] on (_._2.genericTypeId === _.id)
-    } yield genericType).list
+    } yield genericType
+  }
+
+  def genericTypeListFor(id: DrugGroupID)(implicit s: Session): List[GenericType] = {
+    genericTypesFor(id).list
+  }
+
+  def genericTypeWithMedicationProductsListFor(id: DrugGroupID)(implicit s: Session)
+  : Map[GenericType, List[MedicationProduct]] = {
+    (for {
+      ((genericType, _), medicationProduct) <-
+        genericTypesFor(id) leftJoin
+        TableQuery[GenericTypesMedicationProducts] on (_.id === _.genericTypeId) leftJoin
+        TableQuery[MedicationProducts] on (_._2.medicationProductId === _.id)
+    } yield (genericType, medicationProduct.?)).list.groupBy(_._1).map({ case (k,v) => (k, v.map(_._2).flatten) })
   }
 }

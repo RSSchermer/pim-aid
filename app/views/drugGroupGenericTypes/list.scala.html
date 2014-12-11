@@ -1,6 +1,6 @@
 @(
     drugGroup: DrugGroup,
-    drugGroupGenericTypes: List[GenericType],
+    drugGroupGenericTypes: Map[GenericType, List[MedicationProduct]],
     drugGroupGenericTypeForm: Form[DrugGroupGenericType]
 )(implicit flash: play.api.mvc.Flash, session: play.api.db.slick.Session)
 
@@ -35,9 +35,16 @@
         </thead>
 
         <tbody>
-            @for(genericType <- drugGroupGenericTypes){
+            @for((genericType, medicationProducts) <- drugGroupGenericTypes){
                 <tr>
-                    <td>@genericType.name</td>
+                    <td>
+                        @genericType.name
+                        <ul>
+                            @for(medicationProduct <- medicationProducts){
+                                <li>@medicationProduct.name</li>
+                            }
+                        </ul>
+                    </td>
                     <td><a href="@routes.DrugGroupGenericTypesController.remove(drugGroup.id.get.value, genericType.id.get.value)">Delete</a></td>
                 </tr>
             }
