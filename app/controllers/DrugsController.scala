@@ -5,7 +5,6 @@ import play.api.db.slick._
 import play.api.db.slick.Config.driver.simple._
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
-import com.rockymadden.stringmetric.similarity._
 
 import models._
 
@@ -111,15 +110,11 @@ object DrugsController extends Controller with UserSessionAware {
                 unresolvable = false
               ))).withSession("token" -> token.value)
             case _ =>
-              val alternatives: List[DrugJson] = MedicationProducts.list
-                .map(x => (JaroWinklerMetric.compare(drugJson.userInput, x.name), x))
-                .filter(_._1.get > 0.3)
-                .sortBy(_._1)(Ordering[Option[Double]].reverse)
+              val alternatives: List[DrugJson] = MedicationProducts.alternativesForUserInput(drugJson.userInput, 0.3, 5)
                 .map {
-                  case (_, MedicationProduct(id, name)) =>
+                  case (MedicationProduct(id, name)) =>
                     DrugJson(None, drugJson.userInput, Some(id.get.value), Some(name), unresolvable = false)
                 }
-                .take(5)
 
               BadRequest(Json.obj("alternatives" -> Json.toJson(alternatives)))
                 .withSession("token" -> token.value)

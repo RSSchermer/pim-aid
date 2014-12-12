@@ -2,6 +2,7 @@ package models
 
 import play.api.db.slick.Config.driver.simple._
 import play.api.db.slick.Session
+import com.rockymadden.stringmetric.similarity._
 
 case class MedicationProductID(value: Long) extends MappedTo[Long]
 
@@ -56,4 +57,12 @@ object MedicationProducts {
     TableQuery[GenericTypesMedicationProducts].filter(_.medicationProductId === id).delete
     one(id).delete
   }
+
+  def alternativesForUserInput(userInput: String, similarityThreshold: Double, maxNum: Int)(implicit s: Session)
+  : List[MedicationProduct] =
+    list.map(x => (JaroWinklerMetric.compare(userInput.toLowerCase, x.name.toLowerCase), x))
+      .filter(_._1.get > similarityThreshold)
+      .sortBy(_._1)(Ordering[Option[Double]].reverse)
+      .take(maxNum)
+      .map(_._2)
 }
