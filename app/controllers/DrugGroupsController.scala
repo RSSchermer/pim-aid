@@ -95,7 +95,7 @@ object DrugGroupsController extends Controller {
         searchResults.getElementsByName("ul", true).foreach { listNode =>
           val items = listNode.getElementsByName("li", false)
           val m = """([^\(]+).*""".r.findFirstMatchIn(items.head.findElementByName("a", true).getText.toString).get
-          val genericTypeName = unescapeHtml4(m.group(1)).trim
+          val genericTypeName = unescapeHtml4(m.group(1)).replaceAll("\\/", " / ").trim
 
           val genericTypeId = GenericTypes.findByName(genericTypeName) match {
             case Some(genericType) => genericType.id.get
@@ -117,7 +117,7 @@ object DrugGroupsController extends Controller {
           }
 
           items.tail.foreach { medicationProductItem =>
-            val medicationProductName = unescapeHtml4(medicationProductItem.getText.toString).trim
+            val medicationProductName = unescapeHtml4(medicationProductItem.getText.toString).replaceAll("\\/", " / ").trim
 
             val medicationProductId = MedicationProducts.findByName(medicationProductName) match {
               case Some(product) => product.id.get
