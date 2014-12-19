@@ -18,7 +18,8 @@
     @helper.form(action = routes.DrugGroupGenericTypesController.save(drugGroup.id.get.value)) {
         <fieldset>
             <input type="hidden" name="drugGroupId" value='@drugGroup.id.get.value'>
-            @helper.select(drugGroupGenericTypeForm("genericTypeId"), GenericTypes.list.toSeq.map(gt => gt.id.get.value.toString -> gt.name))
+            @helper.select(drugGroupGenericTypeForm("genericTypeId"),
+                GenericTypes.list.toSeq.map(gt => gt.id.get.value.toString -> gt.name), 'class -> "searchable-select")
         </fieldset>
 
         <div class="actions">

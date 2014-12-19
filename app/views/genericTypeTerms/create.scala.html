@@ -8,7 +8,8 @@
     @helper.form(routes.GenericTypeTermsController.save()) {
         <fieldset>
             @helper.inputText(genericTypeTermForm("label"))
-            @helper.select(genericTypeTermForm("genericTypeId"), GenericTypes.list.toSeq.map(dt => dt.id.get.value.toString -> dt.name))
+            @helper.select(genericTypeTermForm("genericTypeId"),
+                GenericTypes.list.toSeq.map(dt => dt.id.get.value.toString -> dt.name), 'class -> "searchable-select")
         </fieldset>
 
         <div class="actions">

@@ -8,7 +8,8 @@
     @helper.form(routes.DrugGroupTermsController.save()) {
         <fieldset>
             @helper.inputText(drugGroupTermForm("label"))
-            @helper.select(drugGroupTermForm("drugGroupId"), DrugGroups.list.toSeq.map(dt => dt.id.get.value.toString -> dt.name))
+            @helper.select(drugGroupTermForm("drugGroupId"),
+                DrugGroups.list.toSeq.map(dt => dt.id.get.value.toString -> dt.name), 'class -> "searchable-select")
         </fieldset>
 
         <div class="actions">
