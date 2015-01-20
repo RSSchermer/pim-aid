@@ -2,15 +2,24 @@ package controllers
 
 import play.api.mvc._
 import play.api.db.slick._
-import play.api.db.slick.Config.driver.simple._
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
+import play.api.db.slick.Config.driver.simple.Session
 
 import models._
 
 object DrugsController extends Controller with UserSessionAware {
   case class DrugJson(id: Option[Long], userInput: String, resolvedMedicationProductId: Option[Long],
                       resolvedMedicationProductName: Option[String], unresolvable: Boolean)
+
+  def drugJsonFromDrug(drug: Drug, unresolvable: Boolean = false)(implicit s: Session): DrugJson = {
+    drug.resolvedMedicationProduct.getOrFetch match {
+      case Some(p) =>
+        DrugJson(Some(drug.id.get.value), drug.userInput, Some(p.id.get.value), Some(p.name), unresolvable)
+      case _ =>
+        DrugJson(Some(drug.id.get.value), drug.userInput, None, None, unresolvable)
+    }
+  }
 
   implicit val drugWrites: Writes[DrugJson] = (
       (JsPath \ "id").write[Option[Long]] and
@@ -29,90 +38,48 @@ object DrugsController extends Controller with UserSessionAware {
     )(DrugJson.apply _)
 
   def list = DBAction { implicit rs =>
-    val token = currentUserSession(rs).token
+    val userSession = currentUserSession(rs)
+    val token = userSession.token
 
-    Ok(Json.toJson(UserSessions.drugWithMedicationProductListFor(token).map {
-      case (Drug(id, userInput, _, _), Some(MedicationProduct(productId, productName))) =>
-        DrugJson(
-          id = Some(id.get.value),
-          userInput = userInput,
-          resolvedMedicationProductId = Some(productId.get.value),
-          resolvedMedicationProductName = Some(productName),
-          unresolvable = false
-        )
-      case (Drug(id, userInput, _, _), None) =>
-        DrugJson(
-          id = Some(id.get.value),
-          userInput = userInput,
-          resolvedMedicationProductId = None,
-          resolvedMedicationProductName = None,
-          unresolvable = true
-        )
-    })).withSession("token" -> token.value)
+    Ok(Json.toJson(userSession.drugs.getOrFetch.map(drugJsonFromDrug(_))))
+      .withSession("token" -> token.value)
   }
 
   def save = DBAction(BodyParsers.parse.json) { implicit rs =>
     val token = currentUserSession(rs).token
 
     rs.body.validate[DrugJson].fold(
-      errors => {
+      errors =>
         BadRequest(Json.obj("status" ->"KO", "message" -> JsError.toFlatJson(errors)))
-          .withSession("token" -> token.value)
-      },
+          .withSession("token" -> token.value),
       {
         case DrugJson(_, userInput, Some(resolvedProductId), resolvedDrugTypeName, _) =>
-          val drugId = Drugs.insert(Drug(
-            id = None,
-            userInput = userInput,
-            userToken = token,
-            resolvedMedicationProductId = Some(MedicationProductID(resolvedProductId))
-          ))
+          // The drug has been resolved (user selected on the the alternative drugs)
+          val drugId = Drug.insert(Drug(None, userInput, token, Some(MedicationProductID(resolvedProductId))))
+          val json = DrugJson(Some(drugId.value), userInput, Some(resolvedProductId), resolvedDrugTypeName, false)
 
-          Ok(Json.toJson(DrugJson(
-            id = Some(drugId.value),
-            userInput = userInput,
-            resolvedMedicationProductId = Some(resolvedProductId),
-            resolvedMedicationProductName = resolvedDrugTypeName,
-            unresolvable = false
-          ))).withSession("token" -> token.value)
+          Ok(Json.toJson(json)).withSession("token" -> token.value)
         case DrugJson(_, userInput, None, _, true) =>
-          val drugId = Drugs.insert(Drug(
-            id = None,
-            userInput = userInput,
-            userToken = token,
-            resolvedMedicationProductId = None
-          ))
+          // The user declared the drug unresolvable
+          val drugId = Drug.insert(Drug(None, userInput, token, None))
 
-          Ok(Json.toJson(DrugJson(
-            id = Some(drugId.value),
-            userInput = userInput,
-            resolvedMedicationProductId = None,
-            resolvedMedicationProductName = None,
-            unresolvable = true
-          ))).withSession("token" -> token.value)
+          Ok(Json.toJson(DrugJson(Some(drugId.value), userInput, None, None, true)))
+            .withSession("token" -> token.value)
         case drugJson =>
-          val normalizedInput = drugJson.userInput.trim().replaceAll("""\s+""", " ")
-
-          MedicationProducts.all.filter(_.name.toLowerCase === normalizedInput).firstOption match {
+          // A newly entered drug
+          MedicationProduct.findByUserInput(drugJson.userInput) match {
             case Some(medicationProduct) =>
-              val drugId = Drugs.insert(Drug(
-                id = None,
-                userInput = drugJson.userInput,
-                userToken = token,
-                resolvedMedicationProductId = medicationProduct.id
-              ))
+              // There is a matching medication product
+              val drugId = Drug.insert(Drug(None, drugJson.userInput, token, medicationProduct.id))
+              val json = DrugJson(Some(drugId.value),drugJson.userInput, Some(medicationProduct.id.get.value),
+                Some(medicationProduct.name), false)
 
-              Ok(Json.toJson(DrugJson(
-                id = Some(drugId.value),
-                userInput = drugJson.userInput,
-                resolvedMedicationProductId = Some(medicationProduct.id.get.value),
-                resolvedMedicationProductName = Some(medicationProduct.name),
-                unresolvable = false
-              ))).withSession("token" -> token.value)
+              Ok(Json.toJson(json)).withSession("token" -> token.value)
             case _ =>
-              val alternatives: List[DrugJson] = MedicationProducts.alternativesForUserInput(drugJson.userInput, 0.3, 5)
+              // There is no matching medication product
+              val alternatives = MedicationProduct.alternativesForUserInput(drugJson.userInput, 0.3, 5)
                 .map {
-                  case (MedicationProduct(id, name)) =>
+                  case (MedicationProduct(id, name, _)) =>
                     DrugJson(None, drugJson.userInput, Some(id.get.value), Some(name), unresolvable = false)
                 }
 
@@ -125,7 +92,7 @@ object DrugsController extends Controller with UserSessionAware {
 
   def delete(id: Long) = DBAction { implicit rs =>
     val token = currentUserSession(rs).token
-    UserSessions.deleteDrug(token, DrugID(id))
+    Drug.delete(DrugID(id))
     Ok.withSession("token" -> token.value)
   }
 }

@@ -1,7 +1,6 @@
 @(
     rule: Rule,
-    ruleSuggestionTemplates: List[SuggestionTemplate],
-    ruleSuggestionTemplateForm: Form[RuleSuggestionTemplate]
+    ruleSuggestionTemplateForm: Form[(RuleID, SuggestionTemplateID)]
 )(implicit flash: play.api.mvc.Flash, session: play.api.db.slick.Session)
 
 @admin("Suggestion list for "+ rule.name, "rules") {
@@ -19,7 +18,8 @@
     @helper.form(action = routes.RuleSuggestionTemplatesController.save(rule.id.get.value)) {
         <fieldset>
             <input type="hidden" name="ruleId" value='@rule.id.get.value'>
-            @helper.select(ruleSuggestionTemplateForm("suggestionTemplateId"), SuggestionTemplates.list.toSeq.map(gt => gt.id.get.value.toString -> gt.name))
+            @helper.select(ruleSuggestionTemplateForm("suggestionTemplateId"),
+                SuggestionTemplate.list.toSeq.map(gt => gt.id.get.value.toString -> gt.name))
         </fieldset>
 
         <div class="actions">
@@ -37,7 +37,7 @@
         </thead>
 
         <tbody>
-            @for(suggestionTemplate <- ruleSuggestionTemplates){
+            @for(suggestionTemplate <- rule.suggestionTemplates.getOrFetch){
                 <tr>
                     <td>@suggestionTemplate.name</td>
                     <td>@suggestionTemplate.text</td>

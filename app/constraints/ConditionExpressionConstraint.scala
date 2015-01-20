@@ -1,6 +1,6 @@
 package constraints
 
-import models.ExpressionTerms
+import models._
 import play.api.data.validation.{Constraint, Invalid, Valid}
 import play.api.db.slick._
 import utils.ConditionExpressionParser
@@ -8,7 +8,7 @@ import utils.ConditionExpressionParser
 object ConditionExpressionConstraint {
   def apply(implicit s: Session): Constraint[String] =
     Constraint[String]("constraints.parsableExpression")({ expression =>
-      val variableMap: Map[String, Boolean] = ExpressionTerms.list.map(t => (t.label, false)).toMap
+      val variableMap: Map[String, Boolean] = ExpressionTerm.list.map(t => (t.label, false)).toMap
       val parser = new ConditionExpressionParser(variableMap)
 
       parser.parse(expression) match {

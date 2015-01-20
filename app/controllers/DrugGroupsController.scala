@@ -8,8 +8,9 @@ import play.api.Play.current
 import com.google.common.base.Charsets
 import com.google.common.io._
 import org.apache.commons.lang3.StringEscapeUtils.unescapeHtml4
-import play.twirl.api.HtmlFormat
 import org.htmlcleaner.HtmlCleaner
+import play.api.db.slick.Config.driver.simple._
+import schema._
 
 import views._
 import models._
@@ -22,11 +23,11 @@ object DrugGroupsController extends Controller {
         (drugGroupId: DrugGroupID) => drugGroupId.value
       )),
       "name" -> nonEmptyText
-    )(DrugGroup.apply)(DrugGroup.unapply)
+    )({ case (id, name) => DrugGroup(id, name) })({ case DrugGroup(id, name, _) => Some(id, name) })
   )
 
   def list = DBAction { implicit rs =>
-    Ok(html.drugGroups.list(DrugGroups.list))
+    Ok(html.drugGroups.list(DrugGroup.list))
   }
 
   def create = Action {
@@ -37,7 +38,7 @@ object DrugGroupsController extends Controller {
     drugGroupForm.bindFromRequest.fold(
       formWithErrors => BadRequest(html.drugGroups.create(formWithErrors)),
       drugGroup => {
-        val id = DrugGroups.insert(drugGroup)
+        val id = DrugGroup.insert(drugGroup)
 
         Redirect(routes.DrugGroupGenericTypesController.list(id.value))
           .flashing("success" -> "The drug group was created successfully.")
@@ -46,7 +47,7 @@ object DrugGroupsController extends Controller {
   }
 
   def edit(id: Long) = DBAction { implicit rs =>
-    DrugGroups.find(DrugGroupID(id)) match {
+    DrugGroup.find(DrugGroupID(id)) match {
       case Some(drugGroup) =>
         Ok(html.drugGroups.edit(DrugGroupID(id), drugGroupForm.fill(drugGroup)))
       case _ => NotFound
@@ -57,7 +58,7 @@ object DrugGroupsController extends Controller {
     drugGroupForm.bindFromRequest.fold(
       formWithErrors => BadRequest(html.drugGroups.edit(DrugGroupID(id), formWithErrors)),
       drugGroup => {
-        DrugGroups.update(DrugGroupID(id), drugGroup)
+        DrugGroup.update(drugGroup)
         Redirect(routes.DrugGroupsController.list())
           .flashing("success" -> "The drug group was updated successfully.")
       }
@@ -65,14 +66,14 @@ object DrugGroupsController extends Controller {
   }
 
   def remove(id: Long) = DBAction { implicit rs =>
-    DrugGroups.find(DrugGroupID(id)) match {
+    DrugGroup.find(DrugGroupID(id)) match {
       case Some(drugGroup) => Ok(html.drugGroups.remove(drugGroup))
       case _ => NotFound
     }
   }
 
   def delete(id: Long) = DBAction { implicit rs =>
-    DrugGroups.delete(DrugGroupID(id))
+    DrugGroup.delete(DrugGroupID(id))
     Redirect(routes.DrugGroupsController.list())
       .flashing("success" -> "The drug group was deleted successfully.")
   }
@@ -87,9 +88,9 @@ object DrugGroupsController extends Controller {
         val searchResults = root.findElementByAttValue("class", "searchresults", true, true)
         val groupName = unescapeHtml4(searchResults.findElementByName("h1", true).getText.toString).trim
 
-        val drugGroupId: DrugGroupID = DrugGroups.findByName(groupName) match {
+        val drugGroupId: DrugGroupID = DrugGroup.findByName(groupName) match {
           case Some(drugGroup) => drugGroup.id.get
-          case _ => DrugGroups.insert(DrugGroup(None, groupName))
+          case _ => DrugGroup.insert(DrugGroup(None, groupName))
         }
 
         searchResults.getElementsByName("ul", true).foreach { listNode =>
@@ -97,35 +98,43 @@ object DrugGroupsController extends Controller {
           val m = """([^\(]+).*""".r.findFirstMatchIn(items.head.findElementByName("a", true).getText.toString).get
           val genericTypeName = unescapeHtml4(m.group(1)).replaceAll("\\/", " / ").trim
 
-          val genericTypeId = GenericTypes.findByName(genericTypeName) match {
+          val genericTypeId = GenericType.findByName(genericTypeName) match {
             case Some(genericType) => genericType.id.get
-            case _ => GenericTypes.insert(GenericType(None, genericTypeName))
+            case _ => GenericType.insert(GenericType(None, genericTypeName))
           }
 
-          if (!DrugGroupsGenericTypes.exists(drugGroupId, genericTypeId)) {
-            DrugGroupsGenericTypes.insert(DrugGroupGenericType(drugGroupId, genericTypeId))
+          if (!TableQuery[DrugGroupsGenericTypes]
+            .filter(x => x.drugGroupId === drugGroupId && x.genericTypeId === genericTypeId).exists.run
+          ) {
+            TableQuery[DrugGroupsGenericTypes].insert((drugGroupId, genericTypeId))
           }
 
-          val genericMedicationProductId = MedicationProducts.findByName(genericTypeName) match {
+          val genericMedicationProductId = MedicationProduct.findByName(genericTypeName) match {
             case Some(product) => product.id.get
-            case _ => MedicationProducts.insert(MedicationProduct(None, genericTypeName))
+            case _ => MedicationProduct.insert(MedicationProduct(None, genericTypeName))
           }
 
-          if (!GenericTypesMedicationProducts.exists(genericTypeId, genericMedicationProductId)) {
-            GenericTypesMedicationProducts
-              .insert(GenericTypeMedicationProduct(genericTypeId, genericMedicationProductId))
+          if (!TableQuery[GenericTypesMedicationProducts]
+            .filter(x => x.genericTypeId === genericTypeId && x.medicationProductId === genericMedicationProductId)
+            .exists.run
+          ) {
+            TableQuery[GenericTypesMedicationProducts].insert((genericTypeId, genericMedicationProductId))
           }
 
           items.tail.foreach { medicationProductItem =>
-            val medicationProductName = unescapeHtml4(medicationProductItem.getText.toString).replaceAll("\\/", " / ").trim
+            val medicationProductName = unescapeHtml4(medicationProductItem.getText.toString)
+              .replaceAll("\\/", " / ").trim
 
-            val medicationProductId = MedicationProducts.findByName(medicationProductName) match {
+            val medicationProductId = MedicationProduct.findByName(medicationProductName) match {
               case Some(product) => product.id.get
-              case _ => MedicationProducts.insert(MedicationProduct(None, medicationProductName))
+              case _ => MedicationProduct.insert(MedicationProduct(None, medicationProductName))
             }
 
-            if (!GenericTypesMedicationProducts.exists(genericTypeId, medicationProductId)) {
-              GenericTypesMedicationProducts.insert(GenericTypeMedicationProduct(genericTypeId, medicationProductId))
+            if (!TableQuery[GenericTypesMedicationProducts]
+              .filter(x => x.genericTypeId === genericTypeId && x.medicationProductId === medicationProductId)
+              .exists.run
+            ) {
+              TableQuery[GenericTypesMedicationProducts].insert((genericTypeId, medicationProductId))
             }
           }
         }

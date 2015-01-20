@@ -14,8 +14,8 @@ GET           /contact                                                          
 GET           /general_information                                                             controllers.StepsController.generalInformation
 POST          /general_information                                                             controllers.StepsController.saveGeneralInformation
 GET           /medication_list                                                                 controllers.StepsController.medicationList
-GET           /base_statement_selection                                                        controllers.StepsController.unconditionalStatementSelection
-POST          /base_statement_selection                                                        controllers.StepsController.saveUnconditionalStatementSelection
+GET           /base_statement_selection                                                        controllers.StepsController.independentStatementSelection
+POST          /base_statement_selection                                                        controllers.StepsController.saveIndependentStatementSelection
 GET           /extra_statement_selection                                                       controllers.StepsController.conditionalStatementSelection
 POST          /extra_statement_selection                                                       controllers.StepsController.saveConditionalStatementSelection
 GET           /suggestion_list                                                                 controllers.StepsController.suggestionList

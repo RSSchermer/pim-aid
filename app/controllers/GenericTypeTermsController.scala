@@ -17,11 +17,12 @@ object GenericTypeTermsController extends Controller {
         (id: Long) => GenericTypeID(id),
         (genericTypeId: GenericTypeID) => genericTypeId.value
       )
-    )(GenericTypeTerm.apply)(GenericTypeTerm.unapply)
+    )({ case (label, genericTypeId) => ExpressionTerm(label, Some(genericTypeId), None, None, None, None, None) })
+    ({ case ExpressionTerm(label, Some(genericTypeId), _, _, _, _, _, _, _) => Some(label, genericTypeId) })
   )
 
   def list = DBAction { implicit rs =>
-    Ok(html.genericTypeTerms.list(GenericTypeTerms.listWithGenericType))
+    Ok(html.genericTypeTerms.list(GenericTypeTerm.list))
   }
 
   def create = DBAction { implicit rs =>
@@ -32,7 +33,7 @@ object GenericTypeTermsController extends Controller {
     genericTypeTermForm.bindFromRequest.fold(
       formWithErrors => BadRequest(html.genericTypeTerms.create(formWithErrors)),
       drugTypeTerm => {
-        GenericTypeTerms.insert(drugTypeTerm)
+        GenericTypeTerm.insert(drugTypeTerm)
         Redirect(routes.GenericTypeTermsController.list())
           .flashing("success" -> "The expression term was created successfully.")
       }
@@ -40,7 +41,7 @@ object GenericTypeTermsController extends Controller {
   }
 
   def edit(label: String) = DBAction { implicit rs =>
-    GenericTypeTerms.find(label) match {
+    GenericTypeTerm.find(label) match {
       case Some(term) => Ok(html.genericTypeTerms.edit(label, genericTypeTermForm.fill(term)))
       case _ => NotFound
     }
@@ -50,7 +51,7 @@ object GenericTypeTermsController extends Controller {
     genericTypeTermForm.bindFromRequest.fold(
       formWithErrors => BadRequest(html.genericTypeTerms.edit(label, formWithErrors)),
       term => {
-        GenericTypeTerms.update(label, term)
+        GenericTypeTerm.update(term)
         Redirect(routes.GenericTypeTermsController.list())
           .flashing("success" -> "The expression term was updated successfully.")
       }
@@ -58,14 +59,14 @@ object GenericTypeTermsController extends Controller {
   }
 
   def remove(label: String) = DBAction { implicit rs =>
-    GenericTypeTerms.find(label) match {
+    GenericTypeTerm.find(label) match {
       case Some(term) => Ok(html.genericTypeTerms.remove(term))
       case _ => NotFound
     }
   }
 
   def delete(label: String) = DBAction { implicit rs =>
-    GenericTypeTerms.delete(label)
+    GenericTypeTerm.delete(label)
     Redirect(routes.GenericTypeTermsController.list())
       .flashing("success" -> "The expression term was deleted successfully.")
   }

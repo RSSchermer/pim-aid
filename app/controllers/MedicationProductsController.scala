@@ -20,11 +20,12 @@ object MedicationProductsController extends Controller {
         (medicationProductId: MedicationProductID) => medicationProductId.value
       )),
       "name" -> nonEmptyText
-    )(MedicationProduct.apply)(MedicationProduct.unapply)
+    )({ case (id, name) => MedicationProduct(id, name) })
+      ({ case MedicationProduct(id, name, _) => Some(id, name) })
   )
 
   def list = DBAction { implicit rs =>
-    Ok(html.medicationProducts.list(MedicationProducts.list))
+    Ok(html.medicationProducts.list(MedicationProduct.list))
   }
 
   def create = DBAction { implicit rs =>
@@ -35,7 +36,7 @@ object MedicationProductsController extends Controller {
     medicationProductForm.bindFromRequest.fold(
       formWithErrors => BadRequest(html.medicationProducts.create(formWithErrors)),
       medicationProduct => {
-        val id = MedicationProducts.insert(medicationProduct)
+        val id = MedicationProduct.insert(medicationProduct)
 
         Redirect(routes.MedicationProductGenericTypesController.list(id.value))
           .flashing("success" -> "The medication product was created successfully.")
@@ -44,7 +45,7 @@ object MedicationProductsController extends Controller {
   }
 
   def edit(id: Long) = DBAction { implicit rs =>
-    MedicationProducts.find(MedicationProductID(id)) match {
+    MedicationProduct.find(MedicationProductID(id)) match {
       case Some(medicationProduct) =>
         Ok(html.medicationProducts.edit(medicationProduct.id.get, medicationProductForm.fill(medicationProduct)))
       case _ => NotFound
@@ -56,7 +57,7 @@ object MedicationProductsController extends Controller {
       formWithErrors =>
         BadRequest(html.medicationProducts.edit(MedicationProductID(id), formWithErrors)),
       medicationProduct => {
-        MedicationProducts.update(MedicationProductID(id), medicationProduct)
+        MedicationProduct.update(medicationProduct)
         Redirect(routes.MedicationProductsController.list())
           .flashing("success" -> "The medication product was updated successfully.")
       }
@@ -64,14 +65,14 @@ object MedicationProductsController extends Controller {
   }
 
   def remove(id: Long) = DBAction { implicit rs =>
-    MedicationProducts.find(MedicationProductID(id)) match {
+    MedicationProduct.find(MedicationProductID(id)) match {
       case Some(medicationProduct) => Ok(html.medicationProducts.remove(medicationProduct))
       case _ => NotFound
     }
   }
 
   def delete(id: Long) = DBAction { implicit rs =>
-    MedicationProducts.delete(MedicationProductID(id))
+    MedicationProduct.delete(MedicationProductID(id))
     Redirect(routes.MedicationProductsController.list())
       .flashing("success" -> "The drug type was deleted successfully.")
   }
@@ -93,8 +94,8 @@ object MedicationProductsController extends Controller {
       reader.all().foreach { (x: List[String]) =>
         val productName = x.head
 
-        if (MedicationProducts.findByName(productName).isEmpty) {
-          MedicationProducts.insert(MedicationProduct(None, productName))
+        if (MedicationProduct.findByName(productName).isEmpty) {
+          MedicationProduct.insert(MedicationProduct(None, productName))
         }
       }
 

@@ -4,6 +4,7 @@
 
 @helper.form(action = action) {
     <fieldset>
+        <input type="hidden" name="id" value="@genericTypeForm("id").value">
         @helper.inputText(genericTypeForm("name"))
     </fieldset>
 

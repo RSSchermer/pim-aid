@@ -1,7 +1,6 @@
 @(
     drugGroup: DrugGroup,
-    drugGroupGenericTypes: Map[GenericType, List[MedicationProduct]],
-    drugGroupGenericTypeForm: Form[DrugGroupGenericType]
+    drugGroupGenericTypeForm: Form[(DrugGroupID, GenericTypeID)]
 )(implicit flash: play.api.mvc.Flash, session: play.api.db.slick.Session)
 
 @admin("Generic type list for "+ drugGroup.name, "drugGroups") {
@@ -19,7 +18,7 @@
         <fieldset>
             <input type="hidden" name="drugGroupId" value='@drugGroup.id.get.value'>
             @helper.select(drugGroupGenericTypeForm("genericTypeId"),
-                GenericTypes.list.toSeq.map(gt => gt.id.get.value.toString -> gt.name), 'class -> "searchable-select")
+                GenericType.list.toSeq.map(gt => gt.id.get.value.toString -> gt.name), 'class -> "searchable-select")
         </fieldset>
 
         <div class="actions">
@@ -36,12 +35,12 @@
         </thead>
 
         <tbody>
-            @for((genericType, medicationProducts) <- drugGroupGenericTypes){
+            @for(genericType <- drugGroup.genericTypes.getOrFetch){
                 <tr>
                     <td>
                         @genericType.name
                         <ul>
-                            @for(medicationProduct <- medicationProducts){
+                            @for(medicationProduct <- genericType.medicationProducts.getOrFetch){
                                 <li>@medicationProduct.name</li>
                             }
                         </ul>

@@ -1,4 +1,4 @@
-@(drugGroupTermForm: Form[DrugGroupTerm])(implicit session: play.api.db.slick.Session)
+@(drugGroupTermForm: Form[ExpressionTerm])(implicit session: play.api.db.slick.Session)
 
 @import helper.twitterBootstrap._
 
@@ -9,7 +9,7 @@
         <fieldset>
             @helper.inputText(drugGroupTermForm("label"))
             @helper.select(drugGroupTermForm("drugGroupId"),
-                DrugGroups.list.toSeq.map(dt => dt.id.get.value.toString -> dt.name), 'class -> "searchable-select")
+                DrugGroup.list.toSeq.map(dt => dt.id.get.value.toString -> dt.name), 'class -> "searchable-select")
         </fieldset>
 
         <div class="actions">

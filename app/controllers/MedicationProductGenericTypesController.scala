@@ -4,13 +4,15 @@ import play.api.mvc._
 import play.api.data._
 import play.api.data.Forms._
 import play.api.db.slick._
+import play.api.db.slick.Config.driver.simple._
+import schema._
 
 import views._
 import models._
 
 object MedicationProductGenericTypesController extends Controller {
   val genericTypeMedicationProductForm = Form(
-    mapping(
+    tuple(
       "genericTypeId" -> longNumber.transform(
         (id: Long) => GenericTypeID(id),
         (genericTypeId: GenericTypeID) => genericTypeId.value
@@ -19,34 +21,26 @@ object MedicationProductGenericTypesController extends Controller {
         (id: Long) => MedicationProductID(id),
         (medicationProductId: MedicationProductID) => medicationProductId.value
       )
-    )(GenericTypeMedicationProduct.apply)(GenericTypeMedicationProduct.unapply)
+    )
   )
 
   def list(medicationProductId: Long) = DBAction { implicit rs =>
-    MedicationProducts.find(MedicationProductID(medicationProductId)) match {
+    MedicationProduct.find(MedicationProductID(medicationProductId)) match {
       case Some(medicationProduct) =>
-        Ok(html.medicationProductGenericTypes.list(
-          medicationProduct = medicationProduct,
-          medicationProductGenericTypes = MedicationProducts.genericTypeListFor(MedicationProductID(medicationProductId)),
-          genericTypeMedicationProductForm = genericTypeMedicationProductForm
-        ))
+        Ok(html.medicationProductGenericTypes.list(medicationProduct, genericTypeMedicationProductForm))
       case _ => NotFound
     }
   }
 
   def save(medicationProductId: Long) = DBAction { implicit rs =>
-    MedicationProducts.find(MedicationProductID(medicationProductId)) match {
+    MedicationProduct.find(MedicationProductID(medicationProductId)) match {
       case Some(medicationProduct) =>
         genericTypeMedicationProductForm.bindFromRequest.fold(
           formWithErrors =>
-            BadRequest(html.medicationProductGenericTypes.list(
-              medicationProduct = medicationProduct,
-              medicationProductGenericTypes =
-                MedicationProducts.genericTypeListFor(MedicationProductID(medicationProductId)),
-              genericTypeMedicationProductForm = formWithErrors
-            )),
+            BadRequest(html.medicationProductGenericTypes.list(medicationProduct, formWithErrors)),
           genericTypeMedicationProduct => {
-            GenericTypesMedicationProducts.insert(genericTypeMedicationProduct)
+            TableQuery[GenericTypesMedicationProducts].insert(genericTypeMedicationProduct)
+
             Redirect(routes.MedicationProductGenericTypesController.list(medicationProductId))
               .flashing("success" -> "The generic type was successfully added to the medication product.")
           }
@@ -56,9 +50,9 @@ object MedicationProductGenericTypesController extends Controller {
   }
 
   def remove(medicationProductId: Long, id: Long) = DBAction { implicit rs =>
-    MedicationProducts.find(MedicationProductID(medicationProductId)) match {
+    MedicationProduct.find(MedicationProductID(medicationProductId)) match {
       case Some(medicationProduct) =>
-        GenericTypes.find(GenericTypeID(id)) match {
+        GenericType.find(GenericTypeID(id)) match {
           case Some(genericType) => Ok(html.medicationProductGenericTypes.remove(medicationProduct, genericType))
           case _ => NotFound
         }
@@ -67,7 +61,10 @@ object MedicationProductGenericTypesController extends Controller {
   }
 
   def delete(medicationProductId: Long, id: Long) = DBAction { implicit rs =>
-    GenericTypesMedicationProducts.delete(GenericTypeID(id), MedicationProductID(medicationProductId))
+    TableQuery[GenericTypesMedicationProducts]
+      .filter(_.genericTypeId === GenericTypeID(id))
+      .filter(_.medicationProductId === MedicationProductID(medicationProductId))
+      .delete
     Redirect(routes.MedicationProductGenericTypesController.list(medicationProductId))
       .flashing("success" -> "The generic type was succesfully removed from the medication product.")
   }

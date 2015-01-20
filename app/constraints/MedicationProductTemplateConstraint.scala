@@ -1,13 +1,13 @@
 package constraints
 
-import models.{GenericTypes, DrugGroups}
+import models._
 import play.api.data.validation.{Constraint, Invalid, Valid}
 import play.api.db.slick._
 
 object MedicationProductTemplateConstraint {
   def apply(implicit s: Session): Constraint[String] = {
-    val groupNames = DrugGroups.list.map(_.name.toLowerCase)
-    val typeNames = GenericTypes.list.map(_.name.toLowerCase)
+    val groupNames = DrugGroup.list.map(_.name.toLowerCase)
+    val typeNames = GenericType.list.map(_.name.toLowerCase)
 
     Constraint[String]("constraints.medicationProductTemplate")({ template =>
       """\{\{(type|group)\(([^\)]+)\)\}\}""".r.findAllMatchIn(template).map(m => {

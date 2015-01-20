@@ -20,11 +20,12 @@ object SuggestionTemplatesController extends Controller {
       "name" -> nonEmptyText,
       "text" -> nonEmptyText.verifying(MedicationProductTemplateConstraint.apply),
       "explanatoryNote" -> optional(text.verifying(MedicationProductTemplateConstraint.apply))
-    )(SuggestionTemplate.apply)(SuggestionTemplate.unapply)
+    )({ case (id, name, txt, en) => SuggestionTemplate(id, name, txt, en) })
+      ({ case SuggestionTemplate(id, name, txt, en, _) => Some(id, name, txt, en) })
   )
 
   def list = DBAction { implicit rs =>
-    Ok(html.suggestionTemplates.list(SuggestionTemplates.list))
+    Ok(html.suggestionTemplates.list(SuggestionTemplate.list))
   }
 
   def create = DBAction { implicit rs =>
@@ -35,7 +36,7 @@ object SuggestionTemplatesController extends Controller {
     suggestionTemplateForm.bindFromRequest.fold(
       formWithErrors => BadRequest(html.suggestionTemplates.create(formWithErrors)),
       suggestionTemplate => {
-        SuggestionTemplates.insert(suggestionTemplate)
+        SuggestionTemplate.insert(suggestionTemplate)
         Redirect(routes.SuggestionTemplatesController.list())
           .flashing("success" -> "The suggestion was created successfully.")
       }
@@ -43,7 +44,7 @@ object SuggestionTemplatesController extends Controller {
   }
 
   def edit(id: Long) = DBAction { implicit rs =>
-    SuggestionTemplates.find(SuggestionTemplateID(id)) match {
+    SuggestionTemplate.find(SuggestionTemplateID(id)) match {
       case Some(suggestionTemplate) =>
         Ok(html.suggestionTemplates.edit(suggestionTemplate.id.get, suggestionTemplateForm.fill(suggestionTemplate)))
       case _ => NotFound
@@ -55,7 +56,7 @@ object SuggestionTemplatesController extends Controller {
       formWithErrors =>
         BadRequest(html.suggestionTemplates.edit(SuggestionTemplateID(id), formWithErrors)),
       suggestionTemplate => {
-        SuggestionTemplates.update(SuggestionTemplateID(id), suggestionTemplate)
+        SuggestionTemplate.update(suggestionTemplate)
         Redirect(routes.SuggestionTemplatesController.list())
           .flashing("success" -> "The suggestion was updated successfully.")
       }
@@ -63,14 +64,14 @@ object SuggestionTemplatesController extends Controller {
   }
 
   def remove(id: Long) = DBAction { implicit rs =>
-    SuggestionTemplates.find(SuggestionTemplateID(id)) match {
+    SuggestionTemplate.find(SuggestionTemplateID(id)) match {
       case Some(suggestionTemplate) => Ok(html.suggestionTemplates.remove(suggestionTemplate))
       case _ => NotFound
     }
   }
 
   def delete(id: Long) = DBAction { implicit rs =>
-    SuggestionTemplates.delete(SuggestionTemplateID(id))
+    SuggestionTemplate.delete(SuggestionTemplateID(id))
     Redirect(routes.SuggestionTemplatesController.list())
       .flashing("success" -> "The suggestion was deleted successfully.")
   }

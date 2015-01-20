@@ -1,7 +1,6 @@
 @(
     medicationProduct: MedicationProduct,
-    medicationProductGenericTypes: List[GenericType],
-    genericTypeMedicationProductForm: Form[GenericTypeMedicationProduct]
+    genericTypeMedicationProductForm: Form[(GenericTypeID, MedicationProductID)]
 )(implicit flash: play.api.mvc.Flash, session: play.api.db.slick.Session)
 
 @admin("Generic type list for "+ medicationProduct.name, "medicationProducts") {
@@ -19,7 +18,7 @@
         <fieldset>
             <input type="hidden" name="medicationProductId" value='@medicationProduct.id.get.value'>
             @helper.select(genericTypeMedicationProductForm("genericTypeId"),
-                GenericTypes.list.toSeq.map(gt => gt.id.get.value.toString -> gt.name), 'class -> "searchable-select")
+                GenericType.list.toSeq.map(gt => gt.id.get.value.toString -> gt.name), 'class -> "searchable-select")
         </fieldset>
 
         <div class="actions">
@@ -36,7 +35,7 @@
         </thead>
 
         <tbody>
-            @for(genericType <- medicationProductGenericTypes){
+            @for(genericType <- medicationProduct.genericTypes.getOrFetch){
                 <tr>
                     <td>@genericType.name</td>
                     <td><a href="@routes.MedicationProductGenericTypesController.remove(medicationProduct.id.get.value, genericType.id.get.value)">Delete</a></td>

@@ -1,77 +1,39 @@
 package models
 
 import play.api.db.slick.Config.driver.simple._
+import ORM.model._
 import play.api.db.slick.Session
+import schema._
 
 case class RuleID(value: Long) extends MappedTo[Long]
 
-case class Rule(id: Option[RuleID], name: String, conditionExpression: String, source: Option[String], note: Option[String])
-
-class Rules(tag: Tag) extends Table[Rule](tag, "RULES") {
-  def id = column[RuleID]("id", O.PrimaryKey, O.AutoInc)
-  def name = column[String]("name", O.NotNull)
-  def conditionExpression = column[String]("condition_expression", O.NotNull)
-  def source = column[String]("source", O.Nullable)
-  def note = column[String]("note", O.Nullable)
-
-  def * = (id.?, name, conditionExpression, source.?, note.?) <> (Rule.tupled, Rule.unapply)
-
-  def nameIndex = index("RULES_NAME_INDEX", name, unique = true)
+case class Rule(
+    id: Option[RuleID],
+    name: String,
+    conditionExpression: String,
+    source: Option[String],
+    note: Option[String],
+    suggestionTemplates: Many[Rules, SuggestionTemplates, Rule, SuggestionTemplate] =
+      ManyUnfetched(Rule.suggestionTemplates)) extends Entity[RuleID] {
+  type IdType = RuleID
 }
 
-object Rules {
-  val all = TableQuery[Rules]
-  val variablePattern = """\[([A-Za-z0-9_\-]+)\]""".r
+object Rule extends EntityCompanion[Rule, Rules] {
+  val query = TableQuery[Rules]
 
-  def list(implicit s: Session) = all.list
+  val suggestionTemplates = toManyThrough[SuggestionTemplate, (RuleID, SuggestionTemplateID), SuggestionTemplates, RulesSuggestionTemplates](
+    TableQuery[RulesSuggestionTemplates] leftJoin TableQuery[SuggestionTemplates] on(_.suggestionTemplateId === _.id),
+    _.id === _._1.ruleId,
+    lenser(_.suggestionTemplates)
+  )
 
-  def one(id: RuleID) = all.filter(_.id === id)
-
-  def find(id: RuleID)(implicit s: Session): Option[Rule] = one(id).firstOption
-
-  def rulesSuggestionTemplatesFor(id: RuleID) = {
-    for {
-      (_, ruleSuggestionTemplate) <-
-        one(id) innerJoin
-        TableQuery[RulesSuggestionTemplates] on (_.id === _.ruleId)
-    } yield ruleSuggestionTemplate
+  override protected def afterSave(ruleId: RuleID, rule: Rule)(implicit s: Session): Unit = {
+    val etr = TableQuery[ExpressionTermsRules]
+    etr.filter(_.ruleId === ruleId).delete
+    """\[([A-Za-z0-9_\-]+)\]""".r.findAllMatchIn(rule.conditionExpression)
+      .foreach(m => etr.insert((m group 1, ruleId)))
   }
 
-  def suggestionTemplatesFor(id: RuleID) = {
-    for {
-      (_, suggestion) <-
-        rulesSuggestionTemplatesFor(id) innerJoin
-        TableQuery[SuggestionTemplates] on (_.suggestionTemplateId === _.id)
-    } yield suggestion
-  }
-
-  def suggestionTemplateListFor(id: RuleID)(implicit s: Session): List[SuggestionTemplate] =
-    suggestionTemplatesFor(id).list
-
-  def expressionTermsRulesFor(id: RuleID) = TableQuery[ExpressionTermsRules].filter(_.ruleId === id)
-
-  def insert(rule: Rule)(implicit s: Session): RuleID = {
-    val ruleId = all returning all.map(_.id) += rule
-    createExpressionTermsRules(ruleId, rule.conditionExpression)
-    ruleId
-  }
-
-  def update(id: RuleID, rule: Rule)(implicit s: Session) = {
-    all.filter(_.id === id)
-      .map(x => (x.name, x.conditionExpression, x.source.?, x.note.?))
-      .update((rule.name, rule.conditionExpression, rule.source, rule.note))
-
-    expressionTermsRulesFor(id).delete
-    createExpressionTermsRules(id, rule.conditionExpression)
-  }
-
-  def delete(id: RuleID)(implicit s: Session) = {
-    expressionTermsRulesFor(id).delete
-    rulesSuggestionTemplatesFor(id).delete
-    one(id).delete
-  }
-
-  def createExpressionTermsRules(id: RuleID, conditionExpression: String)(implicit s: Session) =
-    variablePattern.findAllMatchIn(conditionExpression).foreach(m =>
-      TableQuery[ExpressionTermsRules].insert(ExpressionTermRule(m group 1, id)))
+  override protected def beforeDelete(ruleId: RuleID)(implicit s: Session): Unit =
+    TableQuery[ExpressionTermsRules].filter(_.ruleId === ruleId).delete
 }

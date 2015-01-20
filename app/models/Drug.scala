@@ -1,29 +1,34 @@
 package models
 
 import play.api.db.slick.Config.driver.simple._
-import play.api.db.slick.Session
+import ORM.model._
+import schema._
 
 case class DrugID(value: Long) extends MappedTo[Long]
 
-case class Drug(id: Option[DrugID], userInput: String, userToken: UserToken,
-                resolvedMedicationProductId: Option[MedicationProductID])
-
-class Drugs(tag: Tag) extends Table[Drug](tag, "DRUGS") {
-  def id = column[DrugID]("id", O.PrimaryKey, O.AutoInc)
-  def userInput = column[String]("userInput", O.NotNull)
-  def userToken = column[UserToken]("userToken", O.NotNull)
-  def resolvedMedicationProductId = column[MedicationProductID]("resolved_medication_product_id", O.Nullable)
-
-  def * = (id.?, userInput, userToken, resolvedMedicationProductId.?) <> (Drug.tupled, Drug.unapply)
-
-  def resolvedMedicationProduct = foreignKey("DRUGS_RESOLVED_MEDICATION_PRODUCT_FK", resolvedMedicationProductId,
-    TableQuery[MedicationProducts])(_.id)
+case class Drug(
+    id: Option[DrugID],
+    userInput: String,
+    userToken: UserToken,
+    resolvedMedicationProductId: Option[MedicationProductID],
+    userSession: One[Drugs, UserSessions, Drug, UserSession] = OneUnfetched(Drug.userSession),
+    resolvedMedicationProduct: One[Drugs, MedicationProducts, Drug, MedicationProduct] =
+      OneUnfetched(Drug.resolvedMedicationProduct))
+  extends Entity[DrugID] {
+  type IdType = DrugID
 }
 
-object Drugs {
-  val all = TableQuery[Drugs]
+object Drug extends EntityCompanion[Drug, Drugs] {
+  val query = TableQuery[Drugs]
 
-  def insert(drug: Drug)(implicit s: Session): DrugID = {
-    all returning all.map(_.id) += drug
-  }
+  val userSession = toOne[UserSession, UserSessions](
+    TableQuery[UserSessions],
+    _.userToken === _.token,
+    lenser(_.userSession))
+
+  val resolvedMedicationProduct = toOne[MedicationProduct, MedicationProducts](
+    TableQuery[MedicationProducts],
+    _.resolvedMedicationProductId === _.id,
+    lenser(_.resolvedMedicationProduct)
+  )
 }

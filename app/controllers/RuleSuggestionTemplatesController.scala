@@ -4,13 +4,15 @@ import play.api.mvc._
 import play.api.data._
 import play.api.data.Forms._
 import play.api.db.slick._
+import play.api.db.slick.Config.driver.simple._
+import schema._
 
 import views._
 import models._
 
 object RuleSuggestionTemplatesController extends Controller {
   val ruleSuggestionTemplateForm = Form(
-    mapping(
+    tuple(
       "ruleId" -> longNumber.transform(
         (id: Long) => RuleID(id),
         (ruleId: RuleID) => ruleId.value
@@ -19,33 +21,25 @@ object RuleSuggestionTemplatesController extends Controller {
         (id: Long) => SuggestionTemplateID(id),
         (suggestionTemplateId: SuggestionTemplateID) => suggestionTemplateId.value
       )
-    )(RuleSuggestionTemplate.apply)(RuleSuggestionTemplate.unapply)
+    )
   )
 
   def list(ruleId: Long) = DBAction { implicit rs =>
-    Rules.find(RuleID(ruleId)) match {
+    Rule.find(RuleID(ruleId)) match {
       case Some(rule) =>
-        Ok(html.ruleSuggestionTemplates.list(
-          rule = rule,
-          ruleSuggestionTemplates = Rules.suggestionTemplateListFor(RuleID(ruleId)),
-          ruleSuggestionTemplateForm = ruleSuggestionTemplateForm
-        ))
+        Ok(html.ruleSuggestionTemplates.list(rule, ruleSuggestionTemplateForm))
       case _ => NotFound
     }
   }
 
   def save(ruleId: Long) = DBAction { implicit rs =>
-    Rules.find(RuleID(ruleId)) match {
+    Rule.find(RuleID(ruleId)) match {
       case Some(rule) =>
         ruleSuggestionTemplateForm.bindFromRequest.fold(
           formWithErrors =>
-            BadRequest(html.ruleSuggestionTemplates.list(
-              rule = rule,
-              ruleSuggestionTemplates = Rules.suggestionTemplateListFor(RuleID(ruleId)),
-              ruleSuggestionTemplateForm = formWithErrors
-            )),
+            BadRequest(html.ruleSuggestionTemplates.list(rule, formWithErrors)),
           ruleSuggestionTemplate => {
-            RulesSuggestionTemplates.insert(ruleSuggestionTemplate)
+            TableQuery[RulesSuggestionTemplates].insert(ruleSuggestionTemplate)
             Redirect(routes.RuleSuggestionTemplatesController.list(ruleId))
               .flashing("success" -> "The suggestion was successfully added to the rule.")
           }
@@ -55,9 +49,9 @@ object RuleSuggestionTemplatesController extends Controller {
   }
 
   def remove(ruleId: Long, id: Long) = DBAction { implicit rs =>
-    Rules.find(RuleID(ruleId)) match {
+    Rule.find(RuleID(ruleId)) match {
       case Some(rule) =>
-        SuggestionTemplates.find(SuggestionTemplateID(id)) match {
+        SuggestionTemplate.find(SuggestionTemplateID(id)) match {
           case Some(suggestionTemplate) => Ok(html.ruleSuggestionTemplates.remove(rule, suggestionTemplate))
           case _ => NotFound
         }
@@ -66,7 +60,9 @@ object RuleSuggestionTemplatesController extends Controller {
   }
 
   def delete(ruleId: Long, id: Long) = DBAction { implicit rs =>
-    RulesSuggestionTemplates.delete(RuleID(ruleId), SuggestionTemplateID(id))
+    TableQuery[RulesSuggestionTemplates]
+      .filter(_.ruleId === RuleID(ruleId)).filter(_.suggestionTemplateId === SuggestionTemplateID(id))
+      .delete
     Redirect(routes.RuleSuggestionTemplatesController.list(ruleId))
       .flashing("success" -> "The suggestion was successfully removed from the rule.")
   }

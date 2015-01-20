@@ -1,4 +1,4 @@
-@(genericTypeTerm: List[(GenericTypeTerm, GenericType)])(implicit flash: play.api.mvc.Flash)
+@(genericTypeTerm: Seq[ExpressionTerm])(implicit flash: play.api.mvc.Flash, s: play.api.db.slick.Session)
 
 @expressionTerms("Generic type term list", "genericTypeTerms") {
     @flash.get("success").map { message =>
@@ -18,10 +18,10 @@
         </thead>
 
         <tbody>
-            @for((term, genericType) <- genericTypeTerm){
+            @for(term <- genericTypeTerm){
                 <tr>
                     <td>@term.label</td>
-                    <td>@genericType.name</td>
+                    <td>@term.genericType.getOrFetch.get.name</td>
                     <td><a href="@routes.GenericTypeTermsController.edit(term.label)">Edit</a></td>
                     <td><a href="@routes.GenericTypeTermsController.remove(term.label)">Delete</a></td>
                 </tr>

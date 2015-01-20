@@ -4,13 +4,15 @@ import play.api.mvc._
 import play.api.data._
 import play.api.data.Forms._
 import play.api.db.slick._
+import play.api.db.slick.Config.driver.simple._
+import schema._
 
 import views._
 import models._
 
 object DrugGroupGenericTypesController extends Controller {
   val drugGroupGenericTypeForm = Form(
-    mapping(
+    tuple(
       "drugGroupId" -> longNumber.transform(
         (id: Long) => DrugGroupID(id),
         (drugGroupId: DrugGroupID) => drugGroupId.value
@@ -19,15 +21,14 @@ object DrugGroupGenericTypesController extends Controller {
         (id: Long) => GenericTypeID(id),
         (genericTypeId: GenericTypeID) => genericTypeId.value
       )
-    )(DrugGroupGenericType.apply)(DrugGroupGenericType.unapply)
+    )
   )
 
   def list(drugGroupId: Long) = DBAction { implicit rs =>
-    DrugGroups.find(DrugGroupID(drugGroupId)) match {
+    DrugGroup.find(DrugGroupID(drugGroupId)) match {
       case Some(drugGroup) =>
         Ok(html.drugGroupGenericTypes.list(
           drugGroup = drugGroup,
-          drugGroupGenericTypes = DrugGroups.genericTypeWithMedicationProductsListFor(DrugGroupID(drugGroupId)),
           drugGroupGenericTypeForm = drugGroupGenericTypeForm
         ))
       case _ => NotFound
@@ -35,17 +36,14 @@ object DrugGroupGenericTypesController extends Controller {
   }
 
   def save(drugGroupId: Long) = DBAction { implicit rs =>
-    DrugGroups.find(DrugGroupID(drugGroupId)) match {
+    DrugGroup.find(DrugGroupID(drugGroupId)) match {
       case Some(drugGroup) =>
         drugGroupGenericTypeForm.bindFromRequest.fold(
           formWithErrors =>
-            BadRequest(html.drugGroupGenericTypes.list(
-              drugGroup = drugGroup,
-              drugGroupGenericTypes = DrugGroups.genericTypeWithMedicationProductsListFor(DrugGroupID(drugGroupId)),
-              drugGroupGenericTypeForm = formWithErrors
-            )),
+            BadRequest(html.drugGroupGenericTypes.list(drugGroup, formWithErrors)),
           drugGroupGenericType => {
-            DrugGroupsGenericTypes.insert(drugGroupGenericType)
+            TableQuery[DrugGroupsGenericTypes].insert(drugGroupGenericType)
+
             Redirect(routes.DrugGroupGenericTypesController.list(drugGroupId))
               .flashing("success" -> "The generic type was successfully added to the drug group.")
           }
@@ -55,9 +53,9 @@ object DrugGroupGenericTypesController extends Controller {
   }
 
   def remove(drugGroupId: Long, id: Long) = DBAction { implicit rs =>
-    DrugGroups.find(DrugGroupID(drugGroupId)) match {
+    DrugGroup.find(DrugGroupID(drugGroupId)) match {
       case Some(drugGroup) =>
-        GenericTypes.find(GenericTypeID(id)) match {
+        GenericType.find(GenericTypeID(id)) match {
           case Some(genericType) => Ok(html.drugGroupGenericTypes.remove(drugGroup, genericType))
           case _ => NotFound
         }
@@ -66,7 +64,10 @@ object DrugGroupGenericTypesController extends Controller {
   }
 
   def delete(drugGroupId: Long, id: Long) = DBAction { implicit rs =>
-    DrugGroupsGenericTypes.delete(DrugGroupID(drugGroupId), GenericTypeID(id))
+    TableQuery[DrugGroupsGenericTypes]
+      .filter(x => x.drugGroupId === DrugGroupID(drugGroupId) && x.genericTypeId === GenericTypeID(id))
+      .delete
+
     Redirect(routes.DrugGroupGenericTypesController.list(drugGroupId))
       .flashing("success" -> "The generic type was succesfully removed from the drug group.")
   }

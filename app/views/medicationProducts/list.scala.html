@@ -1,4 +1,4 @@
-@(medicationProducts: List[MedicationProduct])(implicit flash: play.api.mvc.Flash)
+@(medicationProducts: Seq[MedicationProduct])(implicit flash: play.api.mvc.Flash)
 
 @admin("Medication product list", "medicationProducts") {
     @flash.get("success").map { message =>

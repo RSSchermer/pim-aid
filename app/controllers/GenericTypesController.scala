@@ -16,11 +16,12 @@ object GenericTypesController extends Controller {
         (genericTypeId: GenericTypeID) => genericTypeId.value
       )),
       "name" -> nonEmptyText
-    )(GenericType.apply)(GenericType.unapply)
+    )({ case (id, name) => GenericType(id, name)})
+      ({ case GenericType(id, name, _, _) => Some(id, name) })
   )
 
   def list = DBAction { implicit rs =>
-    Ok(html.genericTypes.list(GenericTypes.list))
+    Ok(html.genericTypes.list(GenericType.list))
   }
 
   def create = DBAction { implicit rs =>
@@ -31,7 +32,7 @@ object GenericTypesController extends Controller {
     genericTypeForm.bindFromRequest.fold(
       formWithErrors => BadRequest(html.genericTypes.create(formWithErrors)),
       genericType => {
-        GenericTypes.insert(genericType)
+        GenericType.insert(genericType)
         Redirect(routes.GenericTypesController.list())
           .flashing("success" -> "The drug type was created successfully.")
       }
@@ -39,7 +40,7 @@ object GenericTypesController extends Controller {
   }
 
   def edit(id: Long) = DBAction { implicit rs =>
-    GenericTypes.find(GenericTypeID(id)) match {
+    GenericType.find(GenericTypeID(id)) match {
       case Some(genericType) =>
         Ok(html.genericTypes.edit(genericType.id.get, genericTypeForm.fill(genericType)))
       case _ => NotFound
@@ -51,7 +52,7 @@ object GenericTypesController extends Controller {
       formWithErrors =>
         BadRequest(html.genericTypes.edit(GenericTypeID(id), formWithErrors)),
       genericType => {
-        GenericTypes.update(GenericTypeID(id), genericType)
+        GenericType.update(genericType)
         Redirect(routes.GenericTypesController.list())
           .flashing("success" -> "The drug type was updated successfully.")
       }
@@ -59,14 +60,14 @@ object GenericTypesController extends Controller {
   }
 
   def remove(id: Long) = DBAction { implicit rs =>
-    GenericTypes.find(GenericTypeID(id)) match {
+    GenericType.find(GenericTypeID(id)) match {
       case Some(genericType) => Ok(html.genericTypes.remove(genericType))
       case _ => NotFound
     }
   }
 
   def delete(id: Long) = DBAction { implicit rs =>
-    GenericTypes.delete(GenericTypeID(id))
+    GenericType.delete(GenericTypeID(id))
     Redirect(routes.GenericTypesController.list())
       .flashing("success" -> "The drug type was deleted successfully.")
   }

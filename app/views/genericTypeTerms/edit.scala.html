@@ -1,4 +1,4 @@
-@(label: String, drugTypeTermForm: Form[GenericTypeTerm])(implicit session: play.api.db.slick.Session)
+@(label: String, drugTypeTermForm: Form[ExpressionTerm])(implicit session: play.api.db.slick.Session)
 
 @import helper.twitterBootstrap._
 
@@ -9,7 +9,7 @@
         <fieldset>
             <input type="hidden" name="label" value='@label'>
             @helper.select(drugTypeTermForm("genericTypeId"),
-                GenericTypes.list.toSeq.map(dt => dt.id.get.value.toString -> dt.name), 'class -> "searchable-select")
+                GenericType.list.toSeq.map(g => g.id.get.value.toString -> g.name), 'class -> "searchable-select")
         </fieldset>
 
         <div class="actions">

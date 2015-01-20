@@ -1,4 +1,4 @@
-@(drugGroupTerms: List[(DrugGroupTerm, DrugGroup)])(implicit flash: play.api.mvc.Flash)
+@(drugGroupTerms: Seq[ExpressionTerm])(implicit flash: play.api.mvc.Flash, s: play.api.db.slick.Session)
 
 @expressionTerms("Drug group term list", "drugGroupTerms") {
     @flash.get("success").map { message =>
@@ -18,10 +18,10 @@
         </thead>
 
         <tbody>
-            @for((term, group) <- drugGroupTerms){
+            @for(term <- drugGroupTerms){
                 <tr>
                     <td>@term.label</td>
-                    <td>@group.name</td>
+                    <td>@term.drugGroup.getOrFetch.get.name</td>
                     <td><a href="@routes.DrugGroupTermsController.edit(term.label)">Edit</a></td>
                     <td><a href="@routes.DrugGroupTermsController.remove(term.label)">Delete</a></td>
                 </tr>

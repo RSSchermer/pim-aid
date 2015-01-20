@@ -1,7 +1,7 @@
-@(statements: List[Statement])
+@(statements: Seq[Statement])
 
 @decisionAid("Stellingen", Step.UnconditionalStatementSelection) {
-    @helper.form(routes.StepsController.saveUnconditionalStatementSelection()) {
+    @helper.form(routes.StepsController.saveIndependentStatementSelection()) {
         <p>
             Vink de stellingen aan die op u van toepassing zijn. Doe dit door op het selectievakje of op de stelling
             zelf te klikken.

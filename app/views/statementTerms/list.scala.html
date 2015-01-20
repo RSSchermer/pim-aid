@@ -1,4 +1,4 @@
-@(statementTerms: List[StatementTerm])(implicit flash: play.api.mvc.Flash)
+@(statementTerms: Seq[ExpressionTerm])(implicit flash: play.api.mvc.Flash)
 
 @expressionTerms("Statement term list", "statementTerms") {
     @flash.get("success").map { message =>

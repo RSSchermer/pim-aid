@@ -1,4 +1,4 @@
-@(suggestionTemplates: List[SuggestionTemplate])(implicit flash: play.api.mvc.Flash)
+@(suggestionTemplates: Seq[SuggestionTemplate])(implicit flash: play.api.mvc.Flash)
 
 @admin("Suggestion list", "suggestionTemplates") {
     @flash.get("success").map { message =>
