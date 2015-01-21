@@ -12,7 +12,7 @@ case class SuggestionTemplate(
     text: String,
     explanatoryNote: Option[String],
     rules: Many[SuggestionTemplates, Rules, SuggestionTemplate, Rule] =
-      ManyUnfetched(SuggestionTemplate.rules)) extends Entity[SuggestionTemplateID] {
+      ManyFetched(SuggestionTemplate.rules)) extends Entity[SuggestionTemplateID] {
   type IdType = SuggestionTemplateID
 }
 

@@ -11,7 +11,8 @@ class DrugGroups(tag: Tag) extends EntityTable[DrugGroup](tag, "DRUG_GROUPS"){
   def * = (id.?, name) <> (mapRecord, unmapRecord)
 
   def mapRecord(t: (Option[DrugGroupID], String)): DrugGroup =
-    DrugGroup(t._1, t._2)
+    DrugGroup(t._1, t._2,
+      ManyUnfetched[DrugGroups, GenericTypes, DrugGroup, GenericType](DrugGroup.genericTypes, t._1))
 
   def unmapRecord(d: DrugGroup): Option[(Option[DrugGroupID], String)] =
     Some(d.id, d.name)
@@ -40,7 +41,9 @@ class Drugs(tag: Tag) extends EntityTable[Drug](tag, "DRUGS") {
   def * = (id.?, userInput, userToken, resolvedMedicationProductId.?) <> (mapRecord, unmapRecord)
 
   def mapRecord(t: (Option[DrugID], String, UserToken, Option[MedicationProductID])): Drug =
-    Drug(t._1, t._2, t._3, t._4)
+    Drug(t._1, t._2, t._3, t._4,
+      OneUnfetched[Drugs, UserSessions, Drug, UserSession](Drug.userSession, t._1),
+      OneUnfetched[Drugs, MedicationProducts, Drug, MedicationProduct](Drug.resolvedMedicationProduct, t._1))
 
   def unmapRecord(d: Drug): Option[(Option[DrugID], String, UserToken, Option[MedicationProductID])] =
     Some(d.id, d.userInput, d.userToken, d.resolvedMedicationProductId)
@@ -63,7 +66,9 @@ class ExpressionTerms(tag: Tag) extends EntityTable[ExpressionTerm](tag, "EXPRES
   def * = (label, genericTypeId.?, drugGroupId.?, statementTemplate.?, displayCondition.?, comparisonOperator.?, age.?) <> (mapRecord, unmapRecord)
 
   def mapRecord(t: (String, Option[GenericTypeID], Option[DrugGroupID], Option[String], Option[String], Option[String], Option[Int])): ExpressionTerm =
-    ExpressionTerm(t._1, t._2, t._3, t._4, t._5, t._6, t._7)
+    ExpressionTerm(t._1, t._2, t._3, t._4, t._5, t._6, t._7,
+      OneUnfetched[ExpressionTerms, GenericTypes, ExpressionTerm, GenericType](GenericTypeTerm.genericType, Some(t._1)),
+      OneUnfetched[ExpressionTerms, DrugGroups, ExpressionTerm, DrugGroup](DrugGroupTerm.drugGroup, Some(t._1)))
 
   def unmapRecord(e: ExpressionTerm): Option[(String, Option[GenericTypeID], Option[DrugGroupID], Option[String], Option[String], Option[String], Option[Int])] =
     Some(e.label, e.genericTypeId, e.drugGroupId, e.statementTemplate, e.displayCondition, e.comparisonOperator, e.age)
@@ -91,7 +96,9 @@ class GenericTypes(tag: Tag) extends EntityTable[GenericType](tag, "GENERIC_TYPE
   def * = (id.?, name) <> (mapRecord, unmapRecord)
 
   def mapRecord(t: (Option[GenericTypeID], String)): GenericType =
-    GenericType(t._1, t._2)
+    GenericType(t._1, t._2,
+      ManyUnfetched[GenericTypes, MedicationProducts, GenericType, MedicationProduct](GenericType.medicationProducts, t._1),
+      ManyUnfetched[GenericTypes, DrugGroups, GenericType, DrugGroup](GenericType.drugGroups, t._1))
 
   def unmapRecord(g: GenericType): Option[(Option[GenericTypeID], String)] =
     Some(g.id, g.name)
@@ -121,7 +128,8 @@ class MedicationProducts(tag: Tag) extends EntityTable[MedicationProduct](tag, "
   def * = (id.?, name) <> (mapRecord, unmapRecord)
 
   def mapRecord(t: (Option[MedicationProductID], String)): MedicationProduct =
-    MedicationProduct(t._1, t._2)
+    MedicationProduct(t._1, t._2,
+      ManyUnfetched[MedicationProducts, GenericTypes, MedicationProduct, GenericType](MedicationProduct.genericTypes, t._1))
 
   def unmapRecord(m: MedicationProduct): Option[(Option[MedicationProductID], String)] =
     Some(m.id, m.name)
@@ -139,7 +147,8 @@ class Rules(tag: Tag) extends EntityTable[Rule](tag, "RULES") {
   def * = (id.?, name, conditionExpression, source.?, note.?) <> (mapRecord, unmapRecord)
 
   def mapRecord(t: (Option[RuleID], String, String, Option[String], Option[String])): Rule =
-    Rule(t._1, t._2, t._3, t._4, t._5)
+    Rule(t._1, t._2, t._3, t._4, t._5,
+      ManyUnfetched[Rules, SuggestionTemplates, Rule, SuggestionTemplate](Rule.suggestionTemplates, t._1))
 
   def unmapRecord(r: Rule): Option[(Option[RuleID], String, String, Option[String], Option[String])] =
     Some(r.id, r.name, r.conditionExpression, r.source, r.note)
@@ -186,7 +195,8 @@ class SuggestionTemplates(tag: Tag) extends EntityTable[SuggestionTemplate](tag,
   def * = (id.?, name, text, explanatoryNote.?) <> (mapRecord, unmapRecord)
 
   def mapRecord(t: (Option[SuggestionTemplateID], String, String, Option[String])): SuggestionTemplate =
-    SuggestionTemplate(t._1, t._2, t._3, t._4)
+    SuggestionTemplate(t._1, t._2, t._3, t._4,
+      ManyUnfetched[SuggestionTemplates, Rules, SuggestionTemplate, Rule](SuggestionTemplate.rules, t._1))
 
   def unmapRecord(s: SuggestionTemplate): Option[(Option[SuggestionTemplateID], String, String, Option[String])] =
     Some(s.id, s.name, s.text, s.explanatoryNote)
@@ -203,7 +213,10 @@ class UserSessions(tag: Tag) extends EntityTable[UserSession](tag, "USER_SESSION
   def * = (token, age.?) <> (mapRecord, unmapRecord)
 
   def mapRecord(t: (UserToken, Option[Int])): UserSession =
-    UserSession(t._1, t._2)
+    UserSession(t._1, t._2,
+      ManyFetched[UserSessions, Drugs, UserSession, Drug](UserSession.drugs, Some(t._1)),
+      ManyFetched[UserSessions, MedicationProducts, UserSession, MedicationProduct](UserSession.medicationProducts, Some(t._1)),
+      ManyFetched[UserSessions, StatementTermsUserSessions, UserSession, StatementTermUserSession](UserSession.statementTermsUserSessions, Some(t._1)))
 
   def unmapRecord(u: UserSession): Option[(UserToken, Option[Int])] =
     Some(u.token, u.age)

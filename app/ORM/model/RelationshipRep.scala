@@ -25,8 +25,8 @@ sealed abstract class One[From <: EntityTable[E], To <: Table[T], E <: Entity[_]
 
 case class OneFetched[From <: EntityTable[E], To <: Table[T], E <: Entity[_], T](
     override val relationship: ToOne[From, To, E, T],
-    value: Option[T],
-    override val ownerId: Option[E#IdType] = None) extends One[From, To, E, T](relationship) {
+    override val ownerId: Option[E#IdType] = None,
+    value: Option[T] = None) extends One[From, To, E, T](relationship) {
   val isFetched: Boolean = true
 
   def get: Option[T] = value
@@ -34,7 +34,7 @@ case class OneFetched[From <: EntityTable[E], To <: Table[T], E <: Entity[_], T]
 
 case class OneUnfetched[From <: EntityTable[E], To <: Table[T], E <: Entity[_], T](
     override val relationship: ToOne[From, To, E, T],
-    override val ownerId: Option[E#IdType] = None) extends One[From, To, E, T](relationship) {
+    override val ownerId: Option[E#IdType]) extends One[From, To, E, T](relationship) {
   val isFetched: Boolean = false
 
   def get: Option[T] = throw new NoSuchElementException("OneUnfetched.get")
@@ -52,8 +52,8 @@ sealed abstract class Many[From <: EntityTable[E], To <: Table[T], E <: Entity[_
 
 case class ManyFetched[From <: EntityTable[E], To <: Table[T], E <: Entity[_], T](
     override val relationship: Relationship[From, To, E#IdType, E, T, Seq[T], Many[From, To, E, T]],
-    values: Seq[T],
-    override val ownerId: Option[E#IdType] = None) extends Many[From, To, E, T](relationship) {
+    override val ownerId: Option[E#IdType] = None,
+    values: Seq[T] = Seq()) extends Many[From, To, E, T](relationship) {
   val isFetched: Boolean = true
 
   def get: Seq[T] = values
@@ -61,7 +61,7 @@ case class ManyFetched[From <: EntityTable[E], To <: Table[T], E <: Entity[_], T
 
 case class ManyUnfetched[From <: EntityTable[E], To <: Table[T], E <: Entity[_], T](
     override val relationship: Relationship[From, To, E#IdType, E, T, Seq[T], Many[From, To, E, T]],
-    override val ownerId: Option[E#IdType] = None) extends Many[From, To, E, T](relationship) {
+    override val ownerId: Option[E#IdType]) extends Many[From, To, E, T](relationship) {
   val isFetched: Boolean = false
 
   def get: Seq[T] = throw new NoSuchElementException("ManyUnfetched.get")

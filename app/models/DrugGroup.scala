@@ -12,7 +12,7 @@ case class DrugGroup(
     id: Option[DrugGroupID],
     name: String,
     genericTypes: Many[DrugGroups, GenericTypes, DrugGroup, GenericType] =
-      ManyUnfetched(DrugGroup.genericTypes))
+      ManyFetched(DrugGroup.genericTypes))
   extends Entity[DrugGroupID] {
   type IdType = DrugGroupID
 }

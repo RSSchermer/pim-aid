@@ -26,7 +26,7 @@ class ToOne[From <: EntityTable[E], To <: Table[T], E <: Entity[_], T](
   extends Relationship[From, To, E#IdType, E, T, Option[T], One[From, To, E, T]]
 {
   def fetchFor(id: E#IdType)(implicit session: Session): Option[T] =
-    fromQuery.leftJoin(toQuery).on(joinCondition).filter(_._1.id === id).map(_._2).firstOption
+    fromQuery.innerJoin(toQuery).on(joinCondition).filter(_._1.id === id).map(_._2).firstOption
 
   def fetchFor(instance: E)(implicit session: Session): Option[T] =
     instance.id match {
@@ -35,7 +35,7 @@ class ToOne[From <: EntityTable[E], To <: Table[T], E <: Entity[_], T](
     }
 
   def fetchOn(instance: E)(implicit session: Session): E =
-    propertyLens.set(OneFetched(this, fetchFor(instance), instance.id))(instance)
+    propertyLens.set(OneFetched(this, instance.id, fetchFor(instance)))(instance)
 }
 
 class ToMany[From <: EntityTable[E], To <: Table[T], E <: Entity[_], T](
@@ -46,7 +46,7 @@ class ToMany[From <: EntityTable[E], To <: Table[T], E <: Entity[_], T](
   extends Relationship[From, To, E#IdType, E, T, Seq[T], Many[From, To, E, T]]
 {
   def fetchFor(id: E#IdType)(implicit session: Session): Seq[T] =
-    fromQuery.leftJoin(toQuery).on(joinCondition).filter(_._1.id === id).map(_._2).list
+    fromQuery.innerJoin(toQuery).on(joinCondition).filter(_._1.id === id).map(_._2).list
 
   def fetchFor(instance: E)(implicit session: Session): Seq[T] =
     instance.id match {
@@ -55,7 +55,7 @@ class ToMany[From <: EntityTable[E], To <: Table[T], E <: Entity[_], T](
     }
 
   def fetchOn(instance: E)(implicit session: Session): E =
-    propertyLens.set(ManyFetched(this, fetchFor(instance), instance.id))(instance)
+    propertyLens.set(ManyFetched(this, instance.id, fetchFor(instance)))(instance)
 }
 
 class ToManyThrough[From <: EntityTable[E], Through <: Table[J], To <: Table[T], E <: Entity[_], J, T](
@@ -66,7 +66,7 @@ class ToManyThrough[From <: EntityTable[E], Through <: Table[J], To <: Table[T],
   extends Relationship[From, To, E#IdType, E, T, Seq[T], Many[From, To, E, T]]
 {
   def fetchFor(id: E#IdType)(implicit session: Session): Seq[T] =
-    fromQuery.leftJoin(toQuery).on(joinCondition).filter(_._1.id === id).map(_._2._2).list
+    fromQuery.innerJoin(toQuery).on(joinCondition).filter(_._1.id === id).map(_._2._2).list
 
   def fetchFor(instance: E)(implicit session: Session): Seq[T] =
     instance.id match {
@@ -75,5 +75,5 @@ class ToManyThrough[From <: EntityTable[E], Through <: Table[J], To <: Table[T],
     }
 
   def fetchOn(instance: E)(implicit session: Session): E =
-    propertyLens.set(ManyFetched(this, fetchFor(instance), instance.id))(instance)
+    propertyLens.set(ManyFetched(this, instance.id, fetchFor(instance)))(instance)
 }

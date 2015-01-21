@@ -16,11 +16,11 @@ case class UserSession(
     token: UserToken,
     age: Option[Int],
     drugs: Many[UserSessions, Drugs, UserSession, Drug] =
-      ManyUnfetched(UserSession.drugs),
+      ManyFetched(UserSession.drugs),
     medicationProducts: Many[UserSessions, MedicationProducts, UserSession, MedicationProduct] =
-      ManyUnfetched(UserSession.medicationProducts),
+      ManyFetched(UserSession.medicationProducts),
     statementTermsUserSessions: Many[UserSessions, StatementTermsUserSessions, UserSession, StatementTermUserSession] =
-      ManyUnfetched(UserSession.statementTermsUserSessions))
+      ManyFetched(UserSession.statementTermsUserSessions))
   extends Entity[UserToken]
 {
   type IdType = UserToken
