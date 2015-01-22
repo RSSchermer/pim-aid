@@ -16,7 +16,7 @@ case class ExpressionTerm(
       OneFetched(GenericTypeTerm.genericType),
     drugGroup: One[ExpressionTerms, DrugGroups, ExpressionTerm, DrugGroup] =
       OneFetched(DrugGroupTerm.drugGroup))
-  extends Entity[String]
+  extends Entity
 {
   type IdType = String
 

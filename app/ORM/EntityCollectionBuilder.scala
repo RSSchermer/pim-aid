@@ -4,7 +4,7 @@ import scala.slick.lifted.{Query, CanBeQueryCondition, Ordered}
 import play.api.db.slick.Config.driver.simple._
 import ORM.model._
 
-abstract class EntityCollectionRetriever[E <: Entity[_], T <: EntityTable[E]](implicit ev: BaseColumnType[E#IdType])
+abstract class EntityCollectionRetriever[E <: Entity, T <: EntityTable[E]](implicit ev: BaseColumnType[E#IdType])
 {
   val query: Query[T, E, Seq]
 
@@ -31,5 +31,5 @@ abstract class EntityCollectionRetriever[E <: Entity[_], T <: EntityTable[E]](im
     one(key).get
 }
 
-class EntityCollectionBuilder[E <: Entity[_], T <: EntityTable[E]](val query: Query[T, E, Seq])
+class EntityCollectionBuilder[E <: Entity, T <: EntityTable[E]](val query: Query[T, E, Seq])
   (implicit ev: BaseColumnType[E#IdType]) extends EntityCollectionRetriever[E, T]

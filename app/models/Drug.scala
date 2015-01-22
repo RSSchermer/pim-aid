@@ -14,9 +14,7 @@ case class Drug(
     userSession: One[Drugs, UserSessions, Drug, UserSession] = OneFetched(Drug.userSession),
     resolvedMedicationProduct: One[Drugs, MedicationProducts, Drug, MedicationProduct] =
       OneFetched(Drug.resolvedMedicationProduct))
-  extends Entity[DrugID] {
-  type IdType = DrugID
-}
+  extends Entity { type IdType = DrugID }
 
 object Drug extends EntityCompanion[Drug, Drugs] {
   val query = TableQuery[Drugs]

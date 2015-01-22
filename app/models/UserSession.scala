@@ -21,7 +21,7 @@ case class UserSession(
       ManyFetched(UserSession.medicationProducts),
     statementTermsUserSessions: Many[UserSessions, StatementTermsUserSessions, UserSession, StatementTermUserSession] =
       ManyFetched(UserSession.statementTermsUserSessions))
-  extends Entity[UserToken]
+  extends Entity
 {
   type IdType = UserToken
 

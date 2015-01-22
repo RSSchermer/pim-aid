@@ -5,13 +5,13 @@ import monocle._
 import monocle.macros.Lenser
 import play.api.db.slick.Config.driver.simple._
 
-abstract class Entity[I] {
-  type IdType <: I
+abstract class Entity {
+  type IdType
 
   val id: Option[IdType]
 }
 
-abstract class EntityCompanion[E <: Entity[_], T <: EntityTable[E]](implicit ev: BaseColumnType[E#IdType])
+abstract class EntityCompanion[E <: Entity, T <: EntityTable[E]](implicit ev: BaseColumnType[E#IdType])
   extends EntityRepository[E, T]
 {
   val lenser = Lenser[E]

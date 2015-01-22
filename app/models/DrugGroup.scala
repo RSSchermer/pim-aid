@@ -13,9 +13,7 @@ case class DrugGroup(
     name: String,
     genericTypes: Many[DrugGroups, GenericTypes, DrugGroup, GenericType] =
       ManyFetched(DrugGroup.genericTypes))
-  extends Entity[DrugGroupID] {
-  type IdType = DrugGroupID
-}
+  extends Entity { type IdType = DrugGroupID }
 
 object DrugGroup extends EntityCompanion[DrugGroup, DrugGroups] {
   val query = TableQuery[DrugGroups]

@@ -2,7 +2,7 @@ package ORM.model
 
 import play.api.db.slick.Config.driver.simple._
 
-abstract class EntityTable[E <: Entity[_]](
+abstract class EntityTable[E <: Entity](
     tag: Tag,
     schemaName: Option[String],
     tableName: String)(implicit val colType: BaseColumnType[E#IdType])
