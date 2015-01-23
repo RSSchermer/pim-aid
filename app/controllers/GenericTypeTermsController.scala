@@ -33,7 +33,7 @@ object GenericTypeTermsController extends Controller {
     genericTypeTermForm.bindFromRequest.fold(
       formWithErrors => BadRequest(html.genericTypeTerms.create(formWithErrors)),
       drugTypeTerm => {
-        GenericTypeTerm.insert(drugTypeTerm)
+        ExpressionTerm.insert(drugTypeTerm)
         Redirect(routes.GenericTypeTermsController.list())
           .flashing("success" -> "The expression term was created successfully.")
       }

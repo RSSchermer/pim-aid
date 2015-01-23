@@ -25,7 +25,7 @@ object RuleSuggestionTemplatesController extends Controller {
   )
 
   def list(ruleId: Long) = DBAction { implicit rs =>
-    Rule.find(RuleID(ruleId)) match {
+    Rule.include(Rule.suggestionTemplates).find(RuleID(ruleId)) match {
       case Some(rule) =>
         Ok(html.ruleSuggestionTemplates.list(rule, ruleSuggestionTemplateForm))
       case _ => NotFound

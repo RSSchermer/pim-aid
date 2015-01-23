@@ -28,11 +28,10 @@ case class UserSession(
   val id = Some(token)
 
   def buildIndependentStatements(implicit s: Session): Seq[Statement] = {
-    val selectedStatementTermLabels =
-      statementTermsUserSessions.getOrFetch.map(_.statementTermLabel)
+    val selection = statementTermsUserSessions.getOrFetch.map(_.statementTermLabel)
 
     StatementTerm.filter(_.displayCondition.isNull).list
-      .map(x => Statement(x.label, x.statementTemplate.getOrElse(""), selectedStatementTermLabels.contains(x.label)))
+      .map(x => Statement(x.label, x.statementTemplate.getOrElse(""), selection.contains(x.label)))
   }
 
 
@@ -82,7 +81,8 @@ case class UserSession(
   def buildSuggestions(implicit session: Session): Seq[Suggestion] = {
     val parser = buildParser
 
-    Rule.list.filter(r => parser.parse(r.conditionExpression) match {
+    Rule.include(Rule.suggestionTemplates).list
+      .filter(r => parser.parse(r.conditionExpression) match {
         case parser.Success(true, _) => true
         case _ => false
       })
@@ -101,7 +101,9 @@ case class UserSession(
 
   private def buildParser(implicit s: Session): ConditionExpressionParser = {
     val expressionTerms = TableQuery[ExpressionTerms].list
-    val genericTypes = medicationProducts.getOrFetch.flatMap(_.genericTypes.getOrFetch)
+    val products = UserSession.medicationProducts
+      .include(MedicationProduct.genericTypes.include(GenericType.drugGroups)).fetchFor(token)
+    val genericTypes = products.flatMap(_.genericTypes.getOrFetch)
     val genericTypeIds = genericTypes.map(_.id)
     val drugGroupIds = genericTypes.flatMap(_.drugGroups.getOrFetch.map(_.id))
     val selectedStatementTermLabels =

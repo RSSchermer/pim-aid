@@ -22,7 +22,7 @@ object DrugGroupTermsController extends Controller {
   )
 
   def list = DBAction { implicit rs =>
-    Ok(html.drugGroupTerms.list(DrugGroupTerm.list))
+    Ok(html.drugGroupTerms.list(DrugGroupTerm.include(DrugGroupTerm.drugGroup).list))
   }
 
   def create = DBAction { implicit rs =>
@@ -33,7 +33,7 @@ object DrugGroupTermsController extends Controller {
     drugGroupTermForm.bindFromRequest.fold(
       formWithErrors => BadRequest(html.drugGroupTerms.create(formWithErrors)),
       drugGroupTerm => {
-        DrugGroupTerm.insert(drugGroupTerm)
+        ExpressionTerm.insert(drugGroupTerm)
         Redirect(routes.DrugGroupTermsController.list())
           .flashing("success" -> "The expression term was created successfully.")
       }
@@ -41,7 +41,7 @@ object DrugGroupTermsController extends Controller {
   }
 
   def edit(label: String) = DBAction { implicit rs =>
-    DrugGroupTerm.find(label) match {
+    DrugGroupTerm.include(DrugGroupTerm.drugGroup).find(label) match {
       case Some(term) =>
         Ok(html.drugGroupTerms.edit(label, drugGroupTermForm.fill(term)))
       case _ => NotFound
@@ -60,7 +60,7 @@ object DrugGroupTermsController extends Controller {
   }
 
   def remove(label: String) = DBAction { implicit rs =>
-    DrugGroupTerm.find(label) match {
+    DrugGroupTerm.include(DrugGroupTerm.drugGroup).find(label) match {
       case Some(term) => Ok(html.drugGroupTerms.remove(term))
       case _ => NotFound
     }

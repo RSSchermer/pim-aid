@@ -3,12 +3,6 @@ package ORM.model
 import play.api.db.slick.Config.driver.simple._
 import monocle._
 
-trait SideLoadable[T <: Table[M], M] {
-  def sideLoadOn(instances: List[M], query: Query[T, M, Seq])(implicit session: Session): List[M]
-
-  def sideLoadOn(instance: M, query: Query[T, M, Seq])(implicit session: Session): M
-}
-
 trait Relationship[From <: EntityTable[E], To <: Table[T], E <: Entity, T, Value, Rep <: RelationshipRep[E, Value]]
   extends SideLoadable[From, E]
 {

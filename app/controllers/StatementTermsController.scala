@@ -35,7 +35,7 @@ object StatementTermsController extends Controller {
     statementTermForm.bindFromRequest.fold(
       formWithErrors => BadRequest(html.statementTerms.create(formWithErrors)),
       statementTerm => {
-        StatementTerm.insert(statementTerm)
+        ExpressionTerm.insert(statementTerm)
         Redirect(routes.StatementTermsController.list())
           .flashing("success" -> "The expression term was created successfully.")
       }

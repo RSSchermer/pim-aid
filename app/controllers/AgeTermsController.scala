@@ -34,7 +34,7 @@ object AgeTermsController extends Controller {
     ageTermForm.bindFromRequest.fold(
       formWithErrors => BadRequest(html.ageTerms.create(formWithErrors)),
       ageTerm => {
-        AgeTerm.insert(ageTerm)
+        ExpressionTerm.insert(ageTerm)
         Redirect(routes.AgeTermsController.list())
           .flashing("success" -> "The expression term was created successfully.")
       }

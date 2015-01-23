@@ -40,8 +40,9 @@ object DrugsController extends Controller with UserSessionAware {
   def list = DBAction { implicit rs =>
     val userSession = currentUserSession(rs)
     val token = userSession.token
+    val drugs = UserSession.drugs.include(Drug.resolvedMedicationProduct).fetchFor(userSession)
 
-    Ok(Json.toJson(userSession.drugs.getOrFetch.map(drugJsonFromDrug(_))))
+    Ok(Json.toJson(drugs.map(drugJsonFromDrug(_))))
       .withSession("token" -> token.value)
   }
 

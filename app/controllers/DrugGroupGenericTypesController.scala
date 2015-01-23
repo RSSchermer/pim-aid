@@ -25,15 +25,16 @@ object DrugGroupGenericTypesController extends Controller {
   )
 
   def list(drugGroupId: Long) = DBAction { implicit rs =>
-    DrugGroup.include(DrugGroup.genericTypes.include(GenericType.medicationProducts))
+    DrugGroup
+      .include(DrugGroup.genericTypes.include(GenericType.medicationProducts))
       .find(DrugGroupID(drugGroupId)) match {
-      case Some(drugGroup) =>
-        Ok(html.drugGroupGenericTypes.list(
-          drugGroup = drugGroup,
-          drugGroupGenericTypeForm = drugGroupGenericTypeForm
-        ))
-      case _ => NotFound
-    }
+        case Some(drugGroup) =>
+          Ok(html.drugGroupGenericTypes.list(
+            drugGroup = drugGroup,
+            drugGroupGenericTypeForm = drugGroupGenericTypeForm
+          ))
+        case _ => NotFound
+      }
   }
 
   def save(drugGroupId: Long) = DBAction { implicit rs =>
