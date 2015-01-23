@@ -11,8 +11,8 @@ abstract class Entity {
   val id: Option[IdType]
 }
 
-abstract class EntityCompanion[E <: Entity, T <: EntityTable[E]](implicit ev: BaseColumnType[E#IdType])
-  extends EntityRepository[E, T]
+abstract class EntityCompanion[T <: EntityTable[E], E <: Entity](implicit ev: BaseColumnType[E#IdType])
+  extends EntityRepository[T, E]
 {
   val lenser = Lenser[E]
 

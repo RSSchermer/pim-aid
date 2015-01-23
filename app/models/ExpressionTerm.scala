@@ -23,11 +23,11 @@ case class ExpressionTerm(
   val id = Some(label)
 }
 
-object ExpressionTerm extends EntityCompanion[ExpressionTerm, ExpressionTerms] {
+object ExpressionTerm extends EntityCompanion[ExpressionTerms, ExpressionTerm] {
   val query = TableQuery[ExpressionTerms]
 }
 
-object GenericTypeTerm extends EntityCompanion[ExpressionTerm, ExpressionTerms] {
+object GenericTypeTerm extends EntityCompanion[ExpressionTerms, ExpressionTerm] {
   val query = TableQuery[ExpressionTerms].filter(_.genericTypeId.isNotNull)
 
   val genericType = toOne[GenericType, GenericTypes](
@@ -37,7 +37,7 @@ object GenericTypeTerm extends EntityCompanion[ExpressionTerm, ExpressionTerms] 
   )
 }
 
-object DrugGroupTerm extends EntityCompanion[ExpressionTerm, ExpressionTerms] {
+object DrugGroupTerm extends EntityCompanion[ExpressionTerms, ExpressionTerm] {
   val query = TableQuery[ExpressionTerms].filter(_.drugGroupId.isNotNull)
 
   val drugGroup = toOne[DrugGroup, DrugGroups](
@@ -47,10 +47,10 @@ object DrugGroupTerm extends EntityCompanion[ExpressionTerm, ExpressionTerms] {
   )
 }
 
-object StatementTerm extends EntityCompanion[ExpressionTerm, ExpressionTerms] {
+object StatementTerm extends EntityCompanion[ExpressionTerms, ExpressionTerm] {
   val query = TableQuery[ExpressionTerms].filter(_.statementTemplate.isNotNull)
 }
 
-object AgeTerm extends EntityCompanion[ExpressionTerm, ExpressionTerms] {
+object AgeTerm extends EntityCompanion[ExpressionTerms, ExpressionTerm] {
   val query = TableQuery[ExpressionTerms].filter(_.age.isNotNull)
 }

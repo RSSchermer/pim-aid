@@ -158,7 +158,7 @@ case class UserSession(
   }
 }
 
-object UserSession extends EntityCompanion[UserSession, UserSessions] {
+object UserSession extends EntityCompanion[UserSessions, UserSession] {
   val query = TableQuery[UserSessions]
 
   val drugs = toMany[Drug, Drugs](TableQuery[Drugs], _.token === _.userToken, lenser(_.drugs))

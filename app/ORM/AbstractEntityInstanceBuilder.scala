@@ -3,7 +3,7 @@ package ORM
 import ORM.model._
 import play.api.db.slick.Config.driver.simple._
 
-abstract class AbstractEntityInstanceBuilder[E <: Entity, T <: EntityTable[E]] {
+abstract class AbstractEntityInstanceBuilder[T <: EntityTable[E], E <: Entity] {
   val query: Query[T, E, Seq]
 
   val sideLoads: List[SideLoadable[T, E]] = List()
@@ -15,10 +15,10 @@ abstract class AbstractEntityInstanceBuilder[E <: Entity, T <: EntityTable[E]] {
   }
 
   def include(sideLoad: SideLoadable[T, E]) =
-    new EntityInstanceBuilder[E, T](query, sideLoads :+ sideLoad)
+    new EntityInstanceBuilder[T, E](query, sideLoads :+ sideLoad)
 }
 
-class EntityInstanceBuilder[E <: Entity, T <: EntityTable[E]](
+class EntityInstanceBuilder[T <: EntityTable[E], E <: Entity](
     val query: Query[T, E, Seq],
     override val sideLoads: List[SideLoadable[T, E]])
-  extends AbstractEntityInstanceBuilder[E, T]
+  extends AbstractEntityInstanceBuilder[T, E]

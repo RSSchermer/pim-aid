@@ -3,8 +3,8 @@ package ORM
 import play.api.db.slick.Config.driver.simple._
 import ORM.model._
 
-abstract class EntityRepository[E <: Entity, T <: EntityTable[E]](implicit ev: BaseColumnType[E#IdType])
-  extends AbstractEntityCollectionBuilder[E, T]
+abstract class EntityRepository[T <: EntityTable[E], E <: Entity](implicit ev: BaseColumnType[E#IdType])
+  extends AbstractEntityCollectionBuilder[T, E]
 {
   def insert(instance: E)(implicit s: Session): E#IdType = {
     s.withTransaction {

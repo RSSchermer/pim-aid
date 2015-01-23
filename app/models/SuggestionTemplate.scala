@@ -15,7 +15,7 @@ case class SuggestionTemplate(
       ManyFetched(SuggestionTemplate.rules))
   extends Entity { type IdType = SuggestionTemplateID }
 
-object SuggestionTemplate extends EntityCompanion[SuggestionTemplate, SuggestionTemplates] {
+object SuggestionTemplate extends EntityCompanion[SuggestionTemplates, SuggestionTemplate] {
   val query = TableQuery[SuggestionTemplates]
 
   val rules = toManyThrough[Rule, (RuleID, SuggestionTemplateID), Rules, RulesSuggestionTemplates](
