@@ -2,21 +2,21 @@ package ORM.model
 
 import play.api.db.slick.Config.driver.simple._
 
-trait RelationshipRep[E <: Entity, T, V] {
-  val ownerId: Option[E#IdType]
+trait RelationshipRep[Owner <: Entity, +Value] {
+  val ownerId: Option[Owner#IdType]
 
   val isFetched: Boolean
 
-  def get: V
+  def get: Value
 
-  def fetch(implicit session: Session): V
+  def fetch(implicit session: Session): Value
 
-  def getOrFetch(implicit session: Session): V =
+  def getOrFetch(implicit session: Session): Value =
     if (isFetched) get else fetch
 }
 
 sealed abstract class One[From <: EntityTable[E], To <: Table[T], E <: Entity, T]
-  extends RelationshipRep[E, T, Option[T]]
+  extends RelationshipRep[E, Option[T]]
 {
   val relationship: ToOne[From, To, E, T]
 
@@ -48,7 +48,7 @@ case class OneUnfetched[From <: EntityTable[E], To <: Table[T], E <: Entity, T](
 }
 
 sealed abstract class Many[From <: EntityTable[E], To <: Table[T], E <: Entity, T]
-  extends RelationshipRep[E, T, Seq[T]]
+  extends RelationshipRep[E, Seq[T]]
 {
   val relationship: Relationship[From, To, E, T, Seq[T], Many[From, To, E, T]]
 

@@ -9,18 +9,18 @@ trait SideLoadable[T <: EntityTable[E], E <: Entity] {
   def sideLoadOn(instance: E, query: Query[T, E, Seq])(implicit session: Session): E
 }
 
-abstract class Relationship[From <: EntityTable[E], +To <: Table[T], E <: Entity, T, V, R <: RelationshipRep[E, T, V]]
+abstract class Relationship[From <: EntityTable[E], To <: Table[T], E <: Entity, T, Value, Rep <: RelationshipRep[E, Value]]
   extends SideLoadable[From, E]
 {
-  val propertyLens: Lens[E, R]
+  val propertyLens: Lens[E, Rep]
 
-  def setOn(instance: E, value: V): E
+  def setOn(instance: E, value: Value): E
 
-  def fetchFor(id: E#IdType)(implicit session: Session): V
+  def fetchFor(id: E#IdType)(implicit session: Session): Value
 
-  def fetchFor(instance: E)(implicit session: Session): V
+  def fetchFor(instance: E)(implicit session: Session): Value
 
-  def fetchFor(query: Query[From, E, Seq])(implicit session: Session): Map[E, V]
+  def fetchFor(query: Query[From, E, Seq])(implicit session: Session): Map[E, Value]
 
   def fetchOn(instance: E)(implicit session: Session): E =
     setOn(instance, fetchFor(instance))
@@ -116,7 +116,7 @@ class ToManyThrough[From <: EntityTable[E], Through <: Table[J], To <: Table[T],
       .map(x => (x._1, x._2.map(_._2)))
 }
 
-class WrappingRelationship[From <: EntityTable[E], To <: Table[T], E <: Entity, T, V, R <: RelationshipRep[E, T, V]](
+class WrappingRelationship[From <: EntityTable[E], To <: Table[T], E <: Entity, T, V, R <: RelationshipRep[E, V]](
     val relationship: Relationship[From, To, E, T, V, R])
   extends Relationship[From, To, E, T, V, R]
 {
