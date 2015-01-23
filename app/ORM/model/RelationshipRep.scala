@@ -18,7 +18,7 @@ trait RelationshipRep[Owner <: Entity, +Value] {
 sealed abstract class One[From <: EntityTable[E], To <: Table[T], E <: Entity, T]
   extends RelationshipRep[E, Option[T]]
 {
-  val relationship: ToOne[From, To, E, T]
+  val relationship: Relationship[From, To, E, T, Option[T], One[From, To, E, T]]
 
   def fetch(implicit session: Session): Option[T] = ownerId match {
     case Some(id) => relationship.fetchFor(id)
@@ -27,7 +27,7 @@ sealed abstract class One[From <: EntityTable[E], To <: Table[T], E <: Entity, T
 }
 
 case class OneFetched[From <: EntityTable[E], To <: Table[T], E <: Entity, T](
-    override val relationship: ToOne[From, To, E, T],
+    override val relationship: Relationship[From, To, E, T, Option[T], One[From, To, E, T]],
     override val ownerId: Option[E#IdType] = None,
     value: Option[T] = None)
   extends One[From, To, E, T]
@@ -38,7 +38,7 @@ case class OneFetched[From <: EntityTable[E], To <: Table[T], E <: Entity, T](
 }
 
 case class OneUnfetched[From <: EntityTable[E], To <: Table[T], E <: Entity, T](
-    override val relationship: ToOne[From, To, E, T],
+    override val relationship: Relationship[From, To, E, T, Option[T], One[From, To, E, T]],
     override val ownerId: Option[E#IdType])
   extends One[From, To, E, T]
 {

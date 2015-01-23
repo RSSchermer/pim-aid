@@ -14,8 +14,8 @@ abstract class AbstractEntityInstanceBuilder[T <: EntityTable[E], E <: Entity] {
     case _ => None
   }
 
-  def include(sideLoad: SideLoadable[T, E]) =
-    new EntityInstanceBuilder[T, E](query, sideLoads :+ sideLoad)
+  def include(sideLoad: SideLoadable[T, E]*) =
+    new EntityInstanceBuilder[T, E](query, sideLoads ++ sideLoad)
 }
 
 class EntityInstanceBuilder[T <: EntityTable[E], E <: Entity](

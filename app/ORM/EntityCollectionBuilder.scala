@@ -34,8 +34,8 @@ abstract class AbstractEntityCollectionBuilder[T <: EntityTable[E], E <: Entity]
   def find(key: E#IdType)(implicit s: Session): Option[E] =
     one(key).get
 
-  def include(sideLoad: SideLoadable[T, E]) =
-    new EntityCollectionBuilder[T, E](query, sideLoads :+ sideLoad)
+  def include(sideLoad: SideLoadable[T, E]*) =
+    new EntityCollectionBuilder[T, E](query, sideLoads ++ sideLoad)
 }
 
 class EntityCollectionBuilder[T <: EntityTable[E], E <: Entity](
