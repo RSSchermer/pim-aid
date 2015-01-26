@@ -12,10 +12,8 @@ case class ExpressionTerm(
     displayCondition: Option[String],
     comparisonOperator: Option[String],
     age: Option[Int],
-    genericType: One[ExpressionTerms, GenericTypes, ExpressionTerm, GenericType] =
-      OneFetched(GenericTypeTerm.genericType),
-    drugGroup: One[ExpressionTerms, DrugGroups, ExpressionTerm, DrugGroup] =
-      OneFetched(DrugGroupTerm.drugGroup))
+    genericType: One[ExpressionTerm, GenericType] = OneFetched(GenericTypeTerm.genericType),
+    drugGroup: One[ExpressionTerm, DrugGroup] = OneFetched(DrugGroupTerm.drugGroup))
   extends Entity
 {
   type IdType = String

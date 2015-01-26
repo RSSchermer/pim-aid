@@ -13,8 +13,7 @@ case class Rule(
     conditionExpression: String,
     source: Option[String],
     note: Option[String],
-    suggestionTemplates: Many[Rules, SuggestionTemplates, Rule, SuggestionTemplate] =
-      ManyFetched(Rule.suggestionTemplates))
+    suggestionTemplates: Many[Rule, SuggestionTemplate] = ManyFetched(Rule.suggestionTemplates))
   extends Entity { type IdType = RuleID }
 
 object Rule extends EntityCompanion[Rules, Rule] {

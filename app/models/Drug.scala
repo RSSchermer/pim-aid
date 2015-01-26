@@ -11,9 +11,8 @@ case class Drug(
     userInput: String,
     userToken: UserToken,
     resolvedMedicationProductId: Option[MedicationProductID],
-    userSession: One[Drugs, UserSessions, Drug, UserSession] = OneFetched(Drug.userSession),
-    resolvedMedicationProduct: One[Drugs, MedicationProducts, Drug, MedicationProduct] =
-      OneFetched(Drug.resolvedMedicationProduct))
+    userSession: One[Drug, UserSession] = OneFetched(Drug.userSession),
+    resolvedMedicationProduct: One[Drug, MedicationProduct] = OneFetched(Drug.resolvedMedicationProduct))
   extends Entity { type IdType = DrugID }
 
 object Drug extends EntityCompanion[Drugs, Drug] {

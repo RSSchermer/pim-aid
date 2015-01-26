@@ -15,11 +15,9 @@ case class Suggestion(text: String, explanatoryNote: Option[String])
 case class UserSession(
     token: UserToken,
     age: Option[Int],
-    drugs: Many[UserSessions, Drugs, UserSession, Drug] =
-      ManyFetched(UserSession.drugs),
-    medicationProducts: Many[UserSessions, MedicationProducts, UserSession, MedicationProduct] =
-      ManyFetched(UserSession.medicationProducts),
-    statementTermsUserSessions: Many[UserSessions, StatementTermsUserSessions, UserSession, StatementTermUserSession] =
+    drugs: Many[UserSession, Drug] = ManyFetched(UserSession.drugs),
+    medicationProducts: Many[UserSession, MedicationProduct] = ManyFetched(UserSession.medicationProducts),
+    statementTermsUserSessions: Many[UserSession, StatementTermUserSession] =
       ManyFetched(UserSession.statementTermsUserSessions))
   extends Entity
 {

@@ -11,8 +11,7 @@ case class SuggestionTemplate(
     name: String,
     text: String,
     explanatoryNote: Option[String],
-    rules: Many[SuggestionTemplates, Rules, SuggestionTemplate, Rule] =
-      ManyFetched(SuggestionTemplate.rules))
+    rules: Many[SuggestionTemplate, Rule] = ManyFetched(SuggestionTemplate.rules))
   extends Entity { type IdType = SuggestionTemplateID }
 
 object SuggestionTemplate extends EntityCompanion[SuggestionTemplates, SuggestionTemplate] {

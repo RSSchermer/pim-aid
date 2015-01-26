@@ -11,8 +11,7 @@ case class DrugGroupID(value: Long) extends MappedTo[Long]
 case class DrugGroup(
     id: Option[DrugGroupID],
     name: String,
-    genericTypes: Many[DrugGroups, GenericTypes, DrugGroup, GenericType] =
-      ManyFetched(DrugGroup.genericTypes))
+    genericTypes: Many[DrugGroup, GenericType] = ManyFetched(DrugGroup.genericTypes))
   extends Entity { type IdType = DrugGroupID }
 
 object DrugGroup extends EntityCompanion[DrugGroups, DrugGroup] {
@@ -25,5 +24,5 @@ object DrugGroup extends EntityCompanion[DrugGroups, DrugGroup] {
   )
 
   def findByName(name: String)(implicit s: Session): Option[DrugGroup] =
-    TableQuery[DrugGroups].filter(_.name.toLowerCase === name.toLowerCase).firstOption
+    query.filter(_.name.toLowerCase === name.toLowerCase).firstOption
 }

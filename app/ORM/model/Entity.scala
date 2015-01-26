@@ -19,19 +19,19 @@ abstract class EntityCompanion[T <: EntityTable[E], E <: Entity](implicit ev: Ba
   protected def toOne[M, To <: Table[M]](
     toQuery: Query[To, M, Seq],
     joinCondition: (T, To) => Column[Boolean],
-    propertyLens: Lens[E, One[T, To, E, M]]
+    propertyLens: Lens[E, One[E, M]]
   ): ToOne[T, To, E, M] = new ToOne(query, toQuery, joinCondition, propertyLens)
 
   protected def toMany[M, To <: Table[M]](
     toQuery: Query[To, M, Seq],
     joinCondition: (T, To) => Column[Boolean],
-    propertyLens: Lens[E, Many[T, To, E, M]]
+    propertyLens: Lens[E, Many[E, M]]
   ): ToMany[T, To, E, M] = new ToMany(query, toQuery, joinCondition, propertyLens)
 
   protected def toManyThrough[M, J, To <: Table[M], Through <: Table[J]](
     toQuery: Query[(Through, To), (J, M), Seq],
     joinCondition: (T, (Through, To)) => Column[Boolean],
-    propertyLens: Lens[E, Many[T, To, E, M]]
+    propertyLens: Lens[E, Many[E, M]]
   ): ToManyThrough[T, Through, To, E, J, M] =
     new ToManyThrough(query, toQuery, joinCondition, propertyLens)
 }

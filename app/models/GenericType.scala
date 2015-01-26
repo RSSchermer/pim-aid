@@ -10,10 +10,8 @@ case class GenericTypeID(value: Long) extends MappedTo[Long]
 case class GenericType(
     id: Option[GenericTypeID],
     name: String,
-    medicationProducts: Many[GenericTypes, MedicationProducts, GenericType, MedicationProduct] =
-      ManyFetched(GenericType.medicationProducts),
-    drugGroups: Many[GenericTypes, DrugGroups, GenericType, DrugGroup] =
-      ManyFetched(GenericType.drugGroups))
+    medicationProducts: Many[GenericType, MedicationProduct] = ManyFetched(GenericType.medicationProducts),
+    drugGroups: Many[GenericType, DrugGroup] = ManyFetched(GenericType.drugGroups))
   extends Entity { type IdType = GenericTypeID }
 
 object GenericType extends EntityCompanion[GenericTypes, GenericType] {
