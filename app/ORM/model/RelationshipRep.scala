@@ -18,7 +18,7 @@ trait RelationshipRep[Owner <: Entity, +Value] {
 sealed abstract class One[E <: Entity, T]
   extends RelationshipRep[E, Option[T]]
 {
-  val relationship: ToOneRelationship[E, T]
+  val relationship: ToOneRelationship[_ <: EntityTable[E], _ <: Table[T], E, T]
 
   def fetch(implicit session: Session): Option[T] = ownerId match {
     case Some(id) => relationship.fetchFor(id)
@@ -27,7 +27,7 @@ sealed abstract class One[E <: Entity, T]
 }
 
 case class OneFetched[E <: Entity, T](
-    override val relationship: ToOneRelationship[E, T],
+    override val relationship: ToOneRelationship[_ <: EntityTable[E], _ <: Table[T], E, T],
     override val ownerId: Option[E#IdType] = None,
     value: Option[T] = None)
   extends One[E, T]
@@ -38,7 +38,7 @@ case class OneFetched[E <: Entity, T](
 }
 
 case class OneUnfetched[E <: Entity, T](
-    override val relationship: ToOneRelationship[E, T],
+    override val relationship: ToOneRelationship[_ <: EntityTable[E], _ <: Table[T], E, T],
     override val ownerId: Option[E#IdType])
   extends One[E, T]
 {
@@ -50,7 +50,7 @@ case class OneUnfetched[E <: Entity, T](
 sealed abstract class Many[E <: Entity, T]
   extends RelationshipRep[E, Seq[T]]
 {
-  val relationship: ToManyRelationship[E, T]
+  val relationship: ToManyRelationship[_ <: EntityTable[E], _ <: Table[T], E, T]
 
   def fetch(implicit session: Session): Seq[T] = ownerId match {
     case Some(id) => relationship.fetchFor(id)
@@ -59,7 +59,7 @@ sealed abstract class Many[E <: Entity, T]
 }
 
 case class ManyFetched[E <: Entity, T](
-    override val relationship: ToManyRelationship[E, T],
+    override val relationship: ToManyRelationship[_ <: EntityTable[E], _ <: Table[T], E, T],
     override val ownerId: Option[E#IdType] = None,
     values: Seq[T] = Seq())
   extends Many[E, T]
@@ -70,7 +70,7 @@ case class ManyFetched[E <: Entity, T](
 }
 
 case class ManyUnfetched[E <: Entity, T](
-    override val relationship: ToManyRelationship[E, T],
+    override val relationship: ToManyRelationship[_ <: EntityTable[E], _ <: Table[T], E, T],
     override val ownerId: Option[E#IdType])
   extends Many[E, T]
 {
