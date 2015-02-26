@@ -16,8 +16,7 @@ object GenericTypesController extends Controller {
         (genericTypeId: GenericTypeID) => genericTypeId.value
       )),
       "name" -> nonEmptyText
-    )({ case (id, name) => GenericType(id, name)})
-      ({ case GenericType(id, name, _, _) => Some(id, name) })
+    )(GenericType.apply)(GenericType.unapply)
   )
 
   def list = DBAction { implicit rs =>

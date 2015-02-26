@@ -1,27 +1,26 @@
 package models
 
-import play.api.db.slick.Config.driver.simple._
-import play.api.db.slick.Session
-import ORM.model._
-import ORM.EntityRepository
-import schema._
+import models.Profile._
+import models.Profile.driver.simple._
 
 case class DrugGroupID(value: Long) extends MappedTo[Long]
 
 case class DrugGroup(
     id: Option[DrugGroupID],
-    name: String,
-    genericTypes: Many[DrugGroup, GenericType] = ManyFetched(DrugGroup.genericTypes))
-  extends Entity { type IdType = DrugGroupID }
+    name: String)(implicit includes: Includes[DrugGroup])
+  extends Entity[DrugGroup]
+{
+  type IdType = DrugGroupID
+
+  val genericTypes = many(DrugGroup.genericTypes)
+}
 
 object DrugGroup extends EntityCompanion[DrugGroups, DrugGroup] {
   val query = TableQuery[DrugGroups]
 
-  val genericTypes = toManyThrough[GenericType, (DrugGroupID, GenericTypeID), GenericTypes, DrugGroupsGenericTypes](
+  val genericTypes = toManyThrough[GenericTypes, DrugGroupsGenericTypes, GenericType](
     TableQuery[DrugGroupsGenericTypes] leftJoin TableQuery[GenericTypes] on(_.genericTypeId === _.id),
-    _.id === _._1.drugGroupId,
-    lenser(_.genericTypes)
-  )
+    _.id === _._1.drugGroupId)
 
   def findByName(name: String)(implicit s: Session): Option[DrugGroup] =
     query.filter(_.name.toLowerCase === name.toLowerCase).firstOption

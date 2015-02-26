@@ -20,8 +20,7 @@ object SuggestionTemplatesController extends Controller {
       "name" -> nonEmptyText,
       "text" -> nonEmptyText.verifying(MedicationProductTemplateConstraint.apply),
       "explanatoryNote" -> optional(text.verifying(MedicationProductTemplateConstraint.apply))
-    )({ case (id, name, txt, en) => SuggestionTemplate(id, name, txt, en) })
-      ({ case SuggestionTemplate(id, name, txt, en, _) => Some(id, name, txt, en) })
+    )(SuggestionTemplate.apply)(SuggestionTemplate.unapply)
   )
 
   def list = DBAction { implicit rs =>

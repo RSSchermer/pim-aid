@@ -1,9 +1,7 @@
 package models
 
-import play.api.db.slick.Config.driver.simple._
-import ORM.model._
-import play.api.db.slick.Session
-import schema._
+import models.Profile._
+import models.Profile.driver.simple._
 
 case class RuleID(value: Long) extends MappedTo[Long]
 
@@ -12,18 +10,20 @@ case class Rule(
     name: String,
     conditionExpression: String,
     source: Option[String],
-    note: Option[String],
-    suggestionTemplates: Many[Rule, SuggestionTemplate] = ManyFetched(Rule.suggestionTemplates))
-  extends Entity { type IdType = RuleID }
+    note: Option[String])(implicit includes: Includes[Rule])
+  extends Entity[Rule]
+{
+  type IdType = RuleID
+
+  val suggestionTemplates = many(Rule.suggestionTemplates)
+}
 
 object Rule extends EntityCompanion[Rules, Rule] {
   val query = TableQuery[Rules]
 
-  val suggestionTemplates = toManyThrough[SuggestionTemplate, (RuleID, SuggestionTemplateID), SuggestionTemplates, RulesSuggestionTemplates](
+  val suggestionTemplates = toManyThrough[SuggestionTemplates, RulesSuggestionTemplates, SuggestionTemplate](
     TableQuery[RulesSuggestionTemplates] leftJoin TableQuery[SuggestionTemplates] on(_.suggestionTemplateId === _.id),
-    _.id === _._1.ruleId,
-    lenser(_.suggestionTemplates)
-  )
+    _.id === _._1.ruleId)
 
   override protected def afterSave(ruleId: RuleID, rule: Rule)(implicit s: Session): Unit = {
     val etr = TableQuery[ExpressionTermsRules]

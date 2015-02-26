@@ -1,34 +1,34 @@
 package models
 
-import play.api.db.slick.Config.driver.simple._
-import ORM.model._
-import play.api.db.slick.Session
-import schema._
+import models.Profile._
+import models.Profile.driver.simple._
 import com.rockymadden.stringmetric.similarity._
 
 case class MedicationProductID(value: Long) extends MappedTo[Long]
 
 case class MedicationProduct(
     id: Option[MedicationProductID],
-    name: String,
-    genericTypes: Many[MedicationProduct, GenericType] = ManyFetched(MedicationProduct.genericTypes))
-  extends Entity { type IdType = MedicationProductID }
+    name: String)(implicit includes: Includes[MedicationProduct])
+  extends Entity[MedicationProduct]
+{
+  type IdType = MedicationProductID
 
-object MedicationProduct extends EntityCompanion[MedicationProducts, MedicationProduct] {
+  val genericTypes = many(MedicationProduct.genericTypes)
+}
+
+object MedicationProduct extends EntityCompanion[MedicationProducts, MedicationProduct]
+{
   val query = TableQuery[MedicationProducts]
 
-  val genericTypes = toManyThrough[GenericType, (GenericTypeID, MedicationProductID), GenericTypes, GenericTypesMedicationProducts](
+  val genericTypes = toManyThrough[GenericTypes, GenericTypesMedicationProducts, GenericType](
     TableQuery[GenericTypesMedicationProducts] leftJoin TableQuery[GenericTypes] on(_.genericTypeId === _.id),
-    _.id === _._1.medicationProductId,
-    lenser(_.genericTypes)
-  )
+    _.id === _._1.medicationProductId)
 
   def findByName(name: String)(implicit s: Session): Option[MedicationProduct] =
     TableQuery[MedicationProducts].filter(_.name.toLowerCase === name.toLowerCase).firstOption
 
   def findByUserInput(userInput: String)(implicit s: Session): Option[MedicationProduct] = {
     val normalizedInput = userInput.trim().replaceAll("""\s+""", " ")
-
     query.filter(_.name.toLowerCase === normalizedInput).firstOption
   }
 

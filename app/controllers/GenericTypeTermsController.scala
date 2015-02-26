@@ -18,7 +18,7 @@ object GenericTypeTermsController extends Controller {
         (genericTypeId: GenericTypeID) => genericTypeId.value
       )
     )({ case (label, genericTypeId) => ExpressionTerm(label, Some(genericTypeId), None, None, None, None, None) })
-    ({ case ExpressionTerm(label, Some(genericTypeId), _, _, _, _, _, _, _) => Some(label, genericTypeId) })
+    ({ case ExpressionTerm(label, Some(genericTypeId), _, _, _, _, _) => Some(label, genericTypeId) })
   )
 
   def list = DBAction { implicit rs =>

@@ -19,7 +19,7 @@ object StatementTermsController extends Controller {
       "displayCondition" -> optional(text.verifying(ConditionExpressionConstraint.apply))
     )({ case (label, statementTemplate, displayCondition) =>
           ExpressionTerm(label, None, None, Some(statementTemplate), displayCondition, None, None) })
-      ({ case ExpressionTerm(label, _, _, Some(statementTemplate), displayCondition, _, _, _, _) =>
+      ({ case ExpressionTerm(label, _, _, Some(statementTemplate), displayCondition, _, _) =>
          Some(label, statementTemplate, displayCondition) })
   )
 

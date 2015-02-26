@@ -18,7 +18,7 @@ object AgeTermsController extends Controller {
       "age" -> number(min = 0, max = 120)
     )({ case (label, comparisonOperator, age) =>
           ExpressionTerm(label, None, None, None, None, Some(comparisonOperator), Some(age)) })
-    ({ case ExpressionTerm(label, _, _, _, _, Some(comparisonOperator), Some(age), _, _) =>
+    ({ case ExpressionTerm(label, _, _, _, _, Some(comparisonOperator), Some(age)) =>
          Some(label, comparisonOperator, age) })
   )
 

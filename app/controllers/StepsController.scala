@@ -19,8 +19,7 @@ object StepsController extends Controller with UserSessionAware {
         (num: Int) => { Some(num) } : Option[Int],
         (age: Option[Int]) => age.getOrElse(0)
       )
-    )({ case (token, age) => UserSession(token, age) })
-      ({ case UserSession(token, age, _, _, _) => Some(token, age) })
+    )(UserSession.apply)(UserSession.unapply)
   )
 
   val statementSelectionForm = Form(
@@ -35,9 +34,9 @@ object StepsController extends Controller with UserSessionAware {
 
   def generalInformation = DBAction { implicit rs =>
     currentUserSession(rs) match {
-      case session@UserSession(token, Some(age), _, _, _) =>
+      case session@UserSession(token, Some(age)) =>
         Ok(html.steps.generalInformation(token, generalInformationForm.fill(session)))
-      case UserSession(token, None, _, _, _) =>
+      case UserSession(token, None) =>
         Ok(html.steps.generalInformation(token, generalInformationForm))
     }
   }

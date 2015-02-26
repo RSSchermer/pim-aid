@@ -18,7 +18,7 @@ object DrugGroupTermsController extends Controller {
         (drugGroupId: DrugGroupID) => drugGroupId.value
       )
     )({ case (label, drugGroupId) => ExpressionTerm(label, None, Some(drugGroupId), None, None, None, None) })
-      ({ case ExpressionTerm(label, _, Some(drugGroupId), _, _, _, _, _, _) => Some(label,drugGroupId) })
+      ({ case ExpressionTerm(label, _, Some(drugGroupId), _, _, _, _) => Some(label,drugGroupId) })
   )
 
   def list = DBAction { implicit rs =>

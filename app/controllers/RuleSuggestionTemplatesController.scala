@@ -4,11 +4,10 @@ import play.api.mvc._
 import play.api.data._
 import play.api.data.Forms._
 import play.api.db.slick._
-import play.api.db.slick.Config.driver.simple._
-import schema._
 
 import views._
 import models._
+import models.Profile.driver.simple._
 
 object RuleSuggestionTemplatesController extends Controller {
   val ruleSuggestionTemplateForm = Form(

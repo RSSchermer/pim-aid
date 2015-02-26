@@ -1,8 +1,7 @@
 package models
 
-import play.api.db.slick.Config.driver.simple._
-import ORM.model._
-import schema._
+import models.Profile._
+import models.Profile.driver.simple._
 
 case class DrugID(value: Long) extends MappedTo[Long]
 
@@ -10,22 +9,23 @@ case class Drug(
     id: Option[DrugID],
     userInput: String,
     userToken: UserToken,
-    resolvedMedicationProductId: Option[MedicationProductID],
-    userSession: One[Drug, UserSession] = OneFetched(Drug.userSession),
-    resolvedMedicationProduct: One[Drug, MedicationProduct] = OneFetched(Drug.resolvedMedicationProduct))
-  extends Entity { type IdType = DrugID }
+    resolvedMedicationProductId: Option[MedicationProductID])(implicit includes: Includes[Drug])
+  extends Entity[Drug]
+{
+  type IdType = DrugID
+
+  val userSession = one(Drug.userSession)
+  val resolvedMedicationProduct = one(Drug.resolvedMedicationProduct)
+}
 
 object Drug extends EntityCompanion[Drugs, Drug] {
   val query = TableQuery[Drugs]
 
-  val userSession = toOne[UserSession, UserSessions](
+  val userSession = toOne[UserSessions, UserSession](
     TableQuery[UserSessions],
-    _.userToken === _.token,
-    lenser(_.userSession))
+    _.userToken === _.token)
 
-  val resolvedMedicationProduct = toOne[MedicationProduct, MedicationProducts](
+  val resolvedMedicationProduct = toOne[MedicationProducts, MedicationProduct](
     TableQuery[MedicationProducts],
-    _.resolvedMedicationProductId === _.id,
-    lenser(_.resolvedMedicationProduct)
-  )
+    _.resolvedMedicationProductId === _.id)
 }

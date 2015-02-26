@@ -9,11 +9,10 @@ import com.google.common.base.Charsets
 import com.google.common.io._
 import org.apache.commons.lang3.StringEscapeUtils.unescapeHtml4
 import org.htmlcleaner.HtmlCleaner
-import play.api.db.slick.Config.driver.simple._
-import schema._
 
 import views._
 import models._
+import models.Profile.driver.simple._
 
 object DrugGroupsController extends Controller {
   val drugGroupForm = Form(
@@ -23,7 +22,7 @@ object DrugGroupsController extends Controller {
         (drugGroupId: DrugGroupID) => drugGroupId.value
       )),
       "name" -> nonEmptyText
-    )({ case (id, name) => DrugGroup(id, name) })({ case DrugGroup(id, name, _) => Some(id, name) })
+    )(DrugGroup.apply)(DrugGroup.unapply)
   )
 
   def list = DBAction { implicit rs =>

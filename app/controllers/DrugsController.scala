@@ -4,9 +4,9 @@ import play.api.mvc._
 import play.api.db.slick._
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
-import play.api.db.slick.Config.driver.simple.Session
 
 import models._
+import models.Profile.driver.simple.Session
 
 object DrugsController extends Controller with UserSessionAware {
   case class DrugJson(id: Option[Long], userInput: String, resolvedMedicationProductId: Option[Long],
@@ -80,7 +80,7 @@ object DrugsController extends Controller with UserSessionAware {
               // There is no matching medication product
               val alternatives = MedicationProduct.alternativesForUserInput(drugJson.userInput, 0.3, 5)
                 .map {
-                  case (MedicationProduct(id, name, _)) =>
+                  case (MedicationProduct(id, name)) =>
                     DrugJson(None, drugJson.userInput, Some(id.get.value), Some(name), unresolvable = false)
                 }
 

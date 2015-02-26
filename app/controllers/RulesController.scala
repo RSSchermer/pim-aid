@@ -5,10 +5,10 @@ import play.api.mvc._
 import play.api.data._
 import play.api.data.Forms._
 import play.api.db.slick._
-import play.api.db.slick.Session
 
 import views._
 import models._
+import models.Profile.driver.simple.Session
 
 object RulesController extends Controller {
   def ruleForm(implicit s: Session) = Form(
@@ -21,8 +21,7 @@ object RulesController extends Controller {
       "conditionExpression" -> nonEmptyText.verifying(ConditionExpressionConstraint.apply),
       "source" -> optional(text),
       "note" -> optional(text)
-    )({ case (id, name, ce, source, note) => Rule(id, name, ce, source, note) })
-      ({ case Rule(id, name, ce, source, note, _) => Some(id, name, ce, source, note) })
+    )(Rule.apply)(Rule.unapply)
   )
 
   def list = DBAction { implicit rs =>

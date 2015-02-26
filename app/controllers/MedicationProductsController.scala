@@ -20,8 +20,7 @@ object MedicationProductsController extends Controller {
         (medicationProductId: MedicationProductID) => medicationProductId.value
       )),
       "name" -> nonEmptyText
-    )({ case (id, name) => MedicationProduct(id, name) })
-      ({ case MedicationProduct(id, name, _) => Some(id, name) })
+    )(MedicationProduct.apply)(MedicationProduct.unapply)
   )
 
   def list = DBAction { implicit rs =>

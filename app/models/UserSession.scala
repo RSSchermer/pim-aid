@@ -1,9 +1,7 @@
 package models
 
-import play.api.db.slick.Config.driver.simple._
-import ORM.model._
-import ORM._
-import schema._
+import models.Profile._
+import models.Profile.driver.simple._
 import utils._
 
 case class UserToken(value: String) extends MappedTo[String]
@@ -14,16 +12,16 @@ case class Suggestion(text: String, explanatoryNote: Option[String])
 
 case class UserSession(
     token: UserToken,
-    age: Option[Int],
-    drugs: Many[UserSession, Drug] = ManyFetched(UserSession.drugs),
-    medicationProducts: Many[UserSession, MedicationProduct] = ManyFetched(UserSession.medicationProducts),
-    statementTermsUserSessions: Many[UserSession, StatementTermUserSession] =
-      ManyFetched(UserSession.statementTermsUserSessions))
-  extends Entity
+    age: Option[Int])(implicit includes: Includes[UserSession])
+  extends Entity[UserSession]
 {
   type IdType = UserToken
 
   val id = Some(token)
+
+  val drugs = many(UserSession.drugs)
+  val medicationProducts = many(UserSession.medicationProducts)
+  val statementTermsUserSessions = many(UserSession.statementTermsUserSessions)
 
   def buildIndependentStatements(implicit s: Session): Seq[Statement] = {
     val selection = statementTermsUserSessions.getOrFetch.map(_.statementTermLabel)
@@ -86,9 +84,9 @@ case class UserSession(
       })
       .flatMap(_.suggestionTemplates.getOrFetch)
       .flatMap({
-        case SuggestionTemplate(_, _, text, Some(note), _) =>
+        case SuggestionTemplate(_, _, text, Some(note)) =>
           (replacePlaceholders(text) zip replacePlaceholders(note)).map(x => Suggestion(x._1, Some(x._2)))
-        case SuggestionTemplate(_, _, text, None, _) =>
+        case SuggestionTemplate(_, _, text, None) =>
           replacePlaceholders(text).map(x => Suggestion(x, None))
       })
   }
@@ -108,13 +106,13 @@ case class UserSession(
       statementTermsUserSessions.getOrFetch.map(_.statementTermLabel)
 
     val variableMap = expressionTerms.map(t => (t.label, t match {
-      case ExpressionTerm(_, Some(genericTypeId), _, _, _, _, _, _, _) =>
+      case ExpressionTerm(_, Some(genericTypeId), _, _, _, _, _) =>
         genericTypeIds.contains(genericTypeId)
-      case ExpressionTerm(_, _, Some(drugGroupId), _, _, _, _, _, _) =>
+      case ExpressionTerm(_, _, Some(drugGroupId), _, _, _, _) =>
         drugGroupIds.contains(drugGroupId)
-      case ExpressionTerm(label, _, _, Some(statementTemplate), _, _, _, _, _) =>
+      case ExpressionTerm(label, _, _, Some(statementTemplate), _, _, _) =>
         selectedStatementTermLabels.contains(label)
-      case ExpressionTerm(label, _, _, _, _, Some(comparisonOperator), Some(comparedAge), _, _) =>
+      case ExpressionTerm(label, _, _, _, _, Some(comparisonOperator), Some(comparedAge)) =>
         compareAge(comparisonOperator, comparedAge)
     })).toMap
 
@@ -161,19 +159,17 @@ case class UserSession(
 object UserSession extends EntityCompanion[UserSessions, UserSession] {
   val query = TableQuery[UserSessions]
 
-  val drugs = toMany[Drug, Drugs](TableQuery[Drugs], _.token === _.userToken, lenser(_.drugs))
+  val drugs = toMany[Drugs, Drug](
+    TableQuery[Drugs],
+    _.token === _.userToken)
 
-  val medicationProducts = toManyThrough[MedicationProduct, Drug, MedicationProducts, Drugs](
+  val medicationProducts = toManyThrough[MedicationProducts, Drugs, MedicationProduct](
     TableQuery[Drugs] leftJoin TableQuery[MedicationProducts] on(_.resolvedMedicationProductId === _.id),
-    _.token === _._1.userToken,
-    lenser(_.medicationProducts)
-  )
+    _.token === _._1.userToken)
 
-  val statementTermsUserSessions = toMany[StatementTermUserSession, StatementTermsUserSessions](
+  val statementTermsUserSessions = toMany[StatementTermsUserSessions, StatementTermUserSession](
     TableQuery[StatementTermsUserSessions],
-    _.token === _.userSessionToken,
-    lenser(_.statementTermsUserSessions)
-  )
+    _.token === _.userSessionToken)
 
   def generateToken(len: Int = 12): UserToken = {
     val rand = new scala.util.Random(System.nanoTime)
