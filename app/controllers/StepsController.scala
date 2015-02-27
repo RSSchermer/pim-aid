@@ -36,8 +36,10 @@ object StepsController extends Controller with UserSessionAware {
     currentUserSession(rs) match {
       case session@UserSession(token, Some(age)) =>
         Ok(html.steps.generalInformation(token, generalInformationForm.fill(session)))
+          .withSession("token" -> token.value)
       case UserSession(token, None) =>
         Ok(html.steps.generalInformation(token, generalInformationForm))
+          .withSession("token" -> token.value)
     }
   }
 
@@ -53,14 +55,16 @@ object StepsController extends Controller with UserSessionAware {
     )
   }
 
-  def medicationList = Action {
+  def medicationList = DBAction { implicit rs =>
     Ok(html.steps.medicationList())
+      .withSession("token" -> currentUserSession(rs).token.value)
   }
 
   def independentStatementSelection = DBAction { implicit rs =>
     val statements = currentUserSession(rs).buildIndependentStatements
 
     Ok(html.steps.independentStatementSelection(statements))
+      .withSession("token" -> currentUserSession(rs).token.value)
   }
 
   def saveIndependentStatementSelection = DBAction { implicit rs =>
@@ -81,6 +85,7 @@ object StepsController extends Controller with UserSessionAware {
   def conditionalStatementSelection = DBAction { implicit rs =>
     val statements = currentUserSession(rs).buildConditionalStatements
     Ok(html.steps.conditionalStatementSelection(statements))
+      .withSession("token" -> currentUserSession(rs).token.value)
   }
 
   def saveConditionalStatementSelection = DBAction { implicit rs =>
@@ -100,6 +105,7 @@ object StepsController extends Controller with UserSessionAware {
 
   def suggestionList = DBAction { implicit rs =>
     Ok(html.steps.suggestionList(currentUserSession(rs).buildSuggestions))
+      .withSession("token" -> currentUserSession(rs).token.value)
   }
 
   def print = DBAction { implicit rs =>
@@ -109,5 +115,6 @@ object StepsController extends Controller with UserSessionAware {
     val suggestions = userSession.buildSuggestions
 
     Ok(html.steps.print(drugs, statements, suggestions))
+      .withSession("token" -> userSession.token.value)
   }
 }

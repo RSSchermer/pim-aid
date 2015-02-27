@@ -6,11 +6,16 @@
     <dl>
         <dt>Name</dt><dd>@suggestionTemplate.name</dd>
         <dt>Text</dt><dd>@suggestionTemplate.text</dd>
-        <dt>Text</dt><dd>@suggestionTemplate.explanatoryNote</dd>
+        <dt>Explanatory Note</dt><dd>@suggestionTemplate.explanatoryNote</dd>
     </dl>
 
     @helper.form(routes.SuggestionTemplatesController.delete(suggestionTemplate.id.get.value)) {
-        <input type="submit" value="Delete" class="btn btn-danger"> or
-        <a href="@routes.SuggestionTemplatesController.list()" class="btn">Cancel</a>
+        <button type="submit" class="btn btn-danger">
+            <span class="fa fa-trash"></span> Delete
+        </button>
+
+        <a href="@routes.SuggestionTemplatesController.list()" class="btn btn-default">
+            <span class="fa fa-close"></span> Cancel
+        </a>
     }
 }

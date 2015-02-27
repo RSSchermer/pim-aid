@@ -1,20 +1,25 @@
 @(label: String, statementTermForm: Form[ExpressionTerm])
 
-@import helper.twitterBootstrap._
+@implicitFieldConstructor = @{ b3.horizontal.fieldConstructor("col-md-3", "col-md-9") }
 
 @expressionTerms("Editing a statement term", "statementTerms") {
     <h1>Editing a statement term</h1>
 
-    @helper.form(routes.StatementTermsController.update(label)) {
+    @b3.form(routes.StatementTermsController.update(label)) {
         <fieldset>
             <input type="hidden" name="label" value='@label'>
-            @helper.textarea(statementTermForm("statementTemplate"))
-            @helper.textarea(statementTermForm("displayCondition"))
+            @b3.textarea(statementTermForm("statementTemplate"), '_label -> "Statement Template")
+            @b3.textarea(statementTermForm("displayCondition"), '_label -> "Display Condition")
         </fieldset>
 
-        <div class="actions">
-            <input type="submit" value="Save" class="btn btn-primary"> or
-            <a href="@routes.StatementTermsController.list()" class="btn">Cancel</a>
+        <div class="actions col-md-offset-3">
+            <button type="submit" class="btn btn-primary">
+                <span class="fa fa-save"></span> Save
+            </button>
+
+            <a href="@routes.StatementTermsController.list()" class="btn btn-default">
+                <span class="fa fa-close"></span> Cancel
+            </a>
         </div>
     }
 }

@@ -1,4 +1,4 @@
-package utils
+package models
 
 import scala.util.parsing.combinator.JavaTokenParsers
 

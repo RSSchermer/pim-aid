@@ -1,14 +1,20 @@
 @(drugGroupForm: Form[DrugGroup], action: Call)
 
-@import helper.twitterBootstrap._
+@implicitFieldConstructor = @{ b3.horizontal.fieldConstructor("col-md-3", "col-md-9") }
 
-@helper.form(action = action) {
+@b3.form(action = action) {
     <fieldset>
-        @helper.inputText(drugGroupForm("name"))
+        <input type="hidden" name="id" value="@drugGroupForm("id").value">
+        @b3.text(drugGroupForm("name"), '_label -> "Name")
     </fieldset>
 
-    <div class="actions">
-        <input type="submit" value="Save" class="btn btn-primary"> or
-        <a href="@routes.DrugGroupsController.list()" class="btn">Cancel</a>
+    <div class="actions col-md-offset-3">
+        <button type="submit" class="btn btn-primary">
+            <span class="fa fa-save"></span> Save
+        </button>
+
+        <a href="@routes.DrugGroupsController.list()" class="btn btn-default">
+            <span class="fa fa-close"></span> Cancel
+        </a>
     </div>
 }

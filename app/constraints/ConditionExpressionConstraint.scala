@@ -3,7 +3,6 @@ package constraints
 import models._
 import play.api.data.validation.{Constraint, Invalid, Valid}
 import play.api.db.slick._
-import utils.ConditionExpressionParser
 
 object ConditionExpressionConstraint {
   def apply(implicit s: Session): Constraint[String] =

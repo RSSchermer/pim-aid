@@ -8,7 +8,12 @@
     </dl>
 
     @helper.form(routes.AgeTermsController.delete(ageTerm.label)) {
-        <input type="submit" value="Delete" class="btn btn-danger"> or
-        <a href="@routes.AgeTermsController.list()" class="btn">Cancel</a>
+        <button type="submit" class="btn btn-danger">
+            <span class="fa fa-trash"></span> Delete
+        </button>
+
+        <a href="@routes.AgeTermsController.list()" class="btn btn-default">
+            <span class="fa fa-close"></span> Cancel
+        </a>
     }
 }

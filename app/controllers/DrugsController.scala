@@ -92,8 +92,7 @@ object DrugsController extends Controller with UserSessionAware {
   }
 
   def delete(id: Long) = DBAction { implicit rs =>
-    val token = currentUserSession(rs).token
     Drug.delete(DrugID(id))
-    Ok.withSession("token" -> token.value)
+    Ok.withSession("token" -> currentUserSession(rs).token.value)
   }
 }

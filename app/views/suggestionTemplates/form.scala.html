@@ -1,16 +1,22 @@
 @(suggestionTemplateForm: Form[SuggestionTemplate], action: Call)
 
-@import helper.twitterBootstrap._
+@implicitFieldConstructor = @{ b3.horizontal.fieldConstructor("col-md-3", "col-md-9") }
 
-@helper.form(action = action) {
-    <fieldset class = "rule-fields">
-        @helper.inputText(suggestionTemplateForm("name"))
-        @helper.textarea(suggestionTemplateForm("text"))
-        @helper.textarea(suggestionTemplateForm("explanatoryNote"))
+@b3.form(action = action) {
+    <fieldset>
+        <input type="hidden" name="id" value="@suggestionTemplateForm("id").value">
+        @b3.text(suggestionTemplateForm("name"), '_label -> "Name")
+        @b3.textarea(suggestionTemplateForm("text"), '_label -> "Text")
+        @b3.textarea(suggestionTemplateForm("explanatoryNote"), '_label -> "Explanatory Note")
     </fieldset>
 
-    <div class="actions">
-        <input type="submit" value="Save" class="btn btn-primary"> or
-        <a href="@routes.SuggestionTemplatesController.list()" class="btn">Cancel</a>
+    <div class="actions col-md-offset-3">
+        <button type="submit" class="btn btn-primary">
+            <span class="fa fa-save"></span> Save
+        </button>
+
+        <a href="@routes.SuggestionTemplatesController.list()" class="btn btn-default">
+            <span class="fa fa-close"></span> Cancel
+        </a>
     </div>
 }

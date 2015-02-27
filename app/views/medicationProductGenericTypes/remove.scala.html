@@ -8,7 +8,12 @@
     </dl>
 
     @helper.form(routes.MedicationProductGenericTypesController.delete(medicationProduct.id.get.value, genericType.id.get.value)) {
-        <input type="submit" value="Remove" class="btn btn-danger"> or
-        <a href="@routes.MedicationProductGenericTypesController.list(medicationProduct.id.get.value)" class="btn">Cancel</a>
+        <button type="submit" class="btn btn-danger">
+            <span class="fa fa-trash"></span> Delete
+        </button>
+
+        <a href="@routes.MedicationProductGenericTypesController.list(medicationProduct.id.get.value)" class="btn btn-default">
+            <span class="fa fa-close"></span> Cancel
+        </a>
     }
 }

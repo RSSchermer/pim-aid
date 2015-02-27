@@ -3,6 +3,8 @@
     drugGroupGenericTypeForm: Form[(DrugGroupID, GenericTypeID)]
 )(implicit flash: play.api.mvc.Flash, session: play.api.db.slick.Session)
 
+@import b3.inline.fieldConstructor
+
 @admin("Generic type list for "+ drugGroup.name, "drugGroups") {
     @flash.get("success").map { message =>
         <div class="alert alert-success">
@@ -14,16 +16,14 @@
 
     <a href="@routes.DrugGroupsController.list()">Back to list</a>
 
-    @helper.form(action = routes.DrugGroupGenericTypesController.save(drugGroup.id.get.value)) {
+    @b3.form(action = routes.DrugGroupGenericTypesController.save(drugGroup.id.get.value)) {
         <fieldset>
             <input type="hidden" name="drugGroupId" value='@drugGroup.id.get.value'>
-            @helper.select(drugGroupGenericTypeForm("genericTypeId"),
-                GenericType.list.toSeq.map(gt => gt.id.get.value.toString -> gt.name), 'class -> "searchable-select")
+            @b3.select(drugGroupGenericTypeForm("genericTypeId"),
+                GenericType.list.toSeq.map(gt => gt.id.get.value.toString -> gt.name),
+                'class -> "searchable-select")
+            @b3.submit('class -> "btn btn-primary"){ <span class="fa fa-plus"></span> Add generic type }
         </fieldset>
-
-        <div class="actions">
-            <input type="submit" value="Add generic type" class="btn btn-primary">
-        </div>
     }
 
     <table class="table table-striped data-table">

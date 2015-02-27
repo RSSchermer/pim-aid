@@ -1,20 +1,26 @@
 @(label: String, drugGroupTermForm: Form[ExpressionTerm])(implicit session: play.api.db.slick.Session)
 
-@import helper.twitterBootstrap._
+@implicitFieldConstructor = @{ b3.horizontal.fieldConstructor("col-md-3", "col-md-9") }
 
 @expressionTerms("Editing a drug group term", "drugGroupTerms") {
     <h1>Editing a drug group term</h1>
 
-    @helper.form(routes.DrugGroupTermsController.update(label)) {
+    @b3.form(routes.DrugGroupTermsController.update(label)) {
         <fieldset>
             <input type="hidden" name="label" value='@label'>
-            @helper.select(drugGroupTermForm("drugGroupId"),
-                DrugGroup.list.toSeq.map(dt => dt.id.get.value.toString -> dt.name), 'class -> "searchable-select")
+            @b3.select(drugGroupTermForm("drugGroupId"),
+                DrugGroup.list.toSeq.map(dt => dt.id.get.value.toString -> dt.name),
+                '_label -> "Drug Group", 'class -> "searchable-select")
         </fieldset>
 
-        <div class="actions">
-            <input type="submit" value="Save" class="btn btn-primary"> or
-            <a href="@routes.DrugGroupTermsController.list()" class="btn">Cancel</a>
+        <div class="actions col-md-offset-3">
+            <button type="submit" class="btn btn-primary">
+                <span class="fa fa-save"></span> Save
+            </button>
+
+            <a href="@routes.DrugGroupTermsController.list()" class="btn btn-default">
+                <span class="fa fa-close"></span> Cancel
+            </a>
         </div>
     }
 }

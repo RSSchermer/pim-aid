@@ -3,6 +3,8 @@
     ruleSuggestionTemplateForm: Form[(RuleID, SuggestionTemplateID)]
 )(implicit flash: play.api.mvc.Flash, session: play.api.db.slick.Session)
 
+@import b3.inline.fieldConstructor
+
 @admin("Suggestion list for "+ rule.name, "rules") {
     @flash.get("success").map { message =>
         <div class="alert alert-success">
@@ -13,18 +15,16 @@
 
     <a href="@routes.RulesController.list()">Back to list</a>
 
-    <p>@rule.conditionExpression</p>
+    <pre>@rule.conditionExpression</pre>
 
     @helper.form(action = routes.RuleSuggestionTemplatesController.save(rule.id.get.value)) {
         <fieldset>
             <input type="hidden" name="ruleId" value='@rule.id.get.value'>
-            @helper.select(ruleSuggestionTemplateForm("suggestionTemplateId"),
-                SuggestionTemplate.list.toSeq.map(gt => gt.id.get.value.toString -> gt.name))
+            @b3.select(ruleSuggestionTemplateForm("suggestionTemplateId"),
+                SuggestionTemplate.list.toSeq.map(gt => gt.id.get.value.toString -> gt.name),
+                'class -> "searchable-select")
+            @b3.submit('class -> "btn btn-primary"){ <span class="fa fa-plus"></span> Add suggestion }
         </fieldset>
-
-        <div class="actions">
-            <input type="submit" value="Add suggestion" class="btn btn-primary">
-        </div>
     }
 
     <table class="table table-striped data-table">

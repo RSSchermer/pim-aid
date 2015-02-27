@@ -2,7 +2,6 @@ package models
 
 import models.Profile._
 import models.Profile.driver.simple._
-import utils._
 
 case class UserToken(value: String) extends MappedTo[String]
 

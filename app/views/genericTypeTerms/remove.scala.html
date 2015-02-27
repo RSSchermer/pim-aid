@@ -8,7 +8,12 @@
     </dl>
 
     @helper.form(routes.GenericTypeTermsController.delete(genericTypeTerm.label)) {
-        <input type="submit" value="Delete" class="btn btn-danger"> or
-        <a href="@routes.GenericTypeTermsController.list()" class="btn">Cancel</a>
+        <button type="submit" class="btn btn-danger">
+            <span class="fa fa-trash"></span> Delete
+        </button>
+
+        <a href="@routes.GenericTypeTermsController.list()" class="btn btn-default">
+            <span class="fa fa-close"></span> Cancel
+        </a>
     }
 }
