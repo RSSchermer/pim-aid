@@ -1,4 +1,4 @@
-@(statementTermForm: Form[ExpressionTerm])
+@(statementTermForm: Form[ExpressionTerm])(implicit session: play.api.db.slick.Session)
 
 @implicitFieldConstructor = @{ b3.horizontal.fieldConstructor("col-md-3", "col-md-9") }
 
@@ -9,7 +9,8 @@
         <fieldset>
             @b3.text(statementTermForm("label"), '_label -> "Label")
             @b3.textarea(statementTermForm("statementTemplate"), '_label -> "Statement Template")
-            @b3.textarea(statementTermForm("displayCondition"), '_label -> "Display Condition")
+            @b3.textarea(statementTermForm("displayCondition"), '_label -> "Display Condition",
+                'id -> "displayCondition")
         </fieldset>
 
         <div class="actions col-md-offset-3">
@@ -21,5 +22,15 @@
                 <span class="fa fa-close"></span> Cancel
             </a>
         </div>
+
+        <script>
+            window.validCEVariables = [@Html(ExpressionTerm.list.map("\""+ _.label +"\"").mkString(","))];
+
+            $(document).ready(function () {
+                CodeMirror.fromTextArea(document.getElementById("displayCondition"), {
+                    lineNumbers: true
+                });
+            });
+        </script>
     }
 }

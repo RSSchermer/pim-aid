@@ -1,4 +1,4 @@
-@(ruleForm: Form[Rule], action: Call)
+@(ruleForm: Form[Rule], action: Call)(implicit session: play.api.db.slick.Session)
 
 @implicitFieldConstructor = @{ b3.horizontal.fieldConstructor("col-md-3", "col-md-9") }
 
@@ -6,7 +6,7 @@
     <fieldset class = "rule-fields">
         <input type="hidden" name="id" value="@ruleForm("id").value">
         @b3.text(ruleForm("name"), '_label -> "Name")
-        @b3.textarea(ruleForm("conditionExpression"), '_label -> "Condition Expression")
+        @b3.textarea(ruleForm("conditionExpression"), '_label -> "Condition", 'id -> "conditionExpression")
         @b3.text(ruleForm("source"), '_label -> "Source")
         @b3.textarea(ruleForm("note"), '_label -> "Note")
     </fieldset>
@@ -20,4 +20,14 @@
             <span class="fa fa-close"></span> Cancel
         </a>
     </div>
+
+    <script>
+        window.validCEVariables = [@Html(ExpressionTerm.list.map("\""+ _.label +"\"").mkString(","))];
+
+        $(document).ready(function () {
+            CodeMirror.fromTextArea(document.getElementById("conditionExpression"), {
+              lineNumbers: true
+            });
+        });
+    </script>
 }

@@ -1,4 +1,4 @@
-@(ruleId: RuleID, ruleForm: Form[Rule])
+@(ruleId: RuleID, ruleForm: Form[Rule])(implicit session: play.api.db.slick.Session)
 
 
 @admin("Editing a rule", "rules") {
