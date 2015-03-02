@@ -8,7 +8,7 @@ case class RuleID(value: Long) extends MappedTo[Long]
 case class Rule(
     id: Option[RuleID],
     name: String,
-    conditionExpression: String,
+    conditionExpression: ConditionExpression,
     source: Option[String],
     note: Option[String])(implicit includes: Includes[Rule])
   extends Entity[Rule]
@@ -28,7 +28,6 @@ object Rule extends EntityCompanion[Rules, Rule] {
   override protected def afterSave(ruleId: RuleID, rule: Rule)(implicit s: Session): Unit = {
     val etr = TableQuery[ExpressionTermsRules]
     etr.filter(_.ruleId === ruleId).delete
-    """\[([A-Za-z0-9_\-]+)\]""".r.findAllMatchIn(rule.conditionExpression)
-      .foreach(m => etr.insert((ExpressionTerm.findByLabel(m group 1).get.id.get, ruleId)))
+    rule.conditionExpression.expressionTerms.foreach(t => etr.insert((t.id.get, ruleId)))
   }
 }

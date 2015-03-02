@@ -45,7 +45,7 @@ class ExpressionTerms(tag: Tag) extends EntityTable[ExpressionTerm](tag, "EXPRES
   def genericTypeId = column[GenericTypeID]("drug_type_id", O.Nullable)
   def drugGroupId = column[DrugGroupID]("drug_group_id", O.Nullable)
   def statementTemplate = column[String]("statement_template", O.Nullable)
-  def displayCondition = column[String]("display_condition", O.Nullable)
+  def displayCondition = column[ConditionExpression]("display_condition", O.Nullable)
   def comparisonOperator = column[String]("comparison_operator", O.Nullable)
   def age = column[Int]("age", O.Nullable)
 
@@ -106,7 +106,7 @@ class MedicationProducts(tag: Tag) extends EntityTable[MedicationProduct](tag, "
 class Rules(tag: Tag) extends EntityTable[Rule](tag, "RULES") {
   def id = column[RuleID]("id", O.PrimaryKey, O.AutoInc)
   def name = column[String]("name", O.NotNull)
-  def conditionExpression = column[String]("condition_expression", O.NotNull)
+  def conditionExpression = column[ConditionExpression]("condition_expression", O.NotNull)
   def source = column[String]("source", O.Nullable)
   def note = column[String]("note", O.Nullable)
 

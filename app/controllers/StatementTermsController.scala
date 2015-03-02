@@ -20,7 +20,10 @@ object StatementTermsController extends Controller {
       "label" -> nonEmptyText.verifying("Must alphanumeric characters, dashes and underscores only.",
         _.matches("""[A-Za-z0-9\-_]+""")),
       "statementTemplate" -> nonEmptyText.verifying(MedicationProductTemplateConstraint.apply),
-      "displayCondition" -> optional(text.verifying(ConditionExpressionConstraint.apply))
+      "displayCondition" -> optional(text.verifying(ConditionExpressionConstraint.apply).transform(
+        (s: String) => ConditionExpression(s),
+        (ce: ConditionExpression) => ce.value
+      ))
     )({ case (id, label, statementTemplate, displayCondition) =>
           ExpressionTerm(id, label, None, None, Some(statementTemplate), displayCondition, None, None) })
       ({ case ExpressionTerm(id, label, _, _, Some(statementTemplate), displayCondition, _, _) =>

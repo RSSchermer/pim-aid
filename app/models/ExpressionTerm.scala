@@ -11,7 +11,7 @@ case class ExpressionTerm(
     genericTypeId: Option[GenericTypeID],
     drugGroupId: Option[DrugGroupID],
     statementTemplate: Option[String],
-    displayCondition: Option[String],
+    displayCondition: Option[ConditionExpression],
     comparisonOperator: Option[String],
     age: Option[Int])(implicit includes: Includes[ExpressionTerm])
   extends Entity[ExpressionTerm]

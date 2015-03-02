@@ -18,7 +18,10 @@ object RulesController extends Controller {
         (ruleId: RuleID) => ruleId.value
       )),
       "name" -> nonEmptyText,
-      "conditionExpression" -> nonEmptyText.verifying(ConditionExpressionConstraint.apply),
+      "conditionExpression" -> nonEmptyText.verifying(ConditionExpressionConstraint.apply).transform(
+        (s: String) => ConditionExpression(s),
+        (ce: ConditionExpression) => ce.value
+      ),
       "source" -> optional(text),
       "note" -> optional(text)
     )(Rule.apply)(Rule.unapply)

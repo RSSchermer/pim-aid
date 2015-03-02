@@ -48,7 +48,7 @@ case class UserSession(
     val selection = statementTermsUserSessions.getOrFetch.map(x => (x.statementTermLabel, x.textHash))
 
     StatementTerm.filter(_.displayCondition.isNotNull).list
-      .filter { x => parser.parse(x.displayCondition.getOrElse("")) match {
+      .filter { x => parser.parse(x.displayCondition.getOrElse(ConditionExpression(""))) match {
           case parser.Success(true, _) => true
           case _ => false
         }
