@@ -3,7 +3,7 @@ package models
 import models.Profile._
 import models.Profile.driver.simple._
 
-class DrugGroups(tag: Tag) extends EntityTable[DrugGroup](tag, "DRUG_GROUPS"){
+class DrugGroups(tag: Tag) extends EntityTable[DrugGroup](tag, "DRUG_GROUPS") {
   def id = column[DrugGroupID]("id", O.PrimaryKey, O.AutoInc)
   def name = column[String]("name", O.NotNull)
 
@@ -12,15 +12,19 @@ class DrugGroups(tag: Tag) extends EntityTable[DrugGroup](tag, "DRUG_GROUPS"){
   def nameIndex = index("DRUG_GROUPS_NAME_INDEX", name, unique = true)
 }
 
-class DrugGroupsGenericTypes(tag: Tag) extends Table[(DrugGroupID, GenericTypeID)](tag, "DRUG_GROUPS_GENERIC_TYPES"){
+class DrugGroupsGenericTypes(tag: Tag)
+  extends Table[(DrugGroupID, GenericTypeID)](tag, "DRUG_GROUPS_GENERIC_TYPES")
+{
   def drugGroupId = column[DrugGroupID]("drug_group_id")
   def genericTypeId = column[GenericTypeID]("generic_type_id")
 
   def * = (drugGroupId, genericTypeId)
 
   def pk = primaryKey("DRUG_GROUPS_GENERIC_TYPES_PK", (drugGroupId, genericTypeId))
-  def drugGroup = foreignKey("DRUG_GROUPS_GENERIC_TYPES_DRUG_GROUP_FK", drugGroupId, TableQuery[DrugGroups])(_.id)
-  def genericType = foreignKey("DRUG_GROUPS_GENERIC_TYPES_GENERIC_TYPE_FK", genericTypeId, TableQuery[GenericTypes])(_.id)
+  def drugGroup = foreignKey("DRUG_GROUPS_GENERIC_TYPES_DRUG_GROUP_FK", drugGroupId,
+    TableQuery[DrugGroups])(_.id, onDelete = ForeignKeyAction.Cascade)
+  def genericType = foreignKey("DRUG_GROUPS_GENERIC_TYPES_GENERIC_TYPE_FK", genericTypeId,
+    TableQuery[GenericTypes])(_.id, onDelete = ForeignKeyAction.Cascade)
 }
 
 class Drugs(tag: Tag) extends EntityTable[Drug](tag, "DRUGS") {
@@ -35,8 +39,9 @@ class Drugs(tag: Tag) extends EntityTable[Drug](tag, "DRUGS") {
     TableQuery[MedicationProducts])(_.id)
 }
 
-class ExpressionTerms(tag: Tag) extends EntityTable[ExpressionTerm](tag, "EXPRESSION_TERMS"){
-  def label = column[String]("label", O.PrimaryKey)
+class ExpressionTerms(tag: Tag) extends EntityTable[ExpressionTerm](tag, "EXPRESSION_TERMS") {
+  def id = column[ExpressionTermID]("id", O.PrimaryKey, O.AutoInc)
+  def label = column[String]("label", O.NotNull)
   def genericTypeId = column[GenericTypeID]("drug_type_id", O.Nullable)
   def drugGroupId = column[DrugGroupID]("drug_group_id", O.Nullable)
   def statementTemplate = column[String]("statement_template", O.Nullable)
@@ -44,25 +49,25 @@ class ExpressionTerms(tag: Tag) extends EntityTable[ExpressionTerm](tag, "EXPRES
   def comparisonOperator = column[String]("comparison_operator", O.Nullable)
   def age = column[Int]("age", O.Nullable)
 
-  def id = label
-
-  def * = (label, genericTypeId.?, drugGroupId.?, statementTemplate.?, displayCondition.?, comparisonOperator.?, age.?) <>
+  def * = (id.?, label, genericTypeId.?, drugGroupId.?, statementTemplate.?, displayCondition.?, comparisonOperator.?, age.?) <>
     ((ExpressionTerm.apply _).tupled, ExpressionTerm.unapply)
 
+  def labelIndex = index("EXPRESSION_TERMS_LABEL_INDEX", label, unique = true)
   def drugGroup = foreignKey("EXPRESSION_TERMS_DRUG_GROUP_FK", drugGroupId, TableQuery[DrugGroups])(_.id)
   def drugType = foreignKey("EXPRESSION_TERMS_DRUG_TYPE_FK", genericTypeId, TableQuery[GenericTypes])(_.id)
 }
 
-class ExpressionTermsRules(tag: Tag) extends Table[(String, RuleID)](tag, "EXPRESSION_TERMS_RULES"){
-  def expressionTermLabel = column[String]("expression_term_label")
+class ExpressionTermsRules(tag: Tag) extends Table[(ExpressionTermID, RuleID)](tag, "EXPRESSION_TERMS_RULES") {
+  def expressionTermId = column[ExpressionTermID]("expression_term_label")
   def ruleId = column[RuleID]("rule_id")
 
-  def * = (expressionTermLabel, ruleId)
+  def * = (expressionTermId, ruleId)
 
-  def pk = primaryKey("EXPRESSION_TERMS_RULES_PK", (expressionTermLabel, ruleId))
-  def expressionTerm = foreignKey("EXPRESSION_TERMS_RULES_EXPRESSION_TERM_FK", expressionTermLabel,
-    TableQuery[ExpressionTerms])(_.label)
-  def rule = foreignKey("EXPRESSION_TERMS_RULES_RULE_FK", ruleId, TableQuery[Rules])(_.id)
+  def pk = primaryKey("EXPRESSION_TERMS_RULES_PK", (expressionTermId, ruleId))
+  def expressionTerm = foreignKey("EXPRESSION_TERMS_RULES_EXPRESSION_TERM_FK", expressionTermId,
+    TableQuery[ExpressionTerms])(_.id)
+  def rule = foreignKey("EXPRESSION_TERMS_RULES_RULE_FK", ruleId, TableQuery[Rules])(_.id,
+    onDelete = ForeignKeyAction.Cascade)
 }
 
 class GenericTypes(tag: Tag) extends EntityTable[GenericType](tag, "GENERIC_TYPES"){
@@ -84,12 +89,12 @@ class GenericTypesMedicationProducts(tag: Tag)
 
   def pk = primaryKey("GENERIC_TYPES_MEDICATION_PRODUCT_PK", (medicationProductId, genericTypeId))
   def genericType = foreignKey("GENERIC_TYPES_MEDICATION_PRODUCT_GENERIC_TYPE_FK", genericTypeId,
-    TableQuery[GenericTypes])(_.id)
+    TableQuery[GenericTypes])(_.id, onDelete = ForeignKeyAction.Cascade)
   def medicationProduct = foreignKey("GENERIC_TYPES_MEDICATION_PRODUCT_MEDICATION_PRODUCT_FK", medicationProductId,
-    TableQuery[MedicationProducts])(_.id)
+    TableQuery[MedicationProducts])(_.id, onDelete = ForeignKeyAction.Cascade)
 }
 
-class MedicationProducts(tag: Tag) extends EntityTable[MedicationProduct](tag, "MEDICATION_PRODUCTS"){
+class MedicationProducts(tag: Tag) extends EntityTable[MedicationProduct](tag, "MEDICATION_PRODUCTS") {
   def id = column[MedicationProductID]("id", O.PrimaryKey, O.AutoInc)
   def name = column[String]("name", O.NotNull)
 
@@ -110,14 +115,17 @@ class Rules(tag: Tag) extends EntityTable[Rule](tag, "RULES") {
   def nameIndex = index("RULES_NAME_INDEX", name, unique = true)
 }
 
-class RulesSuggestionTemplates(tag: Tag) extends Table[(RuleID, SuggestionTemplateID)](tag, "RULES_SUGGESTION_TEMPLATES") {
+class RulesSuggestionTemplates(tag: Tag)
+  extends Table[(RuleID, SuggestionTemplateID)](tag, "RULES_SUGGESTION_TEMPLATES")
+{
   def ruleId = column[RuleID]("rule_id")
   def suggestionTemplateId = column[SuggestionTemplateID]("suggestion_id")
 
   def * = (ruleId, suggestionTemplateId)
 
   def pk = primaryKey("RULES_SUGGESTION_TEMPLATES_PK", (ruleId, suggestionTemplateId))
-  def rule = foreignKey("RULES_SUGGESTION_TEMPLATES_RULE_FK", ruleId, TableQuery[Rules])(_.id)
+  def rule = foreignKey("RULES_SUGGESTION_TEMPLATES_RULE_FK", ruleId, TableQuery[Rules])(_.id,
+    onDelete = ForeignKeyAction.Cascade)
   def suggestionTemplate = foreignKey("RULES_SUGGESTION_TEMPLATES_SUGGESTION_TEMPLATE_FK", suggestionTemplateId,
     TableQuery[SuggestionTemplates])(_.id)
 }
@@ -133,20 +141,22 @@ class StatementTermsUserSessions(tag: Tag)
   def * = (userSessionToken, statementTermLabel, textHash, conditional) <>
     (StatementTermUserSession.tupled, StatementTermUserSession.unapply)
 
-  def pk = primaryKey("STATEMENT_TERMS_USER_SESSIONS_PK", (userSessionToken, statementTermLabel, textHash, conditional))
+  def pk = primaryKey("STATEMENT_TERMS_USER_SESSIONS_PK",
+    (userSessionToken, statementTermLabel, textHash, conditional))
   def userSession = foreignKey("STATEMENT_TERMS_USER_SESSIONS_USER_SESSION_FK", userSessionToken,
     TableQuery[UserSessions])(_.token)
   def statementTerm = foreignKey("STATEMENT_TERMS_USER_SESSIONS_STATEMENT_TERM_FK", statementTermLabel,
     TableQuery[ExpressionTerms])(_.label)
 }
 
-class SuggestionTemplates(tag: Tag) extends EntityTable[SuggestionTemplate](tag, "SUGGESTION_TEMPLATES"){
+class SuggestionTemplates(tag: Tag) extends EntityTable[SuggestionTemplate](tag, "SUGGESTION_TEMPLATES") {
   def id = column[SuggestionTemplateID]("id", O.PrimaryKey, O.AutoInc)
   def name = column[String]("name", O.NotNull)
   def text = column[String]("text", O.NotNull)
   def explanatoryNote = column[String]("explanatory_note", O.Nullable)
 
-  def * = (id.?, name, text, explanatoryNote.?) <> ((SuggestionTemplate.apply _).tupled, SuggestionTemplate.unapply)
+  def * = (id.?, name, text, explanatoryNote.?) <>
+    ((SuggestionTemplate.apply _).tupled, SuggestionTemplate.unapply)
 
   def nameIndex = index("SUGGESTION_TEMPLATES_NAME_INDEX", name, unique = true)
 }

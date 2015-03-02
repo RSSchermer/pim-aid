@@ -11,14 +11,18 @@ import models._
 object DrugGroupTermsController extends Controller {
   val drugGroupTermForm = Form(
     mapping(
+      "id" -> optional(longNumber.transform(
+        (id: Long) => ExpressionTermID(id),
+        (id: ExpressionTermID) => id.value
+      )),
       "label" -> nonEmptyText.verifying("Alphanumeric characters, dashes and underscores only.",
         _.matches("""[A-Za-z0-9\-_]+""")),
       "drugGroupId" -> longNumber.transform(
         (id: Long) => DrugGroupID(id),
         (drugGroupId: DrugGroupID) => drugGroupId.value
       )
-    )({ case (label, drugGroupId) => ExpressionTerm(label, None, Some(drugGroupId), None, None, None, None) })
-      ({ case ExpressionTerm(label, _, Some(drugGroupId), _, _, _, _) => Some(label,drugGroupId) })
+    )({ case (id, label, drugGroupId) => ExpressionTerm(id, label, None, Some(drugGroupId), None, None, None, None) })
+      ({ case ExpressionTerm(id, label, _, Some(drugGroupId), _, _, _, _) => Some(id, label,drugGroupId) })
   )
 
   def list = DBAction { implicit rs =>
@@ -40,17 +44,17 @@ object DrugGroupTermsController extends Controller {
     )
   }
 
-  def edit(label: String) = DBAction { implicit rs =>
-    DrugGroupTerm.include(DrugGroupTerm.drugGroup).find(label) match {
+  def edit(id: Long) = DBAction { implicit rs =>
+    DrugGroupTerm.include(DrugGroupTerm.drugGroup).find(ExpressionTermID(id)) match {
       case Some(term) =>
-        Ok(html.drugGroupTerms.edit(label, drugGroupTermForm.fill(term)))
+        Ok(html.drugGroupTerms.edit(ExpressionTermID(id), drugGroupTermForm.fill(term)))
       case _ => NotFound
     }
   }
 
-  def update(label: String) = DBAction { implicit rs =>
+  def update(id: Long) = DBAction { implicit rs =>
     drugGroupTermForm.bindFromRequest.fold(
-      formWithErrors => BadRequest(html.drugGroupTerms.edit(label, formWithErrors)),
+      formWithErrors => BadRequest(html.drugGroupTerms.edit(ExpressionTermID(id), formWithErrors)),
       term => {
         DrugGroupTerm.update(term)
         Redirect(routes.DrugGroupTermsController.list())
@@ -59,15 +63,15 @@ object DrugGroupTermsController extends Controller {
     )
   }
 
-  def remove(label: String) = DBAction { implicit rs =>
-    DrugGroupTerm.include(DrugGroupTerm.drugGroup).find(label) match {
+  def remove(id: Long) = DBAction { implicit rs =>
+    DrugGroupTerm.include(DrugGroupTerm.drugGroup).find(ExpressionTermID(id)) match {
       case Some(term) => Ok(html.drugGroupTerms.remove(term))
       case _ => NotFound
     }
   }
 
-  def delete(label: String) = DBAction { implicit rs =>
-    DrugGroupTerm.delete(label)
+  def delete(id: Long) = DBAction { implicit rs =>
+    DrugGroupTerm.delete(ExpressionTermID(id))
     Redirect(routes.DrugGroupTermsController.list())
       .flashing("success" -> "The expression term was deleted successfully.")
   }

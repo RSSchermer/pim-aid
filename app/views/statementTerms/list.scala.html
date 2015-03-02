@@ -22,8 +22,8 @@
                 <tr>
                     <td>@statementTerm.label</td>
                     <td>@statementTerm.statementTemplate</td>
-                    <td><a href="@routes.StatementTermsController.edit(statementTerm.label)">Edit</a></td>
-                    <td><a href="@routes.StatementTermsController.remove(statementTerm.label)">Delete</a></td>
+                    <td><a href="@routes.StatementTermsController.edit(statementTerm.id.get.value)">Edit</a></td>
+                    <td><a href="@routes.StatementTermsController.remove(statementTerm.id.get.value)">Delete</a></td>
                 </tr>
             }
         </tbody>

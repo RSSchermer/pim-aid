@@ -101,34 +101,34 @@ POST          /admin/medication_products/:productId/generic_types/:genericTypeId
 GET           /admin/generic_type_terms                                                        controllers.GenericTypeTermsController.list
 GET           /admin/generic_type_terms/new                                                    controllers.GenericTypeTermsController.create
 POST          /admin/generic_type_terms                                                        controllers.GenericTypeTermsController.save
-GET           /admin/generic_type_terms/:label/edit                                            controllers.GenericTypeTermsController.edit(label: String)
-POST          /admin/generic_type_terms/:label                                                 controllers.GenericTypeTermsController.update(label: String)
-GET           /admin/generic_type_terms/:label/delete                                          controllers.GenericTypeTermsController.remove(label: String)
-POST          /admin/generic_type_terms/:label/delete                                          controllers.GenericTypeTermsController.delete(label: String)
+GET           /admin/generic_type_terms/:id/edit                                               controllers.GenericTypeTermsController.edit(id: Long)
+POST          /admin/generic_type_terms/:id                                                    controllers.GenericTypeTermsController.update(id: Long)
+GET           /admin/generic_type_terms/:id/delete                                             controllers.GenericTypeTermsController.remove(id: Long)
+POST          /admin/generic_type_terms/:id/delete                                             controllers.GenericTypeTermsController.delete(id: Long)
 
 # Drug group terms
 GET           /admin/drug_group_terms                                                          controllers.DrugGroupTermsController.list
 GET           /admin/drug_group_terms/new                                                      controllers.DrugGroupTermsController.create
 POST          /admin/drug_group_terms                                                          controllers.DrugGroupTermsController.save
-GET           /admin/drug_group_terms/:label/edit                                              controllers.DrugGroupTermsController.edit(label: String)
-POST          /admin/drug_group_terms/:label                                                   controllers.DrugGroupTermsController.update(label: String)
-GET           /admin/drug_group_terms/:label/delete                                            controllers.DrugGroupTermsController.remove(label: String)
-POST          /admin/drug_group_terms/:label/delete                                            controllers.DrugGroupTermsController.delete(label: String)
+GET           /admin/drug_group_terms/:id/edit                                                 controllers.DrugGroupTermsController.edit(id: Long)
+POST          /admin/drug_group_terms/:id                                                      controllers.DrugGroupTermsController.update(id: Long)
+GET           /admin/drug_group_terms/:id/delete                                               controllers.DrugGroupTermsController.remove(id: Long)
+POST          /admin/drug_group_terms/:id/delete                                               controllers.DrugGroupTermsController.delete(id: Long)
 
 # Statement terms
 GET           /admin/statement_terms                                                           controllers.StatementTermsController.list
 GET           /admin/statement_terms/new                                                       controllers.StatementTermsController.create
 POST          /admin/statement_terms                                                           controllers.StatementTermsController.save
-GET           /admin/statement_terms/:label/edit                                               controllers.StatementTermsController.edit(label: String)
-POST          /admin/statement_terms/:label                                                    controllers.StatementTermsController.update(label: String)
-GET           /admin/statement_terms/:label/delete                                             controllers.StatementTermsController.remove(label: String)
-POST          /admin/statement_terms/:label/delete                                             controllers.StatementTermsController.delete(label: String)
+GET           /admin/statement_terms/:id/edit                                                  controllers.StatementTermsController.edit(id: Long)
+POST          /admin/statement_terms/:id                                                       controllers.StatementTermsController.update(id: Long)
+GET           /admin/statement_terms/:id/delete                                                controllers.StatementTermsController.remove(id: Long)
+POST          /admin/statement_terms/:id/delete                                                controllers.StatementTermsController.delete(id: Long)
 
 # Age terms
 GET           /admin/age_terms                                                                 controllers.AgeTermsController.list
 GET           /admin/age_terms/new                                                             controllers.AgeTermsController.create
 POST          /admin/age_terms                                                                 controllers.AgeTermsController.save
-GET           /admin/age_terms/:label/edit                                                     controllers.AgeTermsController.edit(label: String)
-POST          /admin/age_terms/:label                                                          controllers.AgeTermsController.update(label: String)
-GET           /admin/age_terms/:label/delete                                                   controllers.AgeTermsController.remove(label: String)
-POST          /admin/age_terms/:label/delete                                                   controllers.AgeTermsController.delete(label: String)
+GET           /admin/age_terms/:id/edit                                                        controllers.AgeTermsController.edit(id: Long)
+POST          /admin/age_terms/:id                                                             controllers.AgeTermsController.update(id: Long)
+GET           /admin/age_terms/:id/delete                                                      controllers.AgeTermsController.remove(id: Long)
+POST          /admin/age_terms/:id/delete                                                      controllers.AgeTermsController.delete(id: Long)

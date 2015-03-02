@@ -13,14 +13,18 @@ import models._
 object StatementTermsController extends Controller {
   def statementTermForm(implicit s: Session) = Form(
     mapping(
+      "id" -> optional(longNumber.transform(
+        (id: Long) => ExpressionTermID(id),
+        (id: ExpressionTermID) => id.value
+      )),
       "label" -> nonEmptyText.verifying("Must alphanumeric characters, dashes and underscores only.",
         _.matches("""[A-Za-z0-9\-_]+""")),
       "statementTemplate" -> nonEmptyText.verifying(MedicationProductTemplateConstraint.apply),
       "displayCondition" -> optional(text.verifying(ConditionExpressionConstraint.apply))
-    )({ case (label, statementTemplate, displayCondition) =>
-          ExpressionTerm(label, None, None, Some(statementTemplate), displayCondition, None, None) })
-      ({ case ExpressionTerm(label, _, _, Some(statementTemplate), displayCondition, _, _) =>
-         Some(label, statementTemplate, displayCondition) })
+    )({ case (id, label, statementTemplate, displayCondition) =>
+          ExpressionTerm(id, label, None, None, Some(statementTemplate), displayCondition, None, None) })
+      ({ case ExpressionTerm(id, label, _, _, Some(statementTemplate), displayCondition, _, _) =>
+         Some(id, label, statementTemplate, displayCondition) })
   )
 
   def list = DBAction { implicit rs =>
@@ -42,16 +46,17 @@ object StatementTermsController extends Controller {
     )
   }
 
-  def edit(label: String) = DBAction { implicit rs =>
-    StatementTerm.find(label) match {
-      case Some(term) => Ok(html.statementTerms.edit(label, statementTermForm.fill(term)))
+  def edit(id: Long) = DBAction { implicit rs =>
+    StatementTerm.find(ExpressionTermID(id)) match {
+      case Some(term) =>
+        Ok(html.statementTerms.edit(ExpressionTermID(id), statementTermForm.fill(term)))
       case _ => NotFound
     }
   }
 
-  def update(label: String) = DBAction { implicit rs =>
+  def update(id: Long) = DBAction { implicit rs =>
     statementTermForm.bindFromRequest.fold(
-      formWithErrors => BadRequest(html.statementTerms.edit(label, formWithErrors)),
+      formWithErrors => BadRequest(html.statementTerms.edit(ExpressionTermID(id), formWithErrors)),
       term => {
         StatementTerm.update(term)
         Redirect(routes.StatementTermsController.list())
@@ -60,15 +65,15 @@ object StatementTermsController extends Controller {
     )
   }
 
-  def remove(label: String) = DBAction { implicit rs =>
-    StatementTerm.find(label) match {
+  def remove(id: Long) = DBAction { implicit rs =>
+    StatementTerm.find(ExpressionTermID(id)) match {
       case Some(term) => Ok(html.statementTerms.remove(term))
       case _ => NotFound
     }
   }
 
-  def delete(label: String) = DBAction { implicit rs =>
-    StatementTerm.delete(label)
+  def delete(id: Long) = DBAction { implicit rs =>
+    StatementTerm.delete(ExpressionTermID(id))
     Redirect(routes.StatementTermsController.list())
       .flashing("success" -> "The expression term was deleted successfully.")
   }

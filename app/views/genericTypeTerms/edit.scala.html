@@ -1,26 +1,7 @@
-@(label: String, genericTypeTermForm: Form[ExpressionTerm])(implicit session: play.api.db.slick.Session)
-
-@implicitFieldConstructor = @{ b3.horizontal.fieldConstructor("col-md-3", "col-md-9") }
+@(id: ExpressionTermID, genericTypeTermForm: Form[ExpressionTerm])(implicit session: play.api.db.slick.Session)
 
 @expressionTerms("Editing a generic type term", "genericTypeTerms") {
     <h1>Editing a generic type term</h1>
 
-    @b3.form(routes.GenericTypeTermsController.update(label)) {
-        <fieldset>
-            <input type="hidden" name="label" value='@label'>
-            @b3.select(genericTypeTermForm("genericTypeId"),
-                GenericType.list.toSeq.map(g => g.id.get.value.toString -> g.name),
-                '_label -> "Generic Type", 'class -> "searchable-select")
-        </fieldset>
-
-        <div class="actions col-md-offset-3">
-            <button type="submit" class="btn btn-primary">
-                <span class="fa fa-save"></span> Save
-            </button>
-
-            <a href="@routes.GenericTypeTermsController.list()" class="btn btn-default">
-                <span class="fa fa-close"></span> Cancel
-            </a>
-        </div>
-    }
+    @drugGroupTerms.form(genericTypeTermForm, routes.GenericTypeTermsController.update(id.value))
 }

@@ -11,15 +11,19 @@ import models._
 object AgeTermsController extends Controller {
   val ageTermForm = Form(
     mapping(
+      "id" -> optional(longNumber.transform(
+        (id: Long) => ExpressionTermID(id),
+        (id: ExpressionTermID) => id.value
+      )),
       "label" -> nonEmptyText.verifying("Must alphanumeric characters, dashes and underscores only.",
         _.matches("""[A-Za-z0-9\-_]+""")),
       "comparisonOperator" -> nonEmptyText.verifying("Not a valid operator",
         List("==", ">", ">=", "<", "<=").contains(_)),
       "age" -> number(min = 0, max = 120)
-    )({ case (label, comparisonOperator, age) =>
-          ExpressionTerm(label, None, None, None, None, Some(comparisonOperator), Some(age)) })
-    ({ case ExpressionTerm(label, _, _, _, _, Some(comparisonOperator), Some(age)) =>
-         Some(label, comparisonOperator, age) })
+    )({ case (id, label, comparisonOperator, age) =>
+          ExpressionTerm(id, label, None, None, None, None, Some(comparisonOperator), Some(age)) })
+    ({ case ExpressionTerm(id, label, _, _, _, _, Some(comparisonOperator), Some(age)) =>
+         Some(id, label, comparisonOperator, age) })
   )
 
   def list = DBAction { implicit rs =>
@@ -41,16 +45,16 @@ object AgeTermsController extends Controller {
     )
   }
 
-  def edit(label: String) = DBAction { implicit rs =>
-    AgeTerm.find(label) match {
-      case Some(term) => Ok(html.ageTerms.edit(label, ageTermForm.fill(term)))
+  def edit(id: Long) = DBAction { implicit rs =>
+    AgeTerm.find(ExpressionTermID(id)) match {
+      case Some(term) => Ok(html.ageTerms.edit(ExpressionTermID(id), ageTermForm.fill(term)))
       case _ => NotFound
     }
   }
 
-  def update(label: String) = DBAction { implicit rs =>
+  def update(id: Long) = DBAction { implicit rs =>
     ageTermForm.bindFromRequest.fold(
-      formWithErrors => BadRequest(html.ageTerms.edit(label, formWithErrors)),
+      formWithErrors => BadRequest(html.ageTerms.edit(ExpressionTermID(id), formWithErrors)),
       term => {
         AgeTerm.update(term)
         Redirect(routes.AgeTermsController.list())
@@ -59,15 +63,15 @@ object AgeTermsController extends Controller {
     )
   }
 
-  def remove(label: String) = DBAction { implicit rs =>
-    AgeTerm.find(label) match {
+  def remove(id: Long) = DBAction { implicit rs =>
+    AgeTerm.find(ExpressionTermID(id)) match {
       case Some(term) => Ok(html.ageTerms.remove(term))
       case _ => NotFound
     }
   }
 
-  def delete(label: String) = DBAction { implicit rs =>
-    AgeTerm.delete(label)
+  def delete(id: Long) = DBAction { implicit rs =>
+    AgeTerm.delete(ExpressionTermID(id))
     Redirect(routes.AgeTermsController.list())
       .flashing("success" -> "The expression term was deleted successfully.")
   }

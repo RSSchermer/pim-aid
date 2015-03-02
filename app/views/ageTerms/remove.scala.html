@@ -7,7 +7,7 @@
         <dt>Label</dt><dd>@ageTerm.label</dd>
     </dl>
 
-    @helper.form(routes.AgeTermsController.delete(ageTerm.label)) {
+    @helper.form(routes.AgeTermsController.delete(ageTerm.id.get.value)) {
         <button type="submit" class="btn btn-danger">
             <span class="fa fa-trash"></span> Delete
         </button>

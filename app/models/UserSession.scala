@@ -105,13 +105,13 @@ case class UserSession(
       statementTermsUserSessions.getOrFetch.map(_.statementTermLabel)
 
     val variableMap = expressionTerms.map(t => (t.label, t match {
-      case ExpressionTerm(_, Some(genericTypeId), _, _, _, _, _) =>
+      case ExpressionTerm(_, _, Some(genericTypeId), _, _, _, _, _) =>
         genericTypeIds.contains(genericTypeId)
-      case ExpressionTerm(_, _, Some(drugGroupId), _, _, _, _) =>
+      case ExpressionTerm(_, _, _, Some(drugGroupId), _, _, _, _) =>
         drugGroupIds.contains(drugGroupId)
-      case ExpressionTerm(label, _, _, Some(statementTemplate), _, _, _) =>
+      case ExpressionTerm(_, label, _, _, Some(statementTemplate), _, _, _) =>
         selectedStatementTermLabels.contains(label)
-      case ExpressionTerm(label, _, _, _, _, Some(comparisonOperator), Some(comparedAge)) =>
+      case ExpressionTerm(_, label, _, _, _, _, Some(comparisonOperator), Some(comparedAge)) =>
         compareAge(comparisonOperator, comparedAge)
     })).toMap
 
@@ -132,7 +132,8 @@ case class UserSession(
   }
 
   private def replacePlaceholders(template: String)(implicit s: Session): Seq[String] = {
-    val products = medicationProducts.getOrFetch
+    val products = UserSession.medicationProducts
+      .include(MedicationProduct.genericTypes.include(GenericType.drugGroups)).fetchFor(token)
     val typesProducts = products.flatMap(p => p.genericTypes.getOrFetch.map(t => (t, p)))
     val groupsProducts = products
       .flatMap(p => p.genericTypes.getOrFetch.flatMap(_.drugGroups.getOrFetch).map(g => (g, p)))

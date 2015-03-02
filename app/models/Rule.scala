@@ -29,9 +29,6 @@ object Rule extends EntityCompanion[Rules, Rule] {
     val etr = TableQuery[ExpressionTermsRules]
     etr.filter(_.ruleId === ruleId).delete
     """\[([A-Za-z0-9_\-]+)\]""".r.findAllMatchIn(rule.conditionExpression)
-      .foreach(m => etr.insert((m group 1, ruleId)))
+      .foreach(m => etr.insert((ExpressionTerm.findByLabel(m group 1).get.id.get, ruleId)))
   }
-
-  override protected def beforeDelete(ruleId: RuleID)(implicit s: Session): Unit =
-    TableQuery[ExpressionTermsRules].filter(_.ruleId === ruleId).delete
 }

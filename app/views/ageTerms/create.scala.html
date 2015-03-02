@@ -1,27 +1,7 @@
 @(ageTermForm: Form[ExpressionTerm])
 
-@implicitFieldConstructor = @{ b3.horizontal.fieldConstructor("col-md-3", "col-md-9") }
-
 @expressionTerms("Creating a new age term", "ageTerms") {
     <h1>Creating a new age term</h1>
 
-    @b3.form(routes.AgeTermsController.save()) {
-        <fieldset>
-            @b3.text(ageTermForm("label"), '_label -> "Label")
-            @b3.select(ageTermForm("comparisonOperator"),
-                Seq(("==", "=="), (">", ">"), (">=", ">="), ("<", "<"), ("<=", "<=")),
-                '_label -> "Comparison operator")
-            @b3.number(ageTermForm("age"), '_label -> "Age")
-        </fieldset>
-
-        <div class="actions col-md-offset-3">
-            <button type="submit" class="btn btn-primary">
-                <span class="fa fa-save"></span> Save
-            </button>
-
-            <a href="@routes.AgeTermsController.list()" class="btn btn-default">
-                <span class="fa fa-close"></span> Cancel
-            </a>
-        </div>
-    }
+    @ageTerms.form(ageTermForm, routes.AgeTermsController.save())
 }
