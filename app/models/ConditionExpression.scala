@@ -2,11 +2,17 @@ package models
 
 import Profile.driver.simple._
 import scala.util.parsing.combinator.JavaTokenParsers
+import java.util.regex.Pattern
 
 case class ConditionExpression(value: String) extends MappedTo[String] {
   def expressionTerms(implicit s: Session): Seq[ExpressionTerm] =
     """\[([A-Za-z0-9_\-]+)\]""".r.findAllMatchIn(value)
       .map(m => ExpressionTerm.findByLabel(m.group(1))).flatten.toList
+
+  def replaceLabel(oldLabel: String, newLabel: String): ConditionExpression = {
+    val newValue = value.replaceAll(Pattern.quote("["+ oldLabel +"]"), "["+ newLabel +"]")
+    ConditionExpression(newValue)
+  }
 }
 
 case class ConditionExpressionParser(variableMap: Map[String, Boolean] = Map()) extends JavaTokenParsers {

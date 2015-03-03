@@ -55,7 +55,7 @@ object DrugsController extends Controller with UserSessionAware {
           .withSession("token" -> token.value),
       {
         case DrugJson(_, userInput, Some(resolvedProductId), resolvedDrugTypeName, _) =>
-          // The drug has been resolved (user selected on the the alternative drugs)
+          // The drug has been resolved (user selected one of the alternative drugs)
           val drugId = Drug.insert(Drug(None, userInput, token, Some(MedicationProductID(resolvedProductId))))
           val json = DrugJson(Some(drugId.value), userInput, Some(resolvedProductId), resolvedDrugTypeName, false)
 
@@ -78,7 +78,7 @@ object DrugsController extends Controller with UserSessionAware {
               Ok(Json.toJson(json)).withSession("token" -> token.value)
             case _ =>
               // There is no matching medication product
-              val alternatives = MedicationProduct.alternativesForUserInput(drugJson.userInput, 0.3, 5)
+              val alternatives = MedicationProduct.findAlternatives(drugJson.userInput, 0.3, 5)
                 .map {
                   case (MedicationProduct(id, name)) =>
                     DrugJson(None, drugJson.userInput, Some(id.get.value), Some(name), unresolvable = false)

@@ -45,7 +45,7 @@ case class UserSession(
 
   def buildConditionalStatements(implicit s: Session): Seq[Statement] = {
     val parser = buildParser
-    val selection = statementTermsUserSessions.getOrFetch.map(x => (x.statementTermLabel, x.textHash))
+    val selection = statementTermsUserSessions.getOrFetch.map(x => (x.statementTermLabel, x.text))
 
     StatementTerm.filter(_.displayCondition.isNotNull).list
       .filter { x => parser.parse(x.displayCondition.getOrElse(ConditionExpression(""))) match {
@@ -92,7 +92,7 @@ case class UserSession(
 
   def buildSelectedStatements(implicit session: Session): Seq[Statement] =
     statementTermsUserSessions.getOrFetch
-      .map(x => Statement(x.statementTermLabel, x.textHash, x.conditional))
+      .map(x => Statement(x.statementTermLabel, x.text, x.conditional))
 
   private def buildParser(implicit s: Session): ConditionExpressionParser = {
     val expressionTerms = TableQuery[ExpressionTerms].list

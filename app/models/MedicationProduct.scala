@@ -32,7 +32,7 @@ object MedicationProduct extends EntityCompanion[MedicationProducts, MedicationP
     query.filter(_.name.toLowerCase === normalizedInput).firstOption
   }
 
-  def alternativesForUserInput(userInput: String, similarityThreshold: Double, maxNum: Int)(implicit s: Session): Seq[MedicationProduct] =
+  def findAlternatives(userInput: String, similarityThreshold: Double, maxNum: Int)(implicit s: Session): Seq[MedicationProduct] =
     list.map(x => (JaroWinklerMetric.compare(userInput.toLowerCase, x.name.toLowerCase), x))
       .filter(_._1.get > similarityThreshold)
       .sortBy(_._1)(Ordering[Option[Double]].reverse)

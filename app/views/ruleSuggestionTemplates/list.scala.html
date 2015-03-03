@@ -15,7 +15,7 @@
 
     <a href="@routes.RulesController.list()">Back to list</a>
 
-    <pre>@rule.conditionExpression</pre>
+    <pre>@rule.conditionExpression.value</pre>
 
     @helper.form(action = routes.RuleSuggestionTemplatesController.save(rule.id.get.value)) {
         <fieldset>

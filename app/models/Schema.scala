@@ -58,7 +58,7 @@ class ExpressionTerms(tag: Tag) extends EntityTable[ExpressionTerm](tag, "EXPRES
 }
 
 class ExpressionTermsRules(tag: Tag) extends Table[(ExpressionTermID, RuleID)](tag, "EXPRESSION_TERMS_RULES") {
-  def expressionTermId = column[ExpressionTermID]("expression_term_label")
+  def expressionTermId = column[ExpressionTermID]("expression_term_id")
   def ruleId = column[RuleID]("rule_id")
 
   def * = (expressionTermId, ruleId)
@@ -68,6 +68,21 @@ class ExpressionTermsRules(tag: Tag) extends Table[(ExpressionTermID, RuleID)](t
     TableQuery[ExpressionTerms])(_.id)
   def rule = foreignKey("EXPRESSION_TERMS_RULES_RULE_FK", ruleId, TableQuery[Rules])(_.id,
     onDelete = ForeignKeyAction.Cascade)
+}
+
+class ExpressionTermsStatementTerms(tag: Tag)
+  extends Table[(ExpressionTermID, ExpressionTermID)](tag, "EXPRESSION_TERMS_STATEMENT_TERMS")
+{
+  def expressionTermId = column[ExpressionTermID]("expression_term_id")
+  def statementTermId = column[ExpressionTermID]("statement_term_id")
+
+  def * = (expressionTermId, statementTermId)
+
+  def pk = primaryKey("EXPRESSION_TERMS_STATEMENT_TERMS_PK", (expressionTermId, statementTermId))
+  def expressionTerm = foreignKey("EXPRESSION_TERMS_STATEMENT_TERMS_EXPRESSION_TERM_FK", expressionTermId,
+    TableQuery[ExpressionTerms])(_.id)
+  def statementTerm = foreignKey("EXPRESSION_TERMS_STATEMENT_TERMS_STATEMENT_TERM_FK", statementTermId,
+    TableQuery[ExpressionTerms])(_.id, onDelete = ForeignKeyAction.Cascade)
 }
 
 class GenericTypes(tag: Tag) extends EntityTable[GenericType](tag, "GENERIC_TYPES"){
@@ -135,14 +150,14 @@ class StatementTermsUserSessions(tag: Tag)
 {
   def userSessionToken = column[UserToken]("user_session_token")
   def statementTermLabel = column[String]("statement_term_label")
-  def textHash = column[String]("text_hash")
+  def text = column[String]("text")
   def conditional = column[Boolean]("conditional", O.Default(false))
 
-  def * = (userSessionToken, statementTermLabel, textHash, conditional) <>
+  def * = (userSessionToken, statementTermLabel, text, conditional) <>
     (StatementTermUserSession.tupled, StatementTermUserSession.unapply)
 
   def pk = primaryKey("STATEMENT_TERMS_USER_SESSIONS_PK",
-    (userSessionToken, statementTermLabel, textHash, conditional))
+    (userSessionToken, statementTermLabel, text, conditional))
   def userSession = foreignKey("STATEMENT_TERMS_USER_SESSIONS_USER_SESSION_FK", userSessionToken,
     TableQuery[UserSessions])(_.token)
   def statementTerm = foreignKey("STATEMENT_TERMS_USER_SESSIONS_STATEMENT_TERM_FK", statementTermLabel,

@@ -28,10 +28,7 @@ object DrugGroupGenericTypesController extends Controller {
       .include(DrugGroup.genericTypes.include(GenericType.medicationProducts))
       .find(DrugGroupID(drugGroupId)) match {
         case Some(drugGroup) =>
-          Ok(html.drugGroupGenericTypes.list(
-            drugGroup = drugGroup,
-            drugGroupGenericTypeForm = drugGroupGenericTypeForm
-          ))
+          Ok(html.drugGroupGenericTypes.list(drugGroup, drugGroupGenericTypeForm))
         case _ => NotFound
       }
   }
