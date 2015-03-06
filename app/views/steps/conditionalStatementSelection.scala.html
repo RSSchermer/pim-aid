@@ -14,7 +14,7 @@
                 @for((statement, index) <- statements.zipWithIndex) {
                     <p>
                         <label>
-                            <input type="hidden" name="selectedStatements[@index].termLabel" value="@statement.termLabel">
+                            <input type="hidden" name="selectedStatements[@index].termID" value="@statement.termID">
                             <input type="hidden" name="selectedStatements[@index].text" value="@statement.text">
                             <input type="checkbox" name="selectedStatements[@index].selected" value=true @("checked".when(statement.selected))>
                             @statement.text

@@ -24,8 +24,8 @@ create table "RULES" ("id" BIGSERIAL NOT NULL PRIMARY KEY,"name" VARCHAR(254) NO
 create unique index "RULES_NAME_INDEX" on "RULES" ("name");
 create table "RULES_SUGGESTION_TEMPLATES" ("rule_id" BIGINT NOT NULL,"suggestion_id" BIGINT NOT NULL);
 alter table "RULES_SUGGESTION_TEMPLATES" add constraint "RULES_SUGGESTION_TEMPLATES_PK" primary key("rule_id","suggestion_id");
-create table "STATEMENT_TERMS_USER_SESSIONS" ("user_session_token" VARCHAR(254) NOT NULL,"statement_term_label" VARCHAR(254) NOT NULL,"text" VARCHAR(254) NOT NULL,"conditional" BOOLEAN DEFAULT false NOT NULL);
-alter table "STATEMENT_TERMS_USER_SESSIONS" add constraint "STATEMENT_TERMS_USER_SESSIONS_PK" primary key("user_session_token","statement_term_label","text","conditional");
+create table "STATEMENT_TERMS_USER_SESSIONS" ("user_session_token" VARCHAR(254) NOT NULL,"statement_term_id" BIGINT NOT NULL,"text" VARCHAR(254) NOT NULL,"conditional" BOOLEAN DEFAULT false NOT NULL);
+alter table "STATEMENT_TERMS_USER_SESSIONS" add constraint "STATEMENT_TERMS_USER_SESSIONS_PK" primary key("user_session_token","statement_term_id","text","conditional");
 create table "SUGGESTION_TEMPLATES" ("id" BIGSERIAL NOT NULL PRIMARY KEY,"name" VARCHAR(254) NOT NULL,"text" VARCHAR(254) NOT NULL,"explanatory_note" VARCHAR(254));
 create unique index "SUGGESTION_TEMPLATES_NAME_INDEX" on "SUGGESTION_TEMPLATES" ("name");
 create table "USER_SESSIONS" ("token" VARCHAR(254) NOT NULL PRIMARY KEY,"age" INTEGER);
@@ -42,7 +42,7 @@ alter table "GENERIC_TYPES_MEDICATION_PRODUCT" add constraint "GENERIC_TYPES_MED
 alter table "GENERIC_TYPES_MEDICATION_PRODUCT" add constraint "GENERIC_TYPES_MEDICATION_PRODUCT_MEDICATION_PRODUCT_FK" foreign key("medication_product_id") references "MEDICATION_PRODUCTS"("id") on update NO ACTION on delete CASCADE;
 alter table "RULES_SUGGESTION_TEMPLATES" add constraint "RULES_SUGGESTION_TEMPLATES_RULE_FK" foreign key("rule_id") references "RULES"("id") on update NO ACTION on delete CASCADE;
 alter table "RULES_SUGGESTION_TEMPLATES" add constraint "RULES_SUGGESTION_TEMPLATES_SUGGESTION_TEMPLATE_FK" foreign key("suggestion_id") references "SUGGESTION_TEMPLATES"("id") on update NO ACTION on delete NO ACTION;
-alter table "STATEMENT_TERMS_USER_SESSIONS" add constraint "STATEMENT_TERMS_USER_SESSIONS_STATEMENT_TERM_FK" foreign key("statement_term_label") references "EXPRESSION_TERMS"("label") on update NO ACTION on delete NO ACTION;
+alter table "STATEMENT_TERMS_USER_SESSIONS" add constraint "STATEMENT_TERMS_USER_SESSIONS_STATEMENT_TERM_FK" foreign key("statement_term_id") references "EXPRESSION_TERMS"("id") on update NO ACTION on delete NO ACTION;
 alter table "STATEMENT_TERMS_USER_SESSIONS" add constraint "STATEMENT_TERMS_USER_SESSIONS_USER_SESSION_FK" foreign key("user_session_token") references "USER_SESSIONS"("token") on update NO ACTION on delete NO ACTION;
 
 # --- !Downs

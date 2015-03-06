@@ -25,7 +25,10 @@ object StepsController extends Controller with UserSessionAware {
   val statementSelectionForm = Form(
     mapping(
       "selectedStatements" -> list(mapping(
-        "termLabel" -> nonEmptyText,
+        "termID" -> longNumber.transform(
+          (id: Long) => ExpressionTermID(id),
+          (id: ExpressionTermID) => id.value
+        ),
         "text" -> nonEmptyText,
         "selected" -> boolean
       )(Statement.apply)(Statement.unapply))
