@@ -1,7 +1,8 @@
 package models
 
-import models.Profile._
-import models.Profile.driver.simple._
+import models.meta.Profile._
+import models.meta.Schema._
+import models.meta.Profile.driver.simple._
 
 case class GenericTypeID(value: Long) extends MappedTo[Long]
 

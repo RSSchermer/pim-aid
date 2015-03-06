@@ -3,7 +3,8 @@ package modelTests
 import org.scalatestplus.play._
 import play.api.db.slick.DB
 import models._
-import models.Profile.driver.simple._
+import models.meta.Profile.driver.simple._
+import models.meta.Schema._
 
 class RuleSpec extends PlaySpec with OneAppPerSuite {
   "A Rule" must {

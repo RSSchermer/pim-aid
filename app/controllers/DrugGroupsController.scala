@@ -12,7 +12,8 @@ import org.htmlcleaner.HtmlCleaner
 
 import views._
 import models._
-import models.Profile.driver.simple._
+import models.meta.Schema._
+import models.meta.Profile.driver.simple._
 
 object DrugGroupsController extends Controller {
   val drugGroupForm = Form(

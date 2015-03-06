@@ -1,7 +1,7 @@
-package models
+package models.meta
 
 import entitytled.Entitytled
-import play.api.db.slick.Config.{ driver => PlayDriver }
+import play.api.db.slick.Config.{driver => PlayDriver}
 
 class Profile extends Entitytled {
   val driver = PlayDriver

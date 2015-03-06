@@ -1,12 +1,13 @@
 package controllers
 
+import models.meta.Profile
 import play.api.mvc._
 import play.api.db.slick._
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
 
 import models._
-import models.Profile.driver.simple.Session
+import Profile.driver.simple.Session
 
 object DrugsController extends Controller with UserSessionAware {
   case class DrugJson(id: Option[Long], userInput: String, resolvedMedicationProductId: Option[Long],

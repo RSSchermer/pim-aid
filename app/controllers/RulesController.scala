@@ -8,7 +8,7 @@ import play.api.db.slick._
 
 import views._
 import models._
-import models.Profile.driver.simple.Session
+import models.meta.Profile.driver.simple.Session
 
 object RulesController extends Controller {
   def ruleForm(implicit s: Session) = Form(

@@ -7,7 +7,8 @@ import play.api.db.slick._
 
 import views._
 import models._
-import models.Profile.driver.simple._
+import models.meta.Schema._
+import models.meta.Profile.driver.simple._
 
 object MedicationProductGenericTypesController extends Controller {
   val genericTypeMedicationProductForm = Form(
