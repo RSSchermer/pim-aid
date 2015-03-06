@@ -9,6 +9,7 @@ import play.api.db.slick.Session
 
 import views._
 import models._
+import models.ExpressionTermConversions._
 
 object StatementTermsController extends Controller {
   def statementTermForm(implicit s: Session) = Form(
@@ -24,10 +25,7 @@ object StatementTermsController extends Controller {
         (s: String) => ConditionExpression(s),
         (ce: ConditionExpression) => ce.value
       ))
-    )({ case (id, label, statementTemplate, displayCondition) =>
-          ExpressionTerm(id, label, None, None, Some(statementTemplate), displayCondition, None, None) })
-      ({ case ExpressionTerm(id, label, _, _, Some(statementTemplate), displayCondition, _, _) =>
-         Some(id, label, statementTemplate, displayCondition) })
+    )(StatementTerm.apply)(StatementTerm.unapply)
   )
 
   def list = DBAction { implicit rs =>

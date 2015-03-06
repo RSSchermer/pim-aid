@@ -7,6 +7,7 @@ import play.api.db.slick._
 
 import views._
 import models._
+import models.ExpressionTermConversions._
 
 object DrugGroupTermsController extends Controller {
   val drugGroupTermForm = Form(
@@ -21,8 +22,7 @@ object DrugGroupTermsController extends Controller {
         (id: Long) => DrugGroupID(id),
         (drugGroupId: DrugGroupID) => drugGroupId.value
       )
-    )({ case (id, label, drugGroupId) => ExpressionTerm(id, label, None, Some(drugGroupId), None, None, None, None) })
-      ({ case ExpressionTerm(id, label, _, Some(drugGroupId), _, _, _, _) => Some(id, label,drugGroupId) })
+    )(DrugGroupTerm.apply)(DrugGroupTerm.unapply)
   )
 
   def list = DBAction { implicit rs =>

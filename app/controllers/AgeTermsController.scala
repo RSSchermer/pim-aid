@@ -7,6 +7,7 @@ import play.api.db.slick._
 
 import views._
 import models._
+import models.ExpressionTermConversions._
 
 object AgeTermsController extends Controller {
   val ageTermForm = Form(
@@ -20,10 +21,7 @@ object AgeTermsController extends Controller {
       "comparisonOperator" -> nonEmptyText.verifying("Not a valid operator",
         List("==", ">", ">=", "<", "<=").contains(_)),
       "age" -> number(min = 0, max = 120)
-    )({ case (id, label, comparisonOperator, age) =>
-          ExpressionTerm(id, label, None, None, None, None, Some(comparisonOperator), Some(age)) })
-    ({ case ExpressionTerm(id, label, _, _, _, _, Some(comparisonOperator), Some(age)) =>
-         Some(id, label, comparisonOperator, age) })
+    )(AgeTerm.apply)(AgeTerm.unapply)
   )
 
   def list = DBAction { implicit rs =>

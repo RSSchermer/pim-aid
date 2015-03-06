@@ -7,6 +7,7 @@ import play.api.db.slick._
 
 import views._
 import models._
+import models.ExpressionTermConversions._
 
 object GenericTypeTermsController extends Controller {
   val genericTypeTermForm = Form(
@@ -21,8 +22,7 @@ object GenericTypeTermsController extends Controller {
         (id: Long) => GenericTypeID(id),
         (genericTypeId: GenericTypeID) => genericTypeId.value
       )
-    )({ case (id, label, genericTypeId) => ExpressionTerm(id, label, Some(genericTypeId), None, None, None, None, None) })
-    ({ case ExpressionTerm(id, label, Some(genericTypeId), _, _, _, _, _) => Some(id, label, genericTypeId) })
+    )(GenericTypeTerm.apply)(GenericTypeTerm.unapply)
   )
 
   def list = DBAction { implicit rs =>

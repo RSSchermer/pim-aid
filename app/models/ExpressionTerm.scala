@@ -79,6 +79,11 @@ object ExpressionTerm extends ExpressionTermCompanion {
     _.id === _._1.expressionTermId)
 }
 
+case class GenericTypeTerm(
+    id: Option[ExpressionTermID],
+    label: String,
+    genericTypeId: GenericTypeID)
+
 object GenericTypeTerm extends ExpressionTermCompanion {
   override val query = TableQuery[ExpressionTerms].filter(_.genericTypeId.isNotNull)
 
@@ -86,6 +91,11 @@ object GenericTypeTerm extends ExpressionTermCompanion {
     TableQuery[GenericTypes],
     _.genericTypeId === _.id)
 }
+
+case class DrugGroupTerm(
+    id: Option[ExpressionTermID],
+    label: String,
+    drugGroupId: DrugGroupID)
 
 object DrugGroupTerm extends ExpressionTermCompanion {
   override val query = TableQuery[ExpressionTerms].filter(_.drugGroupId.isNotNull)
@@ -95,10 +105,48 @@ object DrugGroupTerm extends ExpressionTermCompanion {
     _.drugGroupId === _.id)
 }
 
+case class StatementTerm(
+    id: Option[ExpressionTermID],
+    label: String,
+    statementTemplate: String,
+    displayCondition: Option[ConditionExpression])
+
 object StatementTerm extends ExpressionTermCompanion {
   override val query = TableQuery[ExpressionTerms].filter(_.statementTemplate.isNotNull)
 }
 
+case class AgeTerm(
+    id: Option[ExpressionTermID],
+    label: String,
+    comparisonOperator: String,
+    age: Int)
+
 object AgeTerm extends ExpressionTermCompanion {
   override val query = TableQuery[ExpressionTerms].filter(_.age.isNotNull)
+}
+
+object ExpressionTermConversions {
+  implicit def ExpressionTermToAgeTerm(e: ExpressionTerm): AgeTerm =
+    AgeTerm(e.id, e.label, e.comparisonOperator.get, e.age.get)
+
+  implicit def AgeTermToExpressionTerm(a: AgeTerm): ExpressionTerm =
+    ExpressionTerm(a.id, a.label, None, None, None, None, Some(a.comparisonOperator), Some(a.age))
+
+  implicit def ExpressionTermToDrugGroupTerm(e: ExpressionTerm): DrugGroupTerm =
+    DrugGroupTerm(e.id, e.label, e.drugGroupId.get)
+
+  implicit def DrugGroupTermToExpressionTerm(d: DrugGroupTerm): ExpressionTerm =
+    ExpressionTerm(d.id, d.label, None, Some(d.drugGroupId), None, None, None, None)
+
+  implicit def ExpressionTermToGenericTypeTerm(e: ExpressionTerm): GenericTypeTerm =
+    GenericTypeTerm(e.id, e.label, e.genericTypeId.get)
+
+  implicit def GenericTypeTermToExpressionTerm(g: GenericTypeTerm): ExpressionTerm =
+    ExpressionTerm(g.id, g.label, Some(g.genericTypeId), None, None, None, None, None)
+
+  implicit def ExpressionTermToStatementTerm(e: ExpressionTerm): StatementTerm =
+    StatementTerm(e.id, e.label, e.statementTemplate.get, e.displayCondition)
+
+  implicit def StatementTermToExpressionTerm(s: StatementTerm): ExpressionTerm =
+    ExpressionTerm(s.id, s.label, None, None, Some(s.statementTemplate), s.displayCondition, None, None)
 }
