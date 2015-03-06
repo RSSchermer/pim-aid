@@ -79,6 +79,7 @@ object DrugGroupsController extends Controller {
   }
 
   def importFtkGroup = DBAction(parse.multipartFormData) { implicit rs =>
+    // TODO: decide what to do with this ugly java scraping code
     rs.body.file("ftkGroupPage").map { ftkGroupPage =>
       val contents = Files.toString(ftkGroupPage.ref.file, Charsets.UTF_8)
       val cleaner = new HtmlCleaner()
