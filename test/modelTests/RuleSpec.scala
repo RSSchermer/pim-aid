@@ -11,7 +11,7 @@ class RuleSpec extends PlaySpec with OneAppPerSuite {
     "create links with the expression terms referenced in its condition" in {
       DB.withTransaction { implicit session =>
         val termId = ExpressionTerm.insert(ExpressionTerm(None, "some_term", None, None, None, None, Some(">="), Some(65)))
-        val ruleId = Rule.insert(Rule(None, "Some rule", ConditionExpression("[some_term]"), None, None))
+        val ruleId = Rule.insert(Rule(None, "Some rule", ConditionExpression("[some_term]"), None, None, None))
         TableQuery[ExpressionTermsRules].filter(_.ruleId === ruleId).filter(_.expressionTermId === termId)
           .length.run mustBe 1
 
@@ -22,7 +22,7 @@ class RuleSpec extends PlaySpec with OneAppPerSuite {
     "remove links with expression terms that are no longer referenced in its condition" in {
       DB.withTransaction { implicit session =>
         val termId = ExpressionTerm.insert(ExpressionTerm(None, "some_term", None, None, None, None, Some(">="), Some(65)))
-        val rule = Rule(None, "Some rule", ConditionExpression("[some_term]"), None, None)
+        val rule = Rule(None, "Some rule", ConditionExpression("[some_term]"), None, None, None)
         val ruleId = Rule.insert(rule)
 
         Rule.update(rule.copy(id = Some(ruleId), conditionExpression = ConditionExpression("true")))

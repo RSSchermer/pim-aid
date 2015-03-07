@@ -23,6 +23,7 @@ object RulesController extends Controller {
         (ce: ConditionExpression) => ce.value
       ),
       "source" -> optional(text),
+      "formalizationReference" -> optional(text),
       "note" -> optional(text)
     )(Rule.apply)(Rule.unapply)
   )

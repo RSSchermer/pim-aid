@@ -32,7 +32,7 @@ class ExpressionTermSpec extends PlaySpec with OneAppPerSuite {
       DB.withTransaction { implicit session =>
         val term = ExpressionTerm(None, "some_term", None, None, None, None, Some(">="), Some(65))
         val termId = ExpressionTerm.insert(term)
-        val ruleId = Rule.insert(Rule(None, "Some rule", ConditionExpression("[some_term] AND true"), None, None))
+        val ruleId = Rule.insert(Rule(None, "Some rule", ConditionExpression("[some_term] AND true"), None, None, None))
 
         ExpressionTerm.update(term.copy(id = Some(termId), label = "changed_term"))
 

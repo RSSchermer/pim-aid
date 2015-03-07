@@ -239,14 +239,14 @@ class UserSessionSpec extends PlaySpec with OneAppPerSuite {
         ExpressionTerm.insert(ExpressionTerm(None, "80_or_older", None, None, None, None, Some(">="), Some(80)))
 
         // Set up rules
-        val r1Id = Rule.insert(Rule(None, "1", ConditionExpression("[beta_blockers]"), None, None))
-        val r2Id = Rule.insert(Rule(None, "2", ConditionExpression("[ace_inhibitors]"), None, None))
-        val r3Id = Rule.insert(Rule(None, "3", ConditionExpression("[metoprolol]"), None, None))
-        val r4Id = Rule.insert(Rule(None, "4", ConditionExpression("[enalapril]"), None, None))
-        val r5Id = Rule.insert(Rule(None, "5", ConditionExpression("[statement1]"), None, None))
-        val r6Id = Rule.insert(Rule(None, "6", ConditionExpression("[statement2]"), None, None))
-        val r7Id = Rule.insert(Rule(None, "7", ConditionExpression("[70_or_older]"), None, None))
-        val r8Id = Rule.insert(Rule(None, "8", ConditionExpression("[80_or_older]"), None, None))
+        val r1Id = Rule.insert(Rule(None, "1", ConditionExpression("[beta_blockers]"), None, None, None))
+        val r2Id = Rule.insert(Rule(None, "2", ConditionExpression("[ace_inhibitors]"), None, None, None))
+        val r3Id = Rule.insert(Rule(None, "3", ConditionExpression("[metoprolol]"), None, None, None))
+        val r4Id = Rule.insert(Rule(None, "4", ConditionExpression("[enalapril]"), None, None, None))
+        val r5Id = Rule.insert(Rule(None, "5", ConditionExpression("[statement1]"), None, None, None))
+        val r6Id = Rule.insert(Rule(None, "6", ConditionExpression("[statement2]"), None, None, None))
+        val r7Id = Rule.insert(Rule(None, "7", ConditionExpression("[70_or_older]"), None, None, None))
+        val r8Id = Rule.insert(Rule(None, "8", ConditionExpression("[80_or_older]"), None, None, None))
 
         // Set up suggestion templates
         val s1AId = SuggestionTemplate.insert(SuggestionTemplate(None, "beta_blockers1", "beta_blockers1", None))
@@ -301,7 +301,7 @@ class UserSessionSpec extends PlaySpec with OneAppPerSuite {
         ExpressionTerm.insert(ExpressionTerm(None, "beta_blockers", None, Some(betaBlockersId), None, None, None, None))
 
         // Set up rules
-        val ruleId = Rule.insert(Rule(None, "1", ConditionExpression("[beta_blockers]"), None, None))
+        val ruleId = Rule.insert(Rule(None, "1", ConditionExpression("[beta_blockers]"), None, None, None))
 
         // Set up suggestion templates
         val stId = SuggestionTemplate
@@ -337,7 +337,7 @@ class UserSessionSpec extends PlaySpec with OneAppPerSuite {
         ExpressionTerm.insert(ExpressionTerm(None, "metoprolol", Some(metoprololId), None, None, None, None, None))
 
         // Set up rules
-        val ruleId = Rule.insert(Rule(None, "1", ConditionExpression("[metoprolol]"), None, None))
+        val ruleId = Rule.insert(Rule(None, "1", ConditionExpression("[metoprolol]"), None, None, None))
 
         // Set up suggestion templates
         val stId = SuggestionTemplate

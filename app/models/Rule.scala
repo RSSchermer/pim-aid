@@ -11,6 +11,7 @@ case class Rule(
     name: String,
     conditionExpression: ConditionExpression,
     source: Option[String],
+    formalizationReference: Option[String],
     note: Option[String])(implicit includes: Includes[Rule])
   extends Entity[Rule]
 {
