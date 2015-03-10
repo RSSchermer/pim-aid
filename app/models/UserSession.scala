@@ -73,7 +73,7 @@ case class UserSession(
 
     for {
       rule <- Rule.include(Rule.suggestionTemplates).list
-      template <- rule.suggestionTemplates.getOrFetch
+      template <- rule.suggestionTemplates.get
       suggestion <- template.explanatoryNote match {
         case Some(note) =>
           (replacePlaceholders(template.text) zip replacePlaceholders(note))
@@ -91,11 +91,10 @@ case class UserSession(
 
   private def buildParser(implicit s: Session): ConditionExpressionParser = {
     val expressionTerms = TableQuery[ExpressionTerms].list
-    val products = UserSession.medicationProducts
-      .include(MedicationProduct.genericTypes.include(GenericType.drugGroups)).fetchFor(token)
-    val genericTypes = products.flatMap(_.genericTypes.getOrFetch)
+    val products = medicationProducts.get
+    val genericTypes = products.flatMap(_.genericTypes.get)
     val genericTypeIds = genericTypes.map(_.id).flatten
-    val drugGroupIds = genericTypes.flatMap(_.drugGroups.getOrFetch.map(_.id)).flatten
+    val drugGroupIds = genericTypes.flatMap(_.drugGroups.get.map(_.id)).flatten
     val selectedStatementTermLabels = selectedStatementTerms.getOrFetch.map(_.label)
 
     val variableMap = expressionTerms.map(t => (t.label, t match {
@@ -126,11 +125,10 @@ case class UserSession(
   }
 
   private def replacePlaceholders(template: String)(implicit s: Session): Seq[String] = {
-    val products = UserSession.medicationProducts
-      .include(MedicationProduct.genericTypes.include(GenericType.drugGroups)).fetchFor(token)
-    val typesProducts = products.flatMap(p => p.genericTypes.getOrFetch.map(t => (t, p)))
+    val products = medicationProducts.get
+    val typesProducts = products.flatMap(p => p.genericTypes.get.map(t => (t, p)))
     val groupsProducts =
-      products.flatMap(p => p.genericTypes.getOrFetch.flatMap(_.drugGroups.getOrFetch).map(g => (g, p)))
+      products.flatMap(p => p.genericTypes.get.flatMap(_.drugGroups.get).map(g => (g, p)))
 
     """\{\{(type|group)\(([^\)]+)\)\}\}""".r.findFirstMatchIn(template) match {
       case Some(m) => m.group(1).toLowerCase match {
