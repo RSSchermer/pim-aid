@@ -28,8 +28,8 @@ object Rule extends EntityCompanion[Rules, Rule] {
     _.id === _._1.ruleId)
 
   override protected def afterSave(ruleId: RuleID, rule: Rule)(implicit s: Session): Unit = {
-    val etr = TableQuery[ExpressionTermsRules]
-    etr.filter(_.ruleId === ruleId).delete
-    rule.conditionExpression.expressionTerms.foreach(t => etr.insert((t.id.get, ruleId)))
+    val tableQuery = TableQuery[ExpressionTermsRules]
+    tableQuery.filter(_.ruleId === ruleId).delete
+    rule.conditionExpression.expressionTerms.foreach(t => tableQuery.insert((t.id.get, ruleId)))
   }
 }

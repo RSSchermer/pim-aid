@@ -26,9 +26,9 @@ case class UserSession(
 
   def buildIndependentStatements(implicit s: Session): Seq[Statement] = {
     val selection = selectedStatementTerms.getOrFetch.map(_.id).flatten
+    val independentTerms = StatementTerm.filter(_.displayCondition.isNull).list
 
-    StatementTerm.filter(_.displayCondition.isNull).list
-      .map(x => Statement(x.id.get, x.statementTemplate.getOrElse(""), selection.contains(x.id.get)))
+    independentTerms.map(x => Statement(x.id.get, x.statementTemplate.getOrElse(""), selection.contains(x.id.get)))
   }
 
   def saveIndependentStatementSelection(statements: Seq[Statement])(implicit session: Session) = {
@@ -48,17 +48,11 @@ case class UserSession(
     val parser = buildParser
     val selection = statementTermsUserSessions.getOrFetch.map(x => (x.statementTermID, x.text))
 
-    StatementTerm.filter(_.displayCondition.isNotNull).list
-      .filter { x => parser.parse(x.displayCondition.getOrElse(ConditionExpression(""))) match {
-          case parser.Success(true, _) => true
-          case _ => false
-        }
-      }
-      .flatMap { x =>
-        replacePlaceholders(x.statementTemplate.getOrElse("")).map { text =>
-          Statement(x.id.get, text, selection.contains((x.id.get, text)))
-        }
-      }
+    for {
+      term <- StatementTerm.filter(_.displayCondition.isNotNull).list
+      text <- replacePlaceholders(term.statementTemplate.getOrElse(""))
+      if parser.parse(term.displayCondition.getOrElse(ConditionExpression(""))).getOrElse(false)
+    } yield Statement(term.id.get, text, selection.contains((term.id.get, text)))
   }
 
   def saveConditionalStatementSelection(statements: Seq[Statement])(implicit session: Session) = {
@@ -78,10 +72,7 @@ case class UserSession(
     val parser = buildParser
 
     Rule.include(Rule.suggestionTemplates).list
-      .filter(r => parser.parse(r.conditionExpression) match {
-        case parser.Success(true, _) => true
-        case _ => false
-      })
+      .filter(r => parser.parse(r.conditionExpression).getOrElse(false))
       .flatMap(_.suggestionTemplates.getOrFetch)
       .flatMap({
         case SuggestionTemplate(_, _, text, Some(note)) =>
@@ -135,24 +126,24 @@ case class UserSession(
     val products = UserSession.medicationProducts
       .include(MedicationProduct.genericTypes.include(GenericType.drugGroups)).fetchFor(token)
     val typesProducts = products.flatMap(p => p.genericTypes.getOrFetch.map(t => (t, p)))
-    val groupsProducts = products
-      .flatMap(p => p.genericTypes.getOrFetch.flatMap(_.drugGroups.getOrFetch).map(g => (g, p)))
+    val groupsProducts =
+      products.flatMap(p => p.genericTypes.getOrFetch.flatMap(_.drugGroups.getOrFetch).map(g => (g, p)))
 
-      """\{\{(type|group)\(([^\)]+)\)\}\}""".r.findFirstMatchIn(template) match {
-        case Some(m) => m.group(1).toLowerCase match {
-          case "type" =>
-            typesProducts
-              .filter(x => x._1.name.toLowerCase == m.group(2).toLowerCase)
-              .map { x => template.replaceAll(s"""\\{\\{type\\(${m.group(2)}\\)\\}\\}""", x._2.name) }
-              .flatMap(replacePlaceholders)
-          case "group" =>
-            groupsProducts
-              .filter(x => x._1.name.toLowerCase == m.group(2).toLowerCase)
-              .map { x => template.replaceAll(s"""\\{\\{group\\(${m.group(2)}\\)\\}\\}""", x._2.name) }
-              .flatMap(replacePlaceholders)
-        }
-        case _ => List(template)
+    """\{\{(type|group)\(([^\)]+)\)\}\}""".r.findFirstMatchIn(template) match {
+      case Some(m) => m.group(1).toLowerCase match {
+        case "type" =>
+          typesProducts
+            .filter(x => x._1.name.toLowerCase == m.group(2).toLowerCase)
+            .map { x => template.replaceAll(s"""\\{\\{type\\(${m.group(2)}\\)\\}\\}""", x._2.name) }
+            .flatMap(replacePlaceholders)
+        case "group" =>
+          groupsProducts
+            .filter(x => x._1.name.toLowerCase == m.group(2).toLowerCase)
+            .map { x => template.replaceAll(s"""\\{\\{group\\(${m.group(2)}\\)\\}\\}""", x._2.name) }
+            .flatMap(replacePlaceholders)
       }
+      case _ => List(template)
+    }
   }
 }
 
