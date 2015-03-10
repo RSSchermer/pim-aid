@@ -1,4 +1,4 @@
-@(suggestionTemplates: Seq[SuggestionTemplate])(implicit flash: play.api.mvc.Flash)
+@(suggestionTemplates: Seq[SuggestionTemplate])(implicit flash: play.api.mvc.Flash, session: play.api.db.slick.Session)
 
 @admin("Suggestion list", "suggestionTemplates") {
     @flash.get("success").map { message =>
@@ -12,6 +12,7 @@
             <tr>
                 <th>Name</th>
                 <th>Text</th>
+                <th>Rules</th>
                 <th></th>
                 <th></th>
             </tr>
@@ -22,6 +23,7 @@
                 <tr>
                     <td>@suggestionTemplate.name</td>
                     <td>@suggestionTemplate.text</td>
+                    <td>@suggestionTemplate.rules.getOrFetch.length</td>
                     <td><a href="@routes.SuggestionTemplatesController.edit(suggestionTemplate.id.get.value)">Edit</a></td>
                     <td><a href="@routes.SuggestionTemplatesController.remove(suggestionTemplate.id.get.value)">Delete</a></td>
                 </tr>

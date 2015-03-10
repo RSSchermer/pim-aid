@@ -3,19 +3,35 @@
 @public(title, "decisionAid") {
     <ul class="steps">
         <li class="@("current".when(currentStep ==  Step.GeneralInformation))">
-            <a>1. Algemeen</a>
+            @if(currentStep != Step.GeneralInformation) {
+                <a href="@routes.StepsController.generalInformation()">1. Algemeen</a>
+            } else {
+                <a>1. Algemeen</a>
+            }
         </li>
 
         <li class="@("current".when(currentStep ==  Step.MedicationList))">
-            <a>2. Medicatie</a>
+            @if(currentStep != Step.GeneralInformation && currentStep != Step.MedicationList) {
+                <a href="@routes.StepsController.medicationList()">2. Medicatie</a>
+            } else {
+                <a>2. Medicatie</a>
+            }
         </li>
 
         <li class="@("current".when(currentStep ==  Step.UnconditionalStatementSelection))">
-            <a>3. Stellingen</a>
+            @if(currentStep == Step.ConditionalStatementSelection || currentStep == Step.SuggestionList) {
+                <a href="@routes.StepsController.independentStatementSelection()">3. Stellingen</a>
+            } else {
+                <a>3. Stellingen</a>
+            }
         </li>
 
         <li class="@("current".when(currentStep ==  Step.ConditionalStatementSelection))">
-            <a>4. Aanvullend</a>
+            @if( currentStep == Step.SuggestionList) {
+                <a href="@routes.StepsController.conditionalStatementSelection()">4. Aanvullend</a>
+            } else {
+                <a>4. Aanvullend</a>
+            }
         </li>
 
         <li class="@("current".when(currentStep ==  Step.SuggestionList))">

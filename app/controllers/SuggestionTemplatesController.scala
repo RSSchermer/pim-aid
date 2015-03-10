@@ -24,7 +24,7 @@ object SuggestionTemplatesController extends Controller {
   )
 
   def list = DBAction { implicit rs =>
-    Ok(html.suggestionTemplates.list(SuggestionTemplate.list))
+    Ok(html.suggestionTemplates.list(SuggestionTemplate.include(SuggestionTemplate.rules).list))
   }
 
   def create = DBAction { implicit rs =>

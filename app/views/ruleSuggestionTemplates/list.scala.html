@@ -39,7 +39,11 @@
         <tbody>
             @for(suggestionTemplate <- rule.suggestionTemplates.getOrFetch){
                 <tr>
-                    <td>@suggestionTemplate.name</td>
+                    <td>
+                        <a href="@routes.SuggestionTemplatesController.edit(suggestionTemplate.id.get.value)">
+                            @suggestionTemplate.name
+                        </a>
+                    </td>
                     <td>@suggestionTemplate.text</td>
                     <td><a href="@routes.RuleSuggestionTemplatesController.remove(rule.id.get.value, suggestionTemplate.id.get.value)">Delete</a></td>
                 </tr>
