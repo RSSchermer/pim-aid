@@ -29,7 +29,7 @@ object RulesController extends Controller {
   )
 
   def list = DBAction { implicit rs =>
-    Ok(html.rules.list(Rule.list))
+    Ok(html.rules.list(Rule.include(Rule.suggestionTemplates).list))
   }
 
   def create = DBAction { implicit rs =>
@@ -40,8 +40,8 @@ object RulesController extends Controller {
     ruleForm.bindFromRequest.fold(
       formWithErrors => BadRequest(html.rules.create(formWithErrors)),
       rule => {
-        Rule.insert(rule)
-        Redirect(routes.RulesController.list())
+        val id = Rule.insert(rule)
+        Redirect(routes.RuleSuggestionTemplatesController.list(id.value))
           .flashing("success" -> "The rule was created successfully.")
       }
     )

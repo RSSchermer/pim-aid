@@ -1,4 +1,4 @@
-@(rules: Seq[Rule])(implicit flash: play.api.mvc.Flash)
+@(rules: Seq[Rule])(implicit flash: play.api.mvc.Flash, session: play.api.db.slick.Session)
 
 @admin("Rule list", "rules") {
     @flash.get("success").map { message =>
@@ -13,6 +13,7 @@
                 <th>Name</th>
                 <th>Condition Expression</th>
                 <th>Source</th>
+                <th>Suggestions</th>
                 <th></th>
                 <th></th>
             </tr>
@@ -24,6 +25,7 @@
                     <td><a href="@routes.RuleSuggestionTemplatesController.list(r.id.get.value)">@r.name</a></td>
                     <td>@r.conditionExpression.value</td>
                     <td>@r.source</td>
+                    <td><a href="@routes.RuleSuggestionTemplatesController.list(r.id.get.value)">@r.suggestionTemplates.getOrFetch.length</a></td>
                     <td><a href="@routes.RulesController.edit(r.id.get.value)">Edit</a></td>
                     <td><a href="@routes.RulesController.remove(r.id.get.value)">Delete</a></td>
                 </tr>

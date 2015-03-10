@@ -3,7 +3,7 @@ package models.meta
 import entitytled.Entitytled
 import play.api.db.slick.Config.{driver => PlayDriver}
 
-class Profile extends Entitytled {
+trait Profile extends Entitytled {
   val driver = PlayDriver
 }
 
