@@ -17,14 +17,53 @@
         </p>
 
         <ul class="suggestion-list">
-            @for(suggestion <- suggestions) {
+            @for((suggestion, i) <- suggestions.zipWithIndex) {
                 <li>
+                    <a type="button" class="info-toggle pull-right" data-toggle="modal" data-target="#suggestion-modal-@i">
+                        <span class="fa fa-info-circle"></span>
+                    </a>
+
+                    <!-- Modal -->
+                    <div class="modal fade" id="suggestion-modal-@i" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                    <h4 class="modal-title" id="myModalLabel">Suggestie Verantwoording</h4>
+                                </div>
+                                <div class="modal-body">
+                                    <dl>
+                                        <dt>Regel:</dt>
+                                        <dd>
+                                            <pre class="expression-display">@suggestion.rule.conditionExpression.value</pre>
+                                        </dd>
+                                        <dt>Originele richtlijntekst:</dt>
+                                        <dd><div class="guideline-display">@suggestion.rule.note</div></dd>
+                                    </dl>
+                                    @if(suggestion.rule.formalizationReference.isDefined) {
+                                        <a href="@suggestion.rule.formalizationReference.get" target="_blank">
+                                            Formalisatie bekijken
+                                        </a>
+                                    }
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-default" data-dismiss="modal">
+                                        <span class="fa fa-times"></span> Sluiten
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <p>@suggestion.text</p>
                     @if(suggestion.explanatoryNote.nonEmpty) {
                         <div class="well">
                             <em>Toelichting:</em> @suggestion.explanatoryNote
                         </div>
                     }
+
                 </li>
             }
         </ul>

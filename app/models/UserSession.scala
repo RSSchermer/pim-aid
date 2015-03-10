@@ -8,7 +8,7 @@ case class UserToken(value: String) extends MappedTo[String]
 
 case class Statement(termID: ExpressionTermID, text: String, selected: Boolean)
 
-case class Suggestion(text: String, explanatoryNote: Option[String])
+case class Suggestion(text: String, explanatoryNote: Option[String], rule: Rule)
 
 case class UserSession(
     token: UserToken,
@@ -71,15 +71,18 @@ case class UserSession(
   def buildSuggestions(implicit session: Session): Seq[Suggestion] = {
     val parser = buildParser
 
-    Rule.include(Rule.suggestionTemplates).list
-      .filter(r => parser.parse(r.conditionExpression).getOrElse(false))
-      .flatMap(_.suggestionTemplates.getOrFetch)
-      .flatMap({
-        case SuggestionTemplate(_, _, text, Some(note)) =>
-          (replacePlaceholders(text) zip replacePlaceholders(note)).map(x => Suggestion(x._1, Some(x._2)))
-        case SuggestionTemplate(_, _, text, None) =>
-          replacePlaceholders(text).map(x => Suggestion(x, None))
-      })
+    for {
+      rule <- Rule.include(Rule.suggestionTemplates).list
+      template <- rule.suggestionTemplates.getOrFetch
+      suggestion <- template.explanatoryNote match {
+        case Some(note) =>
+          (replacePlaceholders(template.text) zip replacePlaceholders(note))
+            .map(x => Suggestion(x._1, Some(x._2), rule))
+        case _ =>
+          replacePlaceholders(template.text).map(x => Suggestion(x, None, rule))
+      }
+      if parser.parse(rule.conditionExpression).getOrElse(false)
+    } yield suggestion
   }
 
   def buildSelectedStatements(implicit session: Session): Seq[Statement] =
