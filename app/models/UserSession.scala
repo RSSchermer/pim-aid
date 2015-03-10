@@ -91,10 +91,10 @@ case class UserSession(
 
   private def buildParser(implicit s: Session): ConditionExpressionParser = {
     val expressionTerms = TableQuery[ExpressionTerms].list
-    val products = medicationProducts.get
-    val genericTypes = products.flatMap(_.genericTypes.get)
+    val products = medicationProducts.getOrFetch
+    val genericTypes = products.flatMap(_.genericTypes.getOrFetch)
     val genericTypeIds = genericTypes.map(_.id).flatten
-    val drugGroupIds = genericTypes.flatMap(_.drugGroups.get.map(_.id)).flatten
+    val drugGroupIds = genericTypes.flatMap(_.drugGroups.getOrFetch.map(_.id)).flatten
     val selectedStatementTermLabels = selectedStatementTerms.getOrFetch.map(_.label)
 
     val variableMap = expressionTerms.map(t => (t.label, t match {
@@ -125,10 +125,10 @@ case class UserSession(
   }
 
   private def replacePlaceholders(template: String)(implicit s: Session): Seq[String] = {
-    val products = medicationProducts.get
-    val typesProducts = products.flatMap(p => p.genericTypes.get.map(t => (t, p)))
+    val products = medicationProducts.getOrFetch
+    val typesProducts = products.flatMap(p => p.genericTypes.getOrFetch.map(t => (t, p)))
     val groupsProducts =
-      products.flatMap(p => p.genericTypes.get.flatMap(_.drugGroups.get).map(g => (g, p)))
+      products.flatMap(p => p.genericTypes.getOrFetch.flatMap(_.drugGroups.getOrFetch).map(g => (g, p)))
 
     """\{\{(type|group)\(([^\)]+)\)\}\}""".r.findFirstMatchIn(template) match {
       case Some(m) => m.group(1).toLowerCase match {
