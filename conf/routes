@@ -5,12 +5,6 @@
 # Home page
 GET           /                                                                                controllers.StaticPagesController.introduction
 
-GET           /privacy                                                                         controllers.StaticPagesController.privacy
-
-GET           /about                                                                           controllers.StaticPagesController.about
-
-GET           /contact                                                                         controllers.StaticPagesController.contact
-
 GET           /general_information                                                             controllers.StepsController.generalInformation
 POST          /general_information                                                             controllers.StepsController.saveGeneralInformation
 GET           /medication_list                                                                 controllers.StepsController.medicationList
