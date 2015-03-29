@@ -21,7 +21,7 @@
             @for(term <- genericTypeTerm){
                 <tr>
                     <td>@term.label</td>
-                    <td>@term.genericType.getOrFetch.get.name</td>
+                    <td>@term.genericType.map(_.name)</td>
                     <td><a href="@routes.GenericTypeTermsController.edit(term.id.get.value)">Edit</a></td>
                     <td><a href="@routes.GenericTypeTermsController.remove(term.id.get.value)">Delete</a></td>
                 </tr>

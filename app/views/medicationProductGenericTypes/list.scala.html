@@ -35,7 +35,7 @@
         </thead>
 
         <tbody>
-            @for(genericType <- medicationProduct.genericTypes.getOrFetch){
+            @for(genericType <- medicationProduct.genericTypes){
                 <tr>
                     <td>@genericType.name</td>
                     <td><a href="@routes.MedicationProductGenericTypesController.remove(medicationProduct.id.get.value, genericType.id.get.value)">Delete</a></td>

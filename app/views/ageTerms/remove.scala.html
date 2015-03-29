@@ -7,29 +7,29 @@
         <dt>Label</dt><dd>@ageTerm.label</dd>
     </dl>
 
-    @if(ageTerm.dependentRules.getOrFetch.length > 0) {
+    @if(ageTerm.dependentRules.length > 0) {
         <div class="alert alert-warning">
             <p>This term cannot be deleted, there are still rules that depend on it:</p>
             <ul>
-            @for(rule <- ageTerm.dependentRules.getOrFetch) {
+            @for(rule <- ageTerm.dependentRules) {
                 <li><a href="@routes.RulesController.edit(rule.id.get.value)">@rule.name</a></li>
             }
             </ul>
         </div>
     }
 
-    @if(ageTerm.dependentStatementTerms.getOrFetch.length > 0) {
+    @if(ageTerm.dependentStatementTerms.length > 0) {
         <div class="alert alert-warning">
             <p>This term cannot be deleted, there are still statement terms that depend on it:</p>
             <ul>
-            @for(st <- ageTerm.dependentStatementTerms.getOrFetch) {
+            @for(st <- ageTerm.dependentStatementTerms) {
                 <li><a href="@routes.StatementTermsController.edit(st.id.get.value)">@st.label</a></li>
             }
             </ul>
         </div>
     }
 
-    @if(ageTerm.dependentStatementTerms.getOrFetch.length == 0 && ageTerm.dependentRules.getOrFetch.length == 0) {
+    @if(ageTerm.dependentStatementTerms.length == 0 && ageTerm.dependentRules.length == 0) {
         @helper.form(routes.AgeTermsController.delete(ageTerm.id.get.value)) {
             <button type="submit" class="btn btn-danger">
                 <span class="fa fa-trash"></span> Delete

@@ -113,7 +113,7 @@ object StepsController extends Controller with UserSessionAware {
 
   def print = DBAction { implicit rs =>
     val userSession = currentUserSession(rs)
-    val drugs = userSession.drugs.getOrFetch
+    val drugs = userSession.drugs
     val statements = userSession.buildSelectedStatements
     val suggestions = userSession.buildSuggestions
 

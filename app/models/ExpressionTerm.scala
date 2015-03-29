@@ -45,7 +45,7 @@ abstract class ExpressionTermCompanion extends EntityCompanion[ExpressionTerms, 
   private def updateDependentRuleConditions(term: ExpressionTerm)(implicit s: Session): Unit = {
     val oldLabel = ExpressionTerm.find(term.id.get).get.label
 
-    term.dependentRules.getOrFetch.foreach((r: Rule) => {
+    term.dependentRules.foreach((r: Rule) => {
       val updatedCE = r.conditionExpression.replaceLabel(oldLabel, term.label)
 
       // Update rule via TableQuery to bypass afterSave hook, because it will look
@@ -57,7 +57,7 @@ abstract class ExpressionTermCompanion extends EntityCompanion[ExpressionTerms, 
   private def updateDependentStatementTermConditions(term: ExpressionTerm)(implicit s: Session): Unit = {
     val oldLabel = ExpressionTerm.find(term.id.get).get.label
 
-    term.dependentStatementTerms.getOrFetch.foreach((st: ExpressionTerm) => {
+    term.dependentStatementTerms.foreach((st: ExpressionTerm) => {
       val updatedDC = st.displayCondition.get.replaceLabel(oldLabel, term.label)
 
       // Update statement term via TableQuery to bypass afterSave hook, because it will look

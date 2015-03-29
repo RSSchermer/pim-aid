@@ -37,7 +37,7 @@
         </thead>
 
         <tbody>
-            @for(suggestionTemplate <- rule.suggestionTemplates.getOrFetch){
+            @for(suggestionTemplate <- rule.suggestionTemplates){
                 <tr>
                     <td>
                         <a href="@routes.SuggestionTemplatesController.edit(suggestionTemplate.id.get.value)">

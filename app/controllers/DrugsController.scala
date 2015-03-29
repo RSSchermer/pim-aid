@@ -14,7 +14,7 @@ object DrugsController extends Controller with UserSessionAware {
                       resolvedMedicationProductName: Option[String], unresolvable: Boolean)
 
   def drugJsonFromDrug(drug: Drug, unresolvable: Boolean = false)(implicit s: Session): DrugJson = {
-    drug.resolvedMedicationProduct.getOrFetch match {
+    drug.resolvedMedicationProduct.getOrFetchValue match {
       case Some(p) =>
         DrugJson(Some(drug.id.get.value), drug.userInput, Some(p.id.get.value), Some(p.name), unresolvable)
       case _ =>

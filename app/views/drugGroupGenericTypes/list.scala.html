@@ -35,12 +35,12 @@
         </thead>
 
         <tbody>
-            @for(genericType <- drugGroup.genericTypes.getOrFetch){
+            @for(genericType <- drugGroup.genericTypes){
                 <tr>
                     <td>
                         @genericType.name
                         <ul>
-                            @for(medicationProduct <- genericType.medicationProducts.getOrFetch){
+                            @for(medicationProduct <- genericType.medicationProducts){
                                 <li>@medicationProduct.name</li>
                             }
                         </ul>

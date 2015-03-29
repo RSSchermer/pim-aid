@@ -21,7 +21,7 @@
             @for(term <- drugGroupTerms){
                 <tr>
                     <td>@term.label</td>
-                    <td>@term.drugGroup.getOrFetch.get.name</td>
+                    <td>@term.drugGroup.map(_.name)</td>
                     <td><a href="@routes.DrugGroupTermsController.edit(term.id.get.value)">Edit</a></td>
                     <td><a href="@routes.DrugGroupTermsController.remove(term.id.get.value)">Delete</a></td>
                 </tr>
