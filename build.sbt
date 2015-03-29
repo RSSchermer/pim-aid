@@ -1,6 +1,6 @@
-name := """pim-aid"""
+name := "pim-aid"
 
-version := "1.0-SNAPSHOT"
+version := "1.0.0"
 
 scalaVersion := "2.10.4"
 
