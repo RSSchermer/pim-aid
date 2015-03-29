@@ -7,7 +7,7 @@
         <input type="hidden" name="id" value="@genericTypeTermForm("id").value">
         @b3.text(genericTypeTermForm("label"), '_label -> "Label")
         @b3.select(genericTypeTermForm("genericTypeId"),
-            GenericType.list.toSeq.map(g => g.id.get.value.toString -> g.name),
+            GenericType.list.map(g => g.id.get.value.toString -> g.name),
             '_label -> "Generic Type", 'class -> "searchable-select")
     </fieldset>
 

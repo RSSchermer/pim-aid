@@ -20,7 +20,7 @@
         <fieldset>
             <input type="hidden" name="drugGroupId" value='@drugGroup.id.get.value'>
             @b3.select(drugGroupGenericTypeForm("genericTypeId"),
-                GenericType.list.toSeq.map(gt => gt.id.get.value.toString -> gt.name),
+                GenericType.list.map(gt => gt.id.get.value.toString -> gt.name),
                 'class -> "searchable-select")
             @b3.submit('class -> "btn btn-primary"){ <span class="fa fa-plus"></span> Add generic type }
         </fieldset>

@@ -29,7 +29,7 @@
 
     <a class="btn btn-primary" href="@routes.DrugGroupsController.create()">Add new drug group</a>
 
-    @helper.form(action = routes.DrugGroupsController.importFtkGroup, 'enctype -> "multipart/form-data") {
+    @helper.form(action = routes.DrugGroupsController.importFtkGroup(), 'enctype -> "multipart/form-data") {
 
         <input type="file" name="ftkGroupPage">
 

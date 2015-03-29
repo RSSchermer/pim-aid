@@ -21,7 +21,7 @@
         <fieldset>
             <input type="hidden" name="ruleId" value='@rule.id.get.value'>
             @b3.select(ruleSuggestionTemplateForm("suggestionTemplateId"),
-                SuggestionTemplate.list.toSeq.map(gt => gt.id.get.value.toString -> gt.name),
+                SuggestionTemplate.list.map(gt => gt.id.get.value.toString -> gt.name),
                 'class -> "searchable-select")
             @b3.submit('class -> "btn btn-primary"){ <span class="fa fa-plus"></span> Add suggestion }
         </fieldset>
