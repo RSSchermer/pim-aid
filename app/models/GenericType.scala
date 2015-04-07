@@ -9,15 +9,13 @@ case class GenericTypeID(value: Long) extends MappedTo[Long]
 case class GenericType(
     id: Option[GenericTypeID],
     name: String)(implicit includes: Includes[GenericType])
-  extends Entity[GenericType]
+  extends Entity[GenericType, GenericTypeID]
 {
-  type IdType = GenericTypeID
-
   val medicationProducts = many(GenericType.medicationProducts)
   val drugGroups = many(GenericType.drugGroups)
 }
 
-object GenericType extends EntityCompanion[GenericTypes, GenericType] {
+object GenericType extends EntityCompanion[GenericTypes, GenericType, GenericTypeID] {
   val query = TableQuery[GenericTypes]
 
   val medicationProducts = toManyThrough[MedicationProducts, GenericTypesMedicationProducts, MedicationProduct](

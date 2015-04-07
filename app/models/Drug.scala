@@ -11,15 +11,13 @@ case class Drug(
     userInput: String,
     userToken: UserToken,
     resolvedMedicationProductId: Option[MedicationProductID])(implicit includes: Includes[Drug])
-  extends Entity[Drug]
+  extends Entity[Drug, DrugID]
 {
-  type IdType = DrugID
-
   val userSession = one(Drug.userSession)
   val resolvedMedicationProduct = one(Drug.resolvedMedicationProduct)
 }
 
-object Drug extends EntityCompanion[Drugs, Drug] {
+object Drug extends EntityCompanion[Drugs, Drug, DrugID] {
   val query = TableQuery[Drugs]
 
   val userSession = toOne[UserSessions, UserSession](

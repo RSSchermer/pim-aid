@@ -13,14 +13,12 @@ case class Rule(
     source: Option[String],
     formalizationReference: Option[String],
     note: Option[String])(implicit includes: Includes[Rule])
-  extends Entity[Rule]
+  extends Entity[Rule, RuleID]
 {
-  type IdType = RuleID
-
   val suggestionTemplates = many(Rule.suggestionTemplates)
 }
 
-object Rule extends EntityCompanion[Rules, Rule] {
+object Rule extends EntityCompanion[Rules, Rule, RuleID] {
   val query = TableQuery[Rules]
 
   val suggestionTemplates = toManyThrough[SuggestionTemplates, RulesSuggestionTemplates, SuggestionTemplate](

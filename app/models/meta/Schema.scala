@@ -5,7 +5,7 @@ import models.meta.Profile.driver.simple._
 import models._
 
 object Schema {
-  class DrugGroups(tag: Tag) extends EntityTable[DrugGroup](tag, "DRUG_GROUPS") {
+  class DrugGroups(tag: Tag) extends EntityTable[DrugGroup, DrugGroupID](tag, "DRUG_GROUPS") {
     def id = column[DrugGroupID]("id", O.PrimaryKey, O.AutoInc)
     def name = column[String]("name", O.NotNull)
 
@@ -30,7 +30,7 @@ object Schema {
       TableQuery[GenericTypes])(_.id, onDelete = ForeignKeyAction.Cascade)
   }
 
-  class Drugs(tag: Tag) extends EntityTable[Drug](tag, "DRUGS") {
+  class Drugs(tag: Tag) extends EntityTable[Drug, DrugID](tag, "DRUGS") {
     def id = column[DrugID]("id", O.PrimaryKey, O.AutoInc)
     def userInput = column[String]("userInput", O.NotNull)
     def userToken = column[UserToken]("userToken", O.NotNull)
@@ -42,7 +42,7 @@ object Schema {
       TableQuery[MedicationProducts])(_.id)
   }
 
-  class ExpressionTerms(tag: Tag) extends EntityTable[ExpressionTerm](tag, "EXPRESSION_TERMS") {
+  class ExpressionTerms(tag: Tag) extends EntityTable[ExpressionTerm, ExpressionTermID](tag, "EXPRESSION_TERMS") {
     def id = column[ExpressionTermID]("id", O.PrimaryKey, O.AutoInc)
     def label = column[String]("label", O.NotNull)
     def genericTypeId = column[GenericTypeID]("drug_type_id", O.Nullable)
@@ -90,7 +90,7 @@ object Schema {
       TableQuery[ExpressionTerms])(_.id, onDelete = ForeignKeyAction.Cascade)
   }
 
-  class GenericTypes(tag: Tag) extends EntityTable[GenericType](tag, "GENERIC_TYPES") {
+  class GenericTypes(tag: Tag) extends EntityTable[GenericType, GenericTypeID](tag, "GENERIC_TYPES") {
     def id = column[GenericTypeID]("id", O.PrimaryKey, O.AutoInc)
     def name = column[String]("name", O.NotNull)
 
@@ -115,7 +115,9 @@ object Schema {
       TableQuery[MedicationProducts])(_.id, onDelete = ForeignKeyAction.Cascade)
   }
 
-  class MedicationProducts(tag: Tag) extends EntityTable[MedicationProduct](tag, "MEDICATION_PRODUCTS") {
+  class MedicationProducts(tag: Tag)
+    extends EntityTable[MedicationProduct, MedicationProductID](tag, "MEDICATION_PRODUCTS")
+  {
     def id = column[MedicationProductID]("id", O.PrimaryKey, O.AutoInc)
     def name = column[String]("name", O.NotNull)
 
@@ -124,7 +126,7 @@ object Schema {
     def nameIndex = index("MEDICATION_PRODUCTS_NAME_INDEX", name, unique = true)
   }
 
-  class Rules(tag: Tag) extends EntityTable[Rule](tag, "RULES") {
+  class Rules(tag: Tag) extends EntityTable[Rule, RuleID](tag, "RULES") {
     def id = column[RuleID]("id", O.PrimaryKey, O.AutoInc)
     def name = column[String]("name", O.NotNull)
     def conditionExpression = column[ConditionExpression]("condition_expression", O.NotNull)
@@ -174,7 +176,9 @@ object Schema {
       TableQuery[ExpressionTerms])(_.id)
   }
 
-  class SuggestionTemplates(tag: Tag) extends EntityTable[SuggestionTemplate](tag, "SUGGESTION_TEMPLATES") {
+  class SuggestionTemplates(tag: Tag)
+    extends EntityTable[SuggestionTemplate, SuggestionTemplateID](tag, "SUGGESTION_TEMPLATES")
+  {
     def id = column[SuggestionTemplateID]("id", O.PrimaryKey, O.AutoInc)
     def name = column[String]("name", O.NotNull)
     def text = column[String]("text", O.NotNull)
@@ -186,7 +190,7 @@ object Schema {
     def nameIndex = index("SUGGESTION_TEMPLATES_NAME_INDEX", name, unique = true)
   }
 
-  class UserSessions(tag: Tag) extends EntityTable[UserSession](tag, "USER_SESSIONS") {
+  class UserSessions(tag: Tag) extends EntityTable[UserSession, UserToken](tag, "USER_SESSIONS") {
     def token = column[UserToken]("token", O.PrimaryKey)
     def age = column[Int]("age", O.Nullable)
 

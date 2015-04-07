@@ -13,10 +13,8 @@ case class Suggestion(text: String, explanatoryNote: Option[String], rule: Rule)
 case class UserSession(
     token: UserToken,
     age: Option[Int])(implicit includes: Includes[UserSession])
-  extends Entity[UserSession]
+  extends Entity[UserSession, UserToken]
 {
-  type IdType = UserToken
-
   val id = Some(token)
 
   val drugs = many(UserSession.drugs)
@@ -147,7 +145,7 @@ case class UserSession(
   }
 }
 
-object UserSession extends EntityCompanion[UserSessions, UserSession] {
+object UserSession extends EntityCompanion[UserSessions, UserSession, UserToken] {
   val query = TableQuery[UserSessions]
 
   val drugs = toMany[Drugs, Drug](

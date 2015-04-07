@@ -15,17 +15,15 @@ case class ExpressionTerm(
     displayCondition: Option[ConditionExpression],
     comparisonOperator: Option[String],
     age: Option[Int])(implicit includes: Includes[ExpressionTerm])
-  extends Entity[ExpressionTerm]
+  extends Entity[ExpressionTerm, ExpressionTermID]
 {
-  type IdType = ExpressionTermID
-
   val genericType = one(GenericTypeTerm.genericType)
   val drugGroup = one(DrugGroupTerm.drugGroup)
   val dependentStatementTerms = many(ExpressionTerm.dependentStatementTerms)
   val dependentRules = many(ExpressionTerm.dependentRules)
 }
 
-abstract class ExpressionTermCompanion extends EntityCompanion[ExpressionTerms, ExpressionTerm] {
+abstract class ExpressionTermCompanion extends EntityCompanion[ExpressionTerms, ExpressionTerm, ExpressionTermID] {
   def findByLabel(label: String)(implicit s: Session): Option[ExpressionTerm] =
     filter(_.label === label).firstOption
 
