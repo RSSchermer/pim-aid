@@ -26,6 +26,10 @@ DELETE        /drugs/:id                                                        
 # Admin
 GET           /admin                                                                           controllers.RulesController.list
 
+# User sessions
+GET           /admin/user_sessions                                                             controllers.UserSessionsController.list
+GET           /admin/user_sessions/:token                                                      controllers.UserSessionsController.show(token: String)
+
 # Rules
 GET           /admin/rules                                                                     controllers.RulesController.list
 GET           /admin/rules/new                                                                 controllers.RulesController.create

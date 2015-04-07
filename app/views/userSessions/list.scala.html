@@ -1,0 +1,25 @@
+@(userSessions: Seq[UserSession])
+
+@admin("User session list", "User sessions") {
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Token</th>
+                <th>Age</th>
+            </tr>
+        </thead>
+
+        <tbody>
+        @for(userSession <- userSessions){
+            <tr>
+                <td>
+                    <a href="@routes.UserSessionsController.show(userSession.token.value)">
+                        @userSession.token.value
+                    </a>
+                </td>
+                <td>@userSession.age</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}

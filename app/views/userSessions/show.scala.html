@@ -1,0 +1,70 @@
+@(userSession: UserSession,
+  medicationList: Seq[Drug],
+  selectedStatements: Seq[Statement],
+  suggestions: Seq[Suggestion])
+
+@admin("User session", "User sessions") {
+    <h1>@userSession.token.value</h1>
+    @if(userSession.age.isEmpty) {
+        Geen leeftijd opgegeven.
+    } else {
+        @userSession.age jaar.
+    }
+
+    <h2>Medicatie</h2>
+
+    <h3>Opgegeven medicatie:</h3>
+
+    <ul>
+    @for(drug <- medicationList) {
+        <li>@drug.userInput</li>
+    }
+    </ul>
+
+    <h3>Ontbrekende medicatie</h3>
+    <br>
+    <br>
+    <br>
+
+    <h2>Stellingen</h2>
+
+    <h3>Geselecteerd stellingen:</h3>
+    @if(selectedStatements.isEmpty) {
+        <p>De patient heeft geen enkele stelling geselecteerd als zijnde van toepassing.</p>
+    } else {
+        <ul>
+        @for(statement <- selectedStatements) {
+            <li>@statement.text</li>
+        }
+        </ul>
+    }
+
+    <h3>Ontbrekende stellingen</h3>
+    <br>
+    <br>
+    <br>
+    
+    <h2>Suggesties</h2>
+
+    <h3>Genereerde suggesties</h3>
+    @if(suggestions.isEmpty) {
+        <p>Er zijn geen suggesties gegenereerd voor deze patient.</p>
+    } else {
+        <div>
+        @for(suggestion <- suggestions) {
+            <p>
+                <b>@suggestion.text</b>
+                <br>
+                <em>Toelichting:</em> @suggestion.explanatoryNote
+                <br>
+                <small><em>Richtlijn text:</em> @suggestion.rule.note</small>
+            </p>
+        }
+        </div>
+    }
+
+    <h3>Ontbrekende suggesties</h3>
+    <br>
+    <br>
+    <br>
+}
