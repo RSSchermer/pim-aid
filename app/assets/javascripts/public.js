@@ -20,6 +20,7 @@ medicationApp.controller('medicationListCtrl', function ($scope, Restangular) {
       $scope.drugs.unshift(drug);
       $scope.unresolved = false;
       $scope.userInput = null;
+      document.getElementById('medication_input').focus();
     }, function (error) {
       $scope.unresolved = true;
       $scope.alternatives = error.data.alternatives
