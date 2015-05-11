@@ -46,11 +46,13 @@ case class UserSession(
     val parser = buildParser
     val selection = statementTermsUserSessions.map(x => (x.statementTermID, x.text))
 
-    for {
+    val statements = for {
       term <- StatementTerm.filter(_.displayCondition.isNotNull).list
       text <- replacePlaceholders(term.statementTemplate.getOrElse(""))
       if parser.parse(term.displayCondition.getOrElse(ConditionExpression(""))).getOrElse(false)
     } yield Statement(term.id.get, text, selection.contains((term.id.get, text)))
+
+    statements.distinct
   }
 
   def saveConditionalStatementSelection(statements: Seq[Statement])(implicit session: Session) = {
@@ -69,7 +71,7 @@ case class UserSession(
   def buildSuggestions(implicit session: Session): Seq[Suggestion] = {
     val parser = buildParser
 
-    for {
+    val suggestions = for {
       rule <- Rule.include(Rule.suggestionTemplates).list
       template <- rule.suggestionTemplates
       suggestion <- template.explanatoryNote match {
@@ -81,6 +83,8 @@ case class UserSession(
       }
       if parser.parse(rule.conditionExpression).getOrElse(false)
     } yield suggestion
+
+    suggestions.distinct
   }
 
   def buildSelectedStatements(implicit session: Session): Seq[Statement] =
