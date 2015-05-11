@@ -1,59 +1,65 @@
-var medicationApp = angular.module('medicationApp', ['restangular']);
+var scrolling = false;
 
-medicationApp.controller('medicationListCtrl', function ($scope, Restangular) {
-  var drugs = Restangular.all('drugs');
+$(document).ready(function () {
+    $("#scrollUp").bind("mousedown", function (event) {
+        event.preventDefault();
 
-  drugs.getList().then(function (drugs) {
-    $scope.drugs = drugs.reverse();
-  });
-
-  $scope.submitDrug = function () {
-    drugs.post({
-      id: null,
-      userInput: $scope.userInput,
-      source: null,
-      drugType: null,
-      resolvedMedicationProductId: null,
-      resolvedMedicationProductName: null,
-      unresolvable: false
-    }).then(function (drug) {
-      $scope.drugs.unshift(drug);
-      $scope.unresolved = false;
-      $scope.userInput = null;
-
-      document.getElementById('medication_input').focus();
-    }, function (error) {
-      $scope.unresolved = true;
-      $scope.alternatives = error.data.alternatives
+        scrolling = true;
+        scrollContent("up");
+    }).bind("mouseup", function () {
+        scrolling = false;
     });
-  };
 
-  $scope.resolveDrug = function (drug) {
-    drugs.post(drug).then(function (drug) {
-      $scope.drugs.unshift(drug);
-      $scope.unresolved = false;
-      $scope.userInput = null;
+
+    $("#scrollDown").bind("mousedown", function (event) {
+        event.preventDefault();
+
+        scrolling = true;
+        scrollContent("down");
+    }).bind("mouseup", function () {
+        scrolling = false;
     });
-  };
 
-  $scope.handleUnresolvableDrug = function () {
-    drugs.post({
-      id: null,
-      userInput: $scope.userInput,
-      source: null,
-      drugType: null,
-      resolvedMedicationProductId: null,
-      resolvedMedicationProductName: null,
-      unresolvable: true
-    }).then(function (drug) {
-      $scope.drugs.unshift(drug);
-      $scope.unresolved = false;
-      $scope.userInput = null;
+    showScrollDown();
+    showScrollUp();
+
+    $(window).scroll(function() {
+        showScrollDown();
+        showScrollUp();
     });
-  };
-
-  $scope.removeDrug = function (drug) {
-    drug.remove();
-    $scope.drugs.splice($scope.drugs.indexOf(drug), 1);
-  }
 });
+
+function scrollContent(direction) {
+    var amount = (direction === "up" ? "-=4px" : "+=4px");
+    $("body").animate({
+        scrollTop: amount
+    }, 1, function() {
+        if (scrolling) {
+            scrollContent(direction);
+        }
+    });
+}
+
+function showScrollDown() {
+    var scrollDown = $("#scrollDown");
+
+    if($(window).scrollTop() + $(window).height() == $(document).height()) {
+        if (scrollDown.css("display") !== "none") {
+            scrollDown.fadeOut();
+        }
+    } else if (!scrollDown.is(":visible")) {
+        scrollDown.fadeIn();
+    }
+}
+
+function showScrollUp() {
+    var scrollUp = $("#scrollUp");
+
+    if($(window).scrollTop() == 0) {
+        if (scrollUp.css("display") !== "none") {
+            scrollUp.fadeOut();
+        }
+    } else if (!scrollUp.is(":visible")) {
+        scrollUp.fadeIn();
+    }
+}

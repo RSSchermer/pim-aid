@@ -3,6 +3,23 @@
 @font-size-base: 14pt;
 @max-page-width: 980px;
 
+#scrollUp, #scrollDown {
+  position: fixed;
+  right: 20px;
+  width: 80px;
+  height: 80px;
+  color: @link-color;
+  display: none;
+}
+
+#scrollUp {
+  top: 20px;
+}
+
+#scrollDown {
+  bottom: 20px;
+}
+
 .page-container {
   max-width: @max-page-width;
 }
