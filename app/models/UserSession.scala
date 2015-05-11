@@ -157,7 +157,7 @@ object UserSession extends EntityCompanion[UserSessions, UserSession, UserToken]
     _.token === _.userToken)
 
   val medicationProducts = toManyThrough[MedicationProducts, Drugs, MedicationProduct](
-    TableQuery[Drugs] leftJoin TableQuery[MedicationProducts] on(_.resolvedMedicationProductId === _.id),
+    TableQuery[Drugs] innerJoin TableQuery[MedicationProducts] on(_.resolvedMedicationProductId === _.id),
     _.token === _._1.userToken)
 
   val statementTermsUserSessions = toMany[StatementTermsUserSessions, StatementTermUserSession](

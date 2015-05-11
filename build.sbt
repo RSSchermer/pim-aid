@@ -12,7 +12,7 @@ libraryDependencies ++= Seq(
   "com.github.tototoshi"          %% "scala-csv"           % "1.1.2",
   "postgresql"                    %  "postgresql"          % "9.1-901-1.jdbc4",
   "net.sourceforge.htmlcleaner"   %  "htmlcleaner"         % "2.10",
-  "com.github.rsschermer"         %% "entitytled-core"     % "0.4.1",
+  "com.github.rsschermer"         %% "entitytled-core"     % "0.5.0",
   "org.webjars"                   %  "codemirror"          % "5.0",
   "org.scalatestplus"             %% "play"                % "1.1.0"   % "test"
 )
