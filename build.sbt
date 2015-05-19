@@ -14,6 +14,10 @@ libraryDependencies ++= Seq(
   "net.sourceforge.htmlcleaner"   %  "htmlcleaner"         % "2.10",
   "com.github.rsschermer"         %% "entitytled-core"     % "0.5.0",
   "org.webjars"                   %  "codemirror"          % "5.0",
+  "org.webjars"                   %  "font-awesome"        % "4.3.0",
+  "org.webjars"                   %  "lodash"              % "2.4.1",
+  "org.webjars"                   %  "angularjs"           % "1.3.0",
+  "org.webjars"                   %  "restangular"         % "1.3.1",
   "org.scalatestplus"             %% "play"                % "1.1.0"   % "test"
 )
 
