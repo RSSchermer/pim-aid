@@ -31,10 +31,11 @@
         <ul>
             @for(suggestion <- suggestions) {
                 <li>
-                    <p>@suggestion.text</p>
+                    <p>Dit is een placeholder for een suggestie gegenereerd door het systeem.</p>
                     @if(suggestion.explanatoryNote.nonEmpty) {
                         <div class="well">
-                            <em>Toelichting:</em> @suggestion.explanatoryNote
+                            <em>Toelichting:</em> dit is een placeholder voor de extra toelichting bij
+                            bovenstaande suggestie.
                         </div>
                     }
                 </li>
