@@ -18,6 +18,7 @@ libraryDependencies ++= Seq(
   "org.webjars"                   %  "lodash"              % "2.4.1",
   "org.webjars"                   %  "angularjs"           % "1.3.0",
   "org.webjars"                   %  "restangular"         % "1.3.1",
+  "org.webjars"                   %  "select2"             % "3.5.2",
   "org.scalatestplus"             %% "play"                % "1.1.0"   % "test"
 )
 
