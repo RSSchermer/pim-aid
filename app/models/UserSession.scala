@@ -46,11 +46,11 @@ case class UserSession(
     val parser = buildParser
     val selection = statementTermsUserSessions.map(x => (x.statementTermID, x.text))
 
-    for {
+    (for {
       term <- StatementTerm.filter(_.displayCondition.isNotNull).list
       text <- replacePlaceholders(term.statementTemplate.getOrElse(""))
       if parser.parse(term.displayCondition.getOrElse(ConditionExpression(""))).getOrElse(false)
-    } yield Statement(term.id.get, text, selection.contains((term.id.get, text)))
+    } yield Statement(term.id.get, text, selection.contains((term.id.get, text)))).distinct
   }
 
   def saveConditionalStatementSelection(statements: Seq[Statement])(implicit session: Session) = {
@@ -69,7 +69,7 @@ case class UserSession(
   def buildSuggestions(implicit session: Session): Seq[Suggestion] = {
     val parser = buildParser
 
-    for {
+    (for {
       rule <- Rule.include(Rule.suggestionTemplates).list
       template <- rule.suggestionTemplates
       suggestion <- template.explanatoryNote match {
@@ -80,7 +80,7 @@ case class UserSession(
           replacePlaceholders(template.text).map(x => Suggestion(x, None, rule))
       }
       if parser.parse(rule.conditionExpression).getOrElse(false)
-    } yield suggestion
+    } yield suggestion).distinct
   }
 
   def buildSelectedStatements(implicit session: Session): Seq[Statement] =
@@ -153,7 +153,7 @@ object UserSession extends EntityCompanion[UserSessions, UserSession, UserToken]
     _.token === _.userToken)
 
   val medicationProducts = toManyThrough[MedicationProducts, Drugs, MedicationProduct](
-    TableQuery[Drugs] leftJoin TableQuery[MedicationProducts] on(_.resolvedMedicationProductId === _.id),
+    TableQuery[Drugs] innerJoin TableQuery[MedicationProducts] on(_.resolvedMedicationProductId === _.id),
     _.token === _._1.userToken)
 
   val statementTermsUserSessions = toMany[StatementTermsUserSessions, StatementTermUserSession](
@@ -161,7 +161,7 @@ object UserSession extends EntityCompanion[UserSessions, UserSession, UserToken]
     _.token === _.userSessionToken)
 
   val selectedStatementTerms = toManyThrough[ExpressionTerms, StatementTermsUserSessions, ExpressionTerm](
-    TableQuery[StatementTermsUserSessions] leftJoin TableQuery[ExpressionTerms] on(_.statementTermId === _.id),
+    TableQuery[StatementTermsUserSessions] innerJoin TableQuery[ExpressionTerms] on(_.statementTermId === _.id),
     _.token === _._1.userSessionToken)
 
   def generateToken(len: Int = 12): UserToken = {
