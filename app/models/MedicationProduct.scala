@@ -27,7 +27,7 @@ object MedicationProduct extends EntityCompanion[MedicationProducts, MedicationP
 
   def findByUserInput(userInput: String)(implicit s: Session): Option[MedicationProduct] = {
     val normalizedInput = userInput.trim().replaceAll("""\s+""", " ")
-    query.filter(_.name.toLowerCase === normalizedInput).firstOption
+    query.filter(_.name.toLowerCase === normalizedInput.toLowerCase).firstOption
   }
 
   def findAlternatives(userInput: String, similarityThreshold: Double, maxNum: Int)(implicit s: Session): Seq[MedicationProduct] =
