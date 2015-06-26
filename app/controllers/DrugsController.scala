@@ -69,20 +69,22 @@ object DrugsController extends Controller with UserSessionAware {
             .withSession("token" -> token.value)
         case drugJson =>
           // A newly entered drug
-          MedicationProduct.findByUserInput(drugJson.userInput) match {
+          val normalizedInput = drugJson.userInput.trim().replaceAll("""\s+""", " ")
+
+          MedicationProduct.findByUserInput(normalizedInput) match {
             case Some(medicationProduct) =>
               // There is a matching medication product
-              val drugId = Drug.insert(Drug(None, drugJson.userInput, token, medicationProduct.id))
-              val json = DrugJson(Some(drugId.value),drugJson.userInput, Some(medicationProduct.id.get.value),
+              val drugId = Drug.insert(Drug(None, normalizedInput, token, medicationProduct.id))
+              val json = DrugJson(Some(drugId.value), normalizedInput, Some(medicationProduct.id.get.value),
                 Some(medicationProduct.name), false)
 
               Ok(Json.toJson(json)).withSession("token" -> token.value)
             case _ =>
               // There is no matching medication product
-              val alternatives = MedicationProduct.findAlternatives(drugJson.userInput, 0.3, 5)
+              val alternatives = MedicationProduct.findAlternatives(normalizedInput, 0.3, 5)
                 .map {
                   case (MedicationProduct(id, name)) =>
-                    DrugJson(None, drugJson.userInput, Some(id.get.value), Some(name), unresolvable = false)
+                    DrugJson(None, normalizedInput, Some(id.get.value), Some(name), unresolvable = false)
                 }
 
               BadRequest(Json.obj("alternatives" -> Json.toJson(alternatives)))

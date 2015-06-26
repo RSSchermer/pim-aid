@@ -2,7 +2,7 @@ package models
 
 import models.meta.Profile._
 import models.meta.Schema._
-import models.meta.Profile.driver.simple._
+import models.meta.Profile.driver.api._
 
 case class GenericTypeID(value: Long) extends MappedTo[Long]
 
@@ -16,16 +16,9 @@ case class GenericType(
 }
 
 object GenericType extends EntityCompanion[GenericTypes, GenericType, GenericTypeID] {
-  val query = TableQuery[GenericTypes]
+  val medicationProducts = toManyThrough[MedicationProducts, GenericTypesMedicationProducts, MedicationProduct]
+  val drugGroups = toManyThrough[DrugGroups, DrugGroupsGenericTypes, DrugGroup]
 
-  val medicationProducts = toManyThrough[MedicationProducts, GenericTypesMedicationProducts, MedicationProduct](
-    TableQuery[GenericTypesMedicationProducts] leftJoin TableQuery[MedicationProducts] on(_.medicationProductId === _.id),
-    _.id === _._1.genericTypeId)
-
-  val drugGroups = toManyThrough[DrugGroups, DrugGroupsGenericTypes, DrugGroup](
-    TableQuery[DrugGroupsGenericTypes] leftJoin TableQuery[DrugGroups] on(_.drugGroupId === _.id),
-    _.id === _._1.genericTypeId)
-
-  def findByName(name: String)(implicit s: Session): Option[GenericType] =
-    TableQuery[GenericTypes].filter(_.name.toLowerCase === name.toLowerCase).firstOption
+  def hasName(name: String): Query[GenericTypes, GenericType, Seq] =
+    all.filter(_.name.toLowerCase === name.toLowerCase)
 }

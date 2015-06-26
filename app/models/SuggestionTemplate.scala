@@ -17,9 +17,5 @@ case class SuggestionTemplate(
 }
 
 object SuggestionTemplate extends EntityCompanion[SuggestionTemplates, SuggestionTemplate, SuggestionTemplateID] {
-  val query = TableQuery[SuggestionTemplates]
-
-  val rules = toManyThrough[Rules, RulesSuggestionTemplates, Rule](
-    TableQuery[RulesSuggestionTemplates] leftJoin TableQuery[Rules] on(_.ruleId === _.id),
-    _.id === _._1.suggestionTemplateId)
+  val rules = toManyThrough[Rules, RulesSuggestionTemplates, Rule]
 }

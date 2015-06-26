@@ -2,7 +2,7 @@ package models
 
 import models.meta.Profile._
 import models.meta.Schema._
-import models.meta.Profile.driver.simple._
+import models.meta.Profile.driver.api._
 
 case class DrugID(value: Long) extends MappedTo[Long]
 
@@ -18,13 +18,6 @@ case class Drug(
 }
 
 object Drug extends EntityCompanion[Drugs, Drug, DrugID] {
-  val query = TableQuery[Drugs]
-
-  val userSession = toOne[UserSessions, UserSession](
-    TableQuery[UserSessions],
-    _.userToken === _.token)
-
-  val resolvedMedicationProduct = toOne[MedicationProducts, MedicationProduct](
-    TableQuery[MedicationProducts],
-    _.resolvedMedicationProductId === _.id)
+  val userSession = toOne[UserSessions, UserSession]
+  val resolvedMedicationProduct = toOne[MedicationProducts, MedicationProduct]
 }

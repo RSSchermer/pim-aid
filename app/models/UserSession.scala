@@ -2,7 +2,9 @@ package models
 
 import models.meta.Profile._
 import models.meta.Schema._
-import models.meta.Profile.driver.simple._
+import models.meta.Profile.driver.api._
+
+import scala.concurrent.ExecutionContext
 
 case class UserToken(value: String) extends MappedTo[String]
 
@@ -22,27 +24,32 @@ case class UserSession(
   val statementTermsUserSessions = many(UserSession.statementTermsUserSessions)
   val selectedStatementTerms = many(UserSession.selectedStatementTerms)
 
-  def buildIndependentStatements(implicit s: Session): Seq[Statement] = {
+  val genericTypes = medicationProducts.flatMap(_.genericTypes)
+  val drugGroups = genericTypes.flatMap(_.drugGroups)
+
+  def buildIndependentStatements(implicit ec: ExecutionContext): DBIO[Seq[Statement]] = {
     val selection = selectedStatementTerms.map(_.id).flatten
-    val independentTerms = StatementTerm.filter(_.displayCondition.isNull).list
 
-    independentTerms.map(x => Statement(x.id.get, x.statementTemplate.getOrElse(""), selection.contains(x.id.get)))
-  }
-
-  def saveIndependentStatementSelection(statements: Seq[Statement])(implicit session: Session) = {
-    session.withTransaction {
-      TableQuery[StatementTermsUserSessions]
-        .filter(x => x.userSessionToken === token && x.conditional === false)
-        .delete
-
-      statements.filter(_.selected == true).foreach { s =>
-        TableQuery[StatementTermsUserSessions]
-          .insert(StatementTermUserSession(token, s.termID, s.text, conditional = false))
-      }
+    for {
+      statementTerms <- StatementTerm.all.filter(_.displayCondition.isNull).result
+    } yield statementTerms.map { st =>
+      Statement(st.id.get, st.statementTemplate.getOrElse(""), selection.contains(st.id.get))
     }
   }
 
-  def buildConditionalStatements(implicit s: Session): Seq[Statement] = {
+  def saveIndependentStatementSelection(statements: Seq[Statement])
+                                       (implicit ex: ExecutionContext)
+  : DBIO[Unit] = {
+    val StUs = TableQuery[StatementTermsUserSessions]
+    val deleteOld = StUs.filter(x => x.userSessionToken === token && x.conditional === false).delete
+    val insertNew = DBIO.sequence(statements.filter(_.selected == true).map { s =>
+      StUs += StatementTermUserSession(token, s.termID, s.text, conditional = false)
+    })
+
+    deleteOld >> insertNew
+  }
+
+  def buildConditionalStatements(implicit ex: ExecutionContext): Seq[Statement] = {
     val parser = buildParser
     val selection = statementTermsUserSessions.map(x => (x.statementTermID, x.text))
 
@@ -90,12 +97,10 @@ case class UserSession(
   def buildSelectedStatements(implicit session: Session): Seq[Statement] =
     statementTermsUserSessions.map(x => Statement(x.statementTermID, x.text, x.conditional))
 
-  private def buildParser(implicit s: Session): ConditionExpressionParser = {
-    val expressionTerms = TableQuery[ExpressionTerms].list
-    val products = medicationProducts
-    val genericTypes = products.flatMap(_.genericTypes)
+  private def buildParser(implicit ex: ExecutionContext): ConditionExpressionParser = {
+    val expressionTerms = ExpressionTerm.all.result
     val genericTypeIds = genericTypes.map(_.id).flatten
-    val drugGroupIds = genericTypes.flatMap(_.drugGroups.map(_.id)).flatten
+    val drugGroupIds = drugGroups.map(_.id).flatten
     val selectedStatementTermLabels = selectedStatementTerms.map(_.label)
 
     val variableMap = expressionTerms.map(t => (t.label, t match {
@@ -105,7 +110,7 @@ case class UserSession(
         drugGroupIds.contains(drugGroupId)
       case ExpressionTerm(_, label, _, _, Some(statementTemplate), _, _, _) =>
         selectedStatementTermLabels.contains(label)
-      case ExpressionTerm(_, label, _, _, _, _, Some(comparisonOperator), Some(comparedAge)) =>
+      case ExpressionTerm(_, _, _, _, _, _, Some(comparisonOperator), Some(comparedAge)) =>
         compareAge(comparisonOperator, comparedAge)
     })).toMap
 
@@ -126,10 +131,10 @@ case class UserSession(
   }
 
   private def replacePlaceholders(template: String)(implicit s: Session): Seq[String] = {
-    val products = medicationProducts
-    val typesProducts = products.flatMap(p => p.genericTypes.map(t => (t, p)))
-    val groupsProducts =
-      products.flatMap(p => p.genericTypes.flatMap(_.drugGroups).map(g => (g, p)))
+    val typesProducts = medicationProducts.flatMap(p => p.genericTypes.map(t => (t, p)))
+    val groupsProducts = medicationProducts.flatMap { p =>
+      p.genericTypes.flatMap(_.drugGroups).map(g => (g, p))
+    }
 
     """\{\{(type|group)\(([^\)]+)\)\}\}""".r.findFirstMatchIn(template) match {
       case Some(m) => m.group(1).toLowerCase match {
@@ -150,23 +155,10 @@ case class UserSession(
 }
 
 object UserSession extends EntityCompanion[UserSessions, UserSession, UserToken] {
-  val query = TableQuery[UserSessions]
-
-  val drugs = toMany[Drugs, Drug](
-    TableQuery[Drugs],
-    _.token === _.userToken)
-
-  val medicationProducts = toManyThrough[MedicationProducts, Drugs, MedicationProduct](
-    TableQuery[Drugs] innerJoin TableQuery[MedicationProducts] on(_.resolvedMedicationProductId === _.id),
-    _.token === _._1.userToken)
-
-  val statementTermsUserSessions = toMany[StatementTermsUserSessions, StatementTermUserSession](
-    TableQuery[StatementTermsUserSessions],
-    _.token === _.userSessionToken)
-
-  val selectedStatementTerms = toManyThrough[ExpressionTerms, StatementTermsUserSessions, ExpressionTerm](
-    TableQuery[StatementTermsUserSessions] leftJoin TableQuery[ExpressionTerms] on(_.statementTermId === _.id),
-    _.token === _._1.userSessionToken)
+  val drugs = toMany[Drugs, Drug]
+  val medicationProducts = toManyThrough[MedicationProducts, Drugs, MedicationProduct]
+  val statementTermsUserSessions = toMany[StatementTermsUserSessions, StatementTermUserSession]
+  val selectedStatementTerms = toManyThrough[ExpressionTerms, StatementTermsUserSessions, ExpressionTerm]
 
   def generateToken(len: Int = 12): UserToken = {
     val rand = new scala.util.Random(System.nanoTime)
@@ -180,9 +172,8 @@ object UserSession extends EntityCompanion[UserSessions, UserSession, UserToken]
     UserToken(sb.toString())
   }
 
-  def create(token: UserToken = generateToken())(implicit s: Session): UserSession = {
+  def create(token: UserToken = generateToken()): DBIO[UserSession] = {
     val newUserSession = UserSession(token, None)
-    insert(newUserSession)
-    newUserSession
+    insert(newUserSession).map(_ => newUserSession)
   }
 }

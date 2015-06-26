@@ -2,8 +2,10 @@ package models
 
 import models.meta.Profile._
 import models.meta.Schema._
-import models.meta.Profile.driver.simple._
+import models.meta.Profile.driver.api._
 import com.rockymadden.stringmetric.similarity._
+
+import scala.concurrent.ExecutionContext
 
 case class MedicationProductID(value: Long) extends MappedTo[Long]
 
@@ -16,24 +18,19 @@ case class MedicationProduct(
 }
 
 object MedicationProduct extends EntityCompanion[MedicationProducts, MedicationProduct, MedicationProductID] {
-  val query = TableQuery[MedicationProducts]
+  val genericTypes = toManyThrough[GenericTypes, GenericTypesMedicationProducts, GenericType]
 
-  val genericTypes = toManyThrough[GenericTypes, GenericTypesMedicationProducts, GenericType](
-    TableQuery[GenericTypesMedicationProducts] leftJoin TableQuery[GenericTypes] on(_.genericTypeId === _.id),
-    _.id === _._1.medicationProductId)
+  def hasName(name: String): Query[MedicationProducts, MedicationProduct, Seq] =
+    all.filter(_.name.toLowerCase === name.toLowerCase)
 
-  def findByName(name: String)(implicit s: Session): Option[MedicationProduct] =
-    TableQuery[MedicationProducts].filter(_.name.toLowerCase === name.toLowerCase).firstOption
-
-  def findByUserInput(userInput: String)(implicit s: Session): Option[MedicationProduct] = {
-    val normalizedInput = userInput.trim().replaceAll("""\s+""", " ")
-    query.filter(_.name.toLowerCase === normalizedInput.toLowerCase).firstOption
-  }
-
-  def findAlternatives(userInput: String, similarityThreshold: Double, maxNum: Int)(implicit s: Session): Seq[MedicationProduct] =
-    list.map(x => (JaroWinklerMetric.compare(userInput.toLowerCase, x.name.toLowerCase), x))
-      .filter(_._1.get > similarityThreshold)
-      .sortBy(_._1)(Ordering[Option[Double]].reverse)
-      .take(maxNum)
-      .map(_._2)
+  def findAlternatives(userInput: String, similarityThreshold: Double, maxNum: Int)
+                      (implicit ec: ExecutionContext)
+  : DBIO[Seq[MedicationProduct]] =
+    all.result.map { products =>
+      products.map(p => (JaroWinklerMetric.compare(userInput.toLowerCase, p.name.toLowerCase), p))
+        .filter(_._1.get > similarityThreshold)
+        .sortBy(_._1)(Ordering[Option[Double]].reverse)
+        .take(maxNum)
+        .map(_._2)
+    }
 }

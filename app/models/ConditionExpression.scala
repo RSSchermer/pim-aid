@@ -1,7 +1,6 @@
 package models
 
-import models.meta.Profile
-import Profile.driver.simple._
+import models.meta.Profile.driver.api._
 import scala.util.parsing.combinator.JavaTokenParsers
 import java.util.regex.Pattern
 

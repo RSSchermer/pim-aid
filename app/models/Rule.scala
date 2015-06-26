@@ -2,7 +2,7 @@ package models
 
 import models.meta.Profile._
 import models.meta.Schema._
-import models.meta.Profile.driver.simple._
+import models.meta.Profile.driver.api._
 
 case class RuleID(value: Long) extends MappedTo[Long]
 
@@ -19,15 +19,12 @@ case class Rule(
 }
 
 object Rule extends EntityCompanion[Rules, Rule, RuleID] {
-  val query = TableQuery[Rules]
+  val suggestionTemplates = toManyThrough[SuggestionTemplates, RulesSuggestionTemplates, SuggestionTemplate]
 
-  val suggestionTemplates = toManyThrough[SuggestionTemplates, RulesSuggestionTemplates, SuggestionTemplate](
-    TableQuery[RulesSuggestionTemplates] leftJoin TableQuery[SuggestionTemplates] on(_.suggestionTemplateId === _.id),
-    _.id === _._1.ruleId)
-
-  override protected def afterSave(ruleId: RuleID, rule: Rule)(implicit s: Session): Unit = {
+  override protected def afterSave(ruleId: RuleID, rule: Rule): DBIO[Unit] = {
     val tableQuery = TableQuery[ExpressionTermsRules]
-    tableQuery.filter(_.ruleId === ruleId).delete
-    rule.conditionExpression.expressionTerms.foreach(t => tableQuery.insert((t.id.get, ruleId)))
+
+    tableQuery.filter(_.ruleId === ruleId).delete >>
+    DBIO.sequence(rule.conditionExpression.expressionTerms.map(t => tableQuery += (t.id.get, ruleId)))
   }
 }

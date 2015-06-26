@@ -1,13 +1,13 @@
 package models.meta
 
 import models.meta.Profile._
-import models.meta.Profile.driver.simple._
+import models.meta.Profile.driver.api._
 import models._
 
 object Schema {
   class DrugGroups(tag: Tag) extends EntityTable[DrugGroup, DrugGroupID](tag, "DRUG_GROUPS") {
     def id = column[DrugGroupID]("id", O.PrimaryKey, O.AutoInc)
-    def name = column[String]("name", O.NotNull)
+    def name = column[String]("name")
 
     def * = (id.?, name) <>((DrugGroup.apply _).tupled, DrugGroup.unapply)
 
@@ -32,8 +32,8 @@ object Schema {
 
   class Drugs(tag: Tag) extends EntityTable[Drug, DrugID](tag, "DRUGS") {
     def id = column[DrugID]("id", O.PrimaryKey, O.AutoInc)
-    def userInput = column[String]("userInput", O.NotNull)
-    def userToken = column[UserToken]("userToken", O.NotNull)
+    def userInput = column[String]("userInput")
+    def userToken = column[UserToken]("userToken")
     def resolvedMedicationProductId = column[MedicationProductID]("resolved_medication_product_id", O.Nullable)
 
     def * = (id.?, userInput, userToken, resolvedMedicationProductId.?) <>((Drug.apply _).tupled, Drug.unapply)
@@ -44,13 +44,13 @@ object Schema {
 
   class ExpressionTerms(tag: Tag) extends EntityTable[ExpressionTerm, ExpressionTermID](tag, "EXPRESSION_TERMS") {
     def id = column[ExpressionTermID]("id", O.PrimaryKey, O.AutoInc)
-    def label = column[String]("label", O.NotNull)
-    def genericTypeId = column[GenericTypeID]("drug_type_id", O.Nullable)
-    def drugGroupId = column[DrugGroupID]("drug_group_id", O.Nullable)
-    def statementTemplate = column[String]("statement_template", O.Nullable)
-    def displayCondition = column[ConditionExpression]("display_condition", O.Nullable)
-    def comparisonOperator = column[String]("comparison_operator", O.Nullable)
-    def age = column[Int]("age", O.Nullable)
+    def label = column[String]("label")
+    def genericTypeId = column[Option[GenericTypeID]]("drug_type_id")
+    def drugGroupId = column[Option[DrugGroupID]]("drug_group_id")
+    def statementTemplate = column[Option[String]]("statement_template")
+    def displayCondition = column[Option[ConditionExpression]]("display_condition")
+    def comparisonOperator = column[Option[String]]("comparison_operator")
+    def age = column[Option[Int]]("age")
 
     def * = (id.?, label, genericTypeId.?, drugGroupId.?, statementTemplate.?, displayCondition.?, comparisonOperator.?, age.?) <>
       ((ExpressionTerm.apply _).tupled, ExpressionTerm.unapply)
@@ -92,7 +92,7 @@ object Schema {
 
   class GenericTypes(tag: Tag) extends EntityTable[GenericType, GenericTypeID](tag, "GENERIC_TYPES") {
     def id = column[GenericTypeID]("id", O.PrimaryKey, O.AutoInc)
-    def name = column[String]("name", O.NotNull)
+    def name = column[String]("name")
 
     def * = (id.?, name) <>((GenericType.apply _).tupled, GenericType.unapply)
 
@@ -119,7 +119,7 @@ object Schema {
     extends EntityTable[MedicationProduct, MedicationProductID](tag, "MEDICATION_PRODUCTS")
   {
     def id = column[MedicationProductID]("id", O.PrimaryKey, O.AutoInc)
-    def name = column[String]("name", O.NotNull)
+    def name = column[String]("name")
 
     def * = (id.?, name) <>((MedicationProduct.apply _).tupled, MedicationProduct.unapply)
 
@@ -128,11 +128,11 @@ object Schema {
 
   class Rules(tag: Tag) extends EntityTable[Rule, RuleID](tag, "RULES") {
     def id = column[RuleID]("id", O.PrimaryKey, O.AutoInc)
-    def name = column[String]("name", O.NotNull)
-    def conditionExpression = column[ConditionExpression]("condition_expression", O.NotNull)
-    def source = column[String]("source", O.Nullable)
-    def formalizationReference = column[String]("formalization_reference", O.Nullable)
-    def note = column[String]("note", O.Nullable)
+    def name = column[String]("name")
+    def conditionExpression = column[ConditionExpression]("condition_expression")
+    def source = column[Option[String]]("source")
+    def formalizationReference = column[Option[String]]("formalization_reference")
+    def note = column[Option[String]]("note")
 
     def * = (id.?, name, conditionExpression, source.?, formalizationReference.?, note.?) <>
       ((Rule.apply _).tupled, Rule.unapply)
@@ -180,9 +180,9 @@ object Schema {
     extends EntityTable[SuggestionTemplate, SuggestionTemplateID](tag, "SUGGESTION_TEMPLATES")
   {
     def id = column[SuggestionTemplateID]("id", O.PrimaryKey, O.AutoInc)
-    def name = column[String]("name", O.NotNull)
-    def text = column[String]("text", O.NotNull)
-    def explanatoryNote = column[String]("explanatory_note", O.Nullable)
+    def name = column[String]("name")
+    def text = column[String]("text")
+    def explanatoryNote = column[Option[String]]("explanatory_note")
 
     def * = (id.?, name, text, explanatoryNote.?) <>
       ((SuggestionTemplate.apply _).tupled, SuggestionTemplate.unapply)
@@ -192,7 +192,7 @@ object Schema {
 
   class UserSessions(tag: Tag) extends EntityTable[UserSession, UserToken](tag, "USER_SESSIONS") {
     def token = column[UserToken]("token", O.PrimaryKey)
-    def age = column[Int]("age", O.Nullable)
+    def age = column[Option[Int]]("age")
 
     def id = token
 

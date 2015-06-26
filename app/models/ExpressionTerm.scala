@@ -2,7 +2,7 @@ package models
 
 import models.meta.Profile._
 import models.meta.Schema._
-import models.meta.Profile.driver.simple._
+import models.meta.Profile.driver.api._
 
 case class ExpressionTermID(value: Long) extends MappedTo[Long]
 
@@ -24,57 +24,54 @@ case class ExpressionTerm(
 }
 
 abstract class ExpressionTermCompanion extends EntityCompanion[ExpressionTerms, ExpressionTerm, ExpressionTermID] {
-  def findByLabel(label: String)(implicit s: Session): Option[ExpressionTerm] =
-    filter(_.label === label).firstOption
+  def hasLabel(label: String): Query[ExpressionTerms, ExpressionTerm, Seq] =
+    all.filter(_.label === label)
 
-  override protected def beforeUpdate(term: ExpressionTerm)(implicit s: Session): ExpressionTerm = {
-    updateDependentRuleConditions(term)
-    updateDependentStatementTermConditions(term)
-    term
-  }
+  override protected def beforeUpdate(term: ExpressionTerm): DBIO[ExpressionTerm] =
+    DBIO.seq(
+      updateDependentRuleConditions(term),
+      updateDependentStatementTermConditions(term)
+    ).map(_ => term)
 
-  override protected def afterSave(id: ExpressionTermID, term: ExpressionTerm)(implicit s: Session): Unit =
-    if (term.displayCondition.nonEmpty) {
-      val etst = TableQuery[ExpressionTermsStatementTerms]
-      etst.filter(_.statementTermId === id).delete
-      term.displayCondition.get.expressionTerms.foreach(t => etst.insert((t.id.get, id)))
-    } else ()
+  override protected def afterSave(id: ExpressionTermID, term: ExpressionTerm): DBIO[Unit] =
+    term.displayCondition match {
+      case Some(condition) =>
+        val etst = TableQuery[ExpressionTermsStatementTerms]
+        etst.filter(_.statementTermId === id).delete >>
+        DBIO.sequence(condition.expressionTerms.map(t => etst += (t.id.get, id)))
+      case _ =>
+        DBIO[Unit]
+    }
 
-  private def updateDependentRuleConditions(term: ExpressionTerm)(implicit s: Session): Unit = {
-    val oldLabel = ExpressionTerm.find(term.id.get).get.label
 
-    term.dependentRules.foreach((r: Rule) => {
+  private def updateDependentRuleConditions(term: ExpressionTerm): DBIO[Unit] =
+    for {
+      oldLabel <- ExpressionTerm.one(term.id.get).map(_.label).result
+      rules <- term.dependentRules.action
+    } yield DBIO.sequence(rules.map { r =>
       val updatedCE = r.conditionExpression.replaceLabel(oldLabel, term.label)
 
       // Update rule via TableQuery to bypass afterSave hook, because it will look
       // for an expression term with a label which does not yet exist at this time.
-      TableQuery[Rules].filter(_.id === r.id).update(r.copy(conditionExpression = updatedCE))
+      TableQuery[Rule].update(r.copy(conditionExpression = updatedCE))
     })
-  }
 
-  private def updateDependentStatementTermConditions(term: ExpressionTerm)(implicit s: Session): Unit = {
-    val oldLabel = ExpressionTerm.find(term.id.get).get.label
-
-    term.dependentStatementTerms.foreach((st: ExpressionTerm) => {
+  private def updateDependentStatementTermConditions(term: ExpressionTerm): DBIO[Unit] =
+    for {
+      oldLabel <- ExpressionTerm.one(term.id.get).map(_.label).result
+      statementTerms <- term.dependentStatementTerms.action
+    } yield DBIO.sequence(statementTerms.map { st =>
       val updatedDC = st.displayCondition.get.replaceLabel(oldLabel, term.label)
 
       // Update statement term via TableQuery to bypass afterSave hook, because it will look
       // for an expression term with a label which does not yet exist at this time.
-      TableQuery[ExpressionTerms].filter(_.id === st.id).update(st.copy(displayCondition = Some(updatedDC)))
+      TableQuery[ExpressionTerms].update(st.copy(displayCondition = Some(updatedDC)))
     })
-  }
 }
 
 object ExpressionTerm extends ExpressionTermCompanion {
-  val query = TableQuery[ExpressionTerms]
-
-  val dependentStatementTerms = toManyThrough[ExpressionTerms, ExpressionTermsStatementTerms, ExpressionTerm](
-    TableQuery[ExpressionTermsStatementTerms] innerJoin TableQuery[ExpressionTerms] on(_.statementTermId === _.id),
-    _.id === _._1.expressionTermId)
-
-  val dependentRules = toManyThrough[Rules, ExpressionTermsRules, Rule](
-    TableQuery[ExpressionTermsRules] innerJoin TableQuery[Rules] on(_.ruleId === _.id),
-    _.id === _._1.expressionTermId)
+  val dependentStatementTerms = toManyThrough[ExpressionTerms, ExpressionTermsStatementTerms, ExpressionTerm]
+  val dependentRules = toManyThrough[Rules, ExpressionTermsRules, Rule]
 }
 
 case class GenericTypeTerm(
@@ -85,9 +82,7 @@ case class GenericTypeTerm(
 object GenericTypeTerm extends ExpressionTermCompanion {
   override val query = TableQuery[ExpressionTerms].filter(_.genericTypeId.isNotNull)
 
-  val genericType = toOne[GenericTypes, GenericType](
-    TableQuery[GenericTypes],
-    _.genericTypeId === _.id)
+  val genericType = toOne[GenericTypes, GenericType]
 }
 
 case class DrugGroupTerm(
@@ -98,9 +93,7 @@ case class DrugGroupTerm(
 object DrugGroupTerm extends ExpressionTermCompanion {
   override val query = TableQuery[ExpressionTerms].filter(_.drugGroupId.isNotNull)
 
-  val drugGroup = toOne[DrugGroups, DrugGroup](
-    TableQuery[DrugGroups],
-    _.drugGroupId === _.id)
+  val drugGroup = toOne[DrugGroups, DrugGroup]
 }
 
 case class StatementTerm(
