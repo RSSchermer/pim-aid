@@ -1,4 +1,4 @@
-@(drugGroupTerms: Seq[ExpressionTerm])(implicit flash: play.api.mvc.Flash, s: play.api.db.slick.Session)
+@(drugGroupTerms: Seq[ExpressionTerm])(implicit flash: Flash, ec: ExecutionContext)
 
 @expressionTerms("Drug group term list", "drugGroupTerms") {
     @flash.get("success").map { message =>

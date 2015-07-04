@@ -1,4 +1,4 @@
-@(genericTypes: Seq[GenericType])(implicit flash: play.api.mvc.Flash)
+@(genericTypes: Seq[GenericType])(implicit flash: Flash)
 
 @admin("Generic type list", "genericTypes") {
     @flash.get("success").map { message =>

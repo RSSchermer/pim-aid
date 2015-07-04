@@ -1,7 +1,7 @@
-@(genericTypeTermForm: Form[GenericTypeTerm])(implicit session: play.api.db.slick.Session)
+@(genericTypes: Seq[GenericType], genericTypeTermForm: Form[GenericTypeTerm])(implicit messages: Messages)
 
 @expressionTerms("Creating a new generic type term", "genericTypeTerms") {
     <h1>Creating a new generic type term</h1>
 
-    @genericTypeTerms.form(genericTypeTermForm, routes.GenericTypeTermsController.save())
+    @genericTypeTerms.form(genericTypes, genericTypeTermForm, routes.GenericTypeTermsController.save())
 }

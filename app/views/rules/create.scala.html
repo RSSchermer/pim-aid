@@ -1,7 +1,7 @@
-@(ruleForm: Form[Rule])(implicit session: play.api.db.slick.Session)
+@(expressionTerms: Seq[ExpressionTerm], ruleForm: Form[Rule])(implicit messages: Messages)
 
 @admin("Creating a new rule", "rules") {
     <h1>Creating a new rule</h1>
 
-    @rules.form(ruleForm, routes.RulesController.save())
+    @rules.form(expressionTerms, ruleForm, routes.RulesController.save())
 }

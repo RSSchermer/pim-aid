@@ -34,12 +34,13 @@ object Schema {
     def id = column[DrugID]("id", O.PrimaryKey, O.AutoInc)
     def userInput = column[String]("userInput")
     def userToken = column[UserToken]("userToken")
-    def resolvedMedicationProductId = column[MedicationProductID]("resolved_medication_product_id", O.Nullable)
+    def resolvedMedicationProductId = column[Option[MedicationProductID]]("resolved_medication_product_id")
 
-    def * = (id.?, userInput, userToken, resolvedMedicationProductId.?) <>((Drug.apply _).tupled, Drug.unapply)
+    def * = (id.?, userInput, userToken, resolvedMedicationProductId) <>((Drug.apply _).tupled, Drug.unapply)
 
     def resolvedMedicationProduct = foreignKey("DRUGS_RESOLVED_MEDICATION_PRODUCT_FK", resolvedMedicationProductId,
       TableQuery[MedicationProducts])(_.id)
+    def userSession = foreignKey("DRUGS_USER_SESSION_FK", userToken, TableQuery[UserSessions])(_.id)
   }
 
   class ExpressionTerms(tag: Tag) extends EntityTable[ExpressionTerm, ExpressionTermID](tag, "EXPRESSION_TERMS") {
@@ -52,7 +53,7 @@ object Schema {
     def comparisonOperator = column[Option[String]]("comparison_operator")
     def age = column[Option[Int]]("age")
 
-    def * = (id.?, label, genericTypeId.?, drugGroupId.?, statementTemplate.?, displayCondition.?, comparisonOperator.?, age.?) <>
+    def * = (id.?, label, genericTypeId, drugGroupId, statementTemplate, displayCondition, comparisonOperator, age) <>
       ((ExpressionTerm.apply _).tupled, ExpressionTerm.unapply)
 
     def labelIndex = index("EXPRESSION_TERMS_LABEL_INDEX", label, unique = true)
@@ -134,7 +135,7 @@ object Schema {
     def formalizationReference = column[Option[String]]("formalization_reference")
     def note = column[Option[String]]("note")
 
-    def * = (id.?, name, conditionExpression, source.?, formalizationReference.?, note.?) <>
+    def * = (id.?, name, conditionExpression, source, formalizationReference, note) <>
       ((Rule.apply _).tupled, Rule.unapply)
 
     def nameIndex = index("RULES_NAME_INDEX", name, unique = true)
@@ -184,7 +185,7 @@ object Schema {
     def text = column[String]("text")
     def explanatoryNote = column[Option[String]]("explanatory_note")
 
-    def * = (id.?, name, text, explanatoryNote.?) <>
+    def * = (id.?, name, text, explanatoryNote) <>
       ((SuggestionTemplate.apply _).tupled, SuggestionTemplate.unapply)
 
     def nameIndex = index("SUGGESTION_TEMPLATES_NAME_INDEX", name, unique = true)
@@ -196,6 +197,6 @@ object Schema {
 
     def id = token
 
-    def * = (token, age.?) <>((UserSession.apply _).tupled, UserSession.unapply)
+    def * = (token, age) <>((UserSession.apply _).tupled, UserSession.unapply)
   }
 }

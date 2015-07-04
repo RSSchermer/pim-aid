@@ -1,4 +1,4 @@
-@(suggestionTemplates: Seq[SuggestionTemplate])(implicit flash: play.api.mvc.Flash, session: play.api.db.slick.Session)
+@(suggestionTemplates: Seq[SuggestionTemplate])(implicit flash: Flash, ec: ExecutionContext)
 
 @admin("Suggestion list", "suggestionTemplates") {
     @flash.get("success").map { message =>

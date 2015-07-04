@@ -1,4 +1,8 @@
-@(statementTermForm: Form[StatementTerm], action: Call)(implicit session: play.api.db.slick.Session)
+@(
+    expressionTerms: Seq[ExpressionTerm],
+    statementTermForm: Form[StatementTerm],
+    action: Call
+)(implicit messages: Messages)
 
 @implicitFieldConstructor = @{ b3.horizontal.fieldConstructor("col-md-3", "col-md-9") }
 
@@ -22,7 +26,7 @@
     </div>
 
     <script>
-        window.validCEVariables = [@Html(ExpressionTerm.list.map("\""+ _.label +"\"").mkString(","))];
+        window.validCEVariables = [@Html(expressionTerms.map("\""+ _.label +"\"").mkString(","))];
 
         $(document).ready(function () {
             CodeMirror.fromTextArea(document.getElementById("displayCondition"), {

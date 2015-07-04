@@ -1,7 +1,8 @@
 @(
     rule: Rule,
+    suggestionTemplates: Seq[SuggestionTemplate],
     ruleSuggestionTemplateForm: Form[(RuleID, SuggestionTemplateID)]
-)(implicit flash: play.api.mvc.Flash, session: play.api.db.slick.Session)
+)(implicit flash: Flash, messages: Messages, ec: ExecutionContext)
 
 @import b3.inline.fieldConstructor
 
@@ -21,7 +22,7 @@
         <fieldset>
             <input type="hidden" name="ruleId" value='@rule.id.get.value'>
             @b3.select(ruleSuggestionTemplateForm("suggestionTemplateId"),
-                SuggestionTemplate.list.map(gt => gt.id.get.value.toString -> gt.name),
+                suggestionTemplates.map(gt => gt.id.get.value.toString -> gt.name),
                 'class -> "searchable-select")
             @b3.submit('class -> "btn btn-primary"){ <span class="fa fa-plus"></span> Add suggestion }
         </fieldset>

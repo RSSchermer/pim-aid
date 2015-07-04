@@ -1,4 +1,8 @@
-@(genericTypeTermForm: Form[GenericTypeTerm], action: Call)(implicit session: play.api.db.slick.Session)
+@(
+    genericTypes: Seq[GenericType],
+    genericTypeTermForm: Form[GenericTypeTerm],
+    action: Call
+)(implicit messages: Messages)
 
 @implicitFieldConstructor = @{ b3.horizontal.fieldConstructor("col-md-3", "col-md-9") }
 
@@ -7,7 +11,7 @@
         <input type="hidden" name="id" value="@genericTypeTermForm("id").value">
         @b3.text(genericTypeTermForm("label"), '_label -> "Label")
         @b3.select(genericTypeTermForm("genericTypeId"),
-            GenericType.list.map(g => g.id.get.value.toString -> g.name),
+            genericTypes.map(g => g.id.get.value.toString -> g.name),
             '_label -> "Generic Type", 'class -> "searchable-select")
     </fieldset>
 

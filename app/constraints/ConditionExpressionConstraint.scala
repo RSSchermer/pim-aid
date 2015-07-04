@@ -1,13 +1,21 @@
 package constraints
 
-import models._
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Await
+import scala.concurrent.duration._
+import scala.language.postfixOps
+
 import play.api.data.validation.{Constraint, Invalid, Valid}
-import play.api.db.slick._
+
+import models._
+import models.meta.Profile._
+import models.meta.Profile.driver.api._
 
 object ConditionExpressionConstraint {
-  def apply(implicit s: Session): Constraint[String] =
+  def apply(implicit ec: ExecutionContext): Constraint[String] =
     Constraint[String]("constraints.parsableExpression")({ expression =>
-      val variableMap: Map[String, Boolean] = ExpressionTerm.list.map(t => (t.label, false)).toMap
+      val variableMap: Map[String, Boolean] =
+        Await.result(db.run(ExpressionTerm.all.map(t => (t.label, false)).result), 10 seconds).toMap
       val parser = new ConditionExpressionParser(variableMap)
 
       parser.parse(ConditionExpression(expression)) match {

@@ -53,7 +53,6 @@ POST          /admin/suggestions/:id/delete                                     
 # Drug groups
 GET           /admin/drug_groups                                                               controllers.DrugGroupsController.list
 GET           /admin/drug_groups/new                                                           controllers.DrugGroupsController.create
-POST          /admin/drug_groups/importFtkGroup                                                controllers.DrugGroupsController.importFtkGroup
 POST          /admin/drug_groups                                                               controllers.DrugGroupsController.save
 GET           /admin/drug_groups/:id/edit                                                      controllers.DrugGroupsController.edit(id: Long)
 POST          /admin/drug_groups/:id                                                           controllers.DrugGroupsController.update(id: Long)
@@ -78,7 +77,6 @@ POST          /admin/generic_types/:id/delete                                   
 # Medication products
 GET           /admin/medication_products                                                       controllers.MedicationProductsController.list
 GET           /admin/medication_products/new                                                   controllers.MedicationProductsController.create
-POST          /admin/medication_products/upload_csv                                            controllers.MedicationProductsController.uploadCSV
 POST          /admin/medication_products                                                       controllers.MedicationProductsController.save
 GET           /admin/medication_products/:id/edit                                              controllers.MedicationProductsController.edit(id: Long)
 POST          /admin/medication_products/:id                                                   controllers.MedicationProductsController.update(id: Long)

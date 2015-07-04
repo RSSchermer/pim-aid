@@ -1,4 +1,4 @@
-@(rules: Seq[Rule])(implicit flash: play.api.mvc.Flash, session: play.api.db.slick.Session)
+@(rules: Seq[Rule])(implicit flash: Flash, messages: Messages, ec: ExecutionContext)
 
 @admin("Rule list", "rules") {
     @flash.get("success").map { message =>

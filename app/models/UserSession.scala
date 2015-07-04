@@ -23,11 +23,10 @@ case class UserSession(
   val medicationProducts = many(UserSession.medicationProducts)
   val statementTermsUserSessions = many(UserSession.statementTermsUserSessions)
   val selectedStatementTerms = many(UserSession.selectedStatementTerms)
+  val genericTypes = many(UserSession.genericTypes)
+  val drugGroups = many(UserSession.drugGroups)
 
-  val genericTypes = medicationProducts.flatMap(_.genericTypes)
-  val drugGroups = genericTypes.flatMap(_.drugGroups)
-
-  def buildIndependentStatements(implicit ec: ExecutionContext): DBIO[Seq[Statement]] = {
+  def buildIndependentStatements()(implicit ec: ExecutionContext): DBIO[Seq[Statement]] = {
     val selection = selectedStatementTerms.map(_.id).flatten
 
     for {
@@ -37,85 +36,92 @@ case class UserSession(
     }
   }
 
-  def saveIndependentStatementSelection(statements: Seq[Statement])
-                                       (implicit ex: ExecutionContext)
-  : DBIO[Unit] = {
-    val StUs = TableQuery[StatementTermsUserSessions]
-    val deleteOld = StUs.filter(x => x.userSessionToken === token && x.conditional === false).delete
+  def saveIndependentStatementSelection(statements: Seq[Statement])(implicit ex: ExecutionContext): DBIO[Unit] = {
+    val tq = TableQuery[StatementTermsUserSessions]
+    val deleteOld = tq.filter(x => x.userSessionToken === token && x.conditional === false).delete
     val insertNew = DBIO.sequence(statements.filter(_.selected == true).map { s =>
-      StUs += StatementTermUserSession(token, s.termID, s.text, conditional = false)
+      tq += StatementTermUserSession(token, s.termID, s.text, conditional = false)
     })
 
-    deleteOld >> insertNew
+    deleteOld >> insertNew >> DBIO.successful(())
   }
 
-  def buildConditionalStatements(implicit ex: ExecutionContext): Seq[Statement] = {
-    val parser = buildParser
-    val selection = statementTermsUserSessions.map(x => (x.statementTermID, x.text))
+  def buildConditionalStatements()(implicit ex: ExecutionContext): DBIO[Seq[Statement]] =
+    for {
+      conditionalTerms <- StatementTerm.all.filter(_.displayCondition.isNotNull).result
+      parser <- buildParser()
+      placeholderReplacer <- buildPlaceholderReplacer()
+      selection <- statementTermsUserSessions.valueAction
+    } yield {
+      val statements = conditionalTerms
+        .filter(t => parser.parse(t.displayCondition.getOrElse(ConditionExpression(""))).getOrElse(false))
+        .flatMap { term =>
+          placeholderReplacer.replacePlaceholders(term.statementTemplate.getOrElse("")).map { text =>
+            Statement(term.id.get, text, selection.contains((term.id.get, text)))
+          }
+        }
 
-    val statements = for {
-      term <- StatementTerm.filter(_.displayCondition.isNotNull).list
-      text <- replacePlaceholders(term.statementTemplate.getOrElse(""))
-      if parser.parse(term.displayCondition.getOrElse(ConditionExpression(""))).getOrElse(false)
-    } yield Statement(term.id.get, text, selection.contains((term.id.get, text)))
-
-    statements.distinct
-  }
-
-  def saveConditionalStatementSelection(statements: Seq[Statement])(implicit session: Session) = {
-    session.withTransaction {
-      TableQuery[StatementTermsUserSessions]
-        .filter(x => x.userSessionToken === token && x.conditional === true)
-        .delete
-
-      statements.filter(_.selected == true).foreach { s =>
-        TableQuery[StatementTermsUserSessions]
-          .insert(StatementTermUserSession(token, s.termID, s.text, conditional = true))
-      }
+      statements.distinct
     }
+
+  def saveConditionalStatementSelection(statements: Seq[Statement])(implicit ec: ExecutionContext): DBIO[Unit] = {
+    val tq = TableQuery[StatementTermsUserSessions]
+    val deleteOld = tq.filter(x => x.userSessionToken === token && x.conditional === true).delete
+    val insertNew = DBIO.sequence(statements.filter(_.selected == true).map { s =>
+      tq += StatementTermUserSession(token, s.termID, s.text, conditional = true)
+    })
+
+    deleteOld >> insertNew >> DBIO.successful(())
   }
 
-  def buildSuggestions(implicit session: Session): Seq[Suggestion] = {
-    val parser = buildParser
+  def buildSuggestions()(implicit ec: ExecutionContext): DBIO[Seq[Suggestion]] =
+    for {
+      rules <- Rule.all.include(Rule.suggestionTemplates).result
+      parser <- buildParser()
+      placeholderReplacer <- buildPlaceholderReplacer()
+    } yield {
+      val suggestions = for {
+        rule <- rules
+        template <- rule.suggestionTemplates
+        suggestion <- template.explanatoryNote match {
+          case Some(note) =>
+            (placeholderReplacer.replacePlaceholders(template.text) zip placeholderReplacer.replacePlaceholders(note))
+              .map(x => Suggestion(x._1, Some(x._2), rule))
+          case _ =>
+            placeholderReplacer.replacePlaceholders(template.text).map(x => Suggestion(x, None, rule))
+        }
+        if parser.parse(rule.conditionExpression).getOrElse(false)
+      } yield suggestion
 
-    val suggestions = for {
-      rule <- Rule.include(Rule.suggestionTemplates).list
-      template <- rule.suggestionTemplates
-      suggestion <- template.explanatoryNote match {
-        case Some(note) =>
-          (replacePlaceholders(template.text) zip replacePlaceholders(note))
-            .map(x => Suggestion(x._1, Some(x._2), rule))
-        case _ =>
-          replacePlaceholders(template.text).map(x => Suggestion(x, None, rule))
-      }
-      if parser.parse(rule.conditionExpression).getOrElse(false)
-    } yield suggestion
+      suggestions.distinct
+    }
 
-    suggestions.distinct
-  }
+  def buildSelectedStatements()(implicit ec: ExecutionContext): DBIO[Seq[Statement]] =
+    statementTermsUserSessions.valueAction
+      .map(_.map(x => Statement(x.statementTermID, x.text, x.conditional)))
 
-  def buildSelectedStatements(implicit session: Session): Seq[Statement] =
-    statementTermsUserSessions.map(x => Statement(x.statementTermID, x.text, x.conditional))
+  private def buildParser()(implicit ex: ExecutionContext): DBIO[ConditionExpressionParser] =
+    for {
+      expressionTerms <- ExpressionTerm.all.result
+      genericTypeIds <- genericTypes.valueAction.map(_.map(_.id).flatten)
+      drugGroupIds <- drugGroups.valueAction.map(_.map(_.id).flatten)
+      selectedTerms <- selectedStatementTerms.valueAction
+    } yield {
+      val selectedStatementTermLabels = selectedTerms.map(_.label)
 
-  private def buildParser(implicit ex: ExecutionContext): ConditionExpressionParser = {
-    val expressionTerms = ExpressionTerm.all.result
-    val genericTypeIds = genericTypes.map(_.id).flatten
-    val drugGroupIds = drugGroups.map(_.id).flatten
-    val selectedStatementTermLabels = selectedStatementTerms.map(_.label)
+      val variableMap = expressionTerms.map(t => (t.label, t match {
+        case ExpressionTerm(_, _, Some(genericTypeId), _, _, _, _, _) =>
+          genericTypeIds.contains(genericTypeId)
+        case ExpressionTerm(_, _, _, Some(drugGroupId), _, _, _, _) =>
+          drugGroupIds.contains(drugGroupId)
+        case ExpressionTerm(_, label, _, _, Some(statementTemplate), _, _, _) =>
+          selectedStatementTermLabels.contains(label)
+        case ExpressionTerm(_, _, _, _, _, _, Some(comparisonOperator), Some(comparedAge)) =>
+          compareAge(comparisonOperator, comparedAge)
+      })).toMap
 
-    val variableMap = expressionTerms.map(t => (t.label, t match {
-      case ExpressionTerm(_, _, Some(genericTypeId), _, _, _, _, _) =>
-        genericTypeIds.contains(genericTypeId)
-      case ExpressionTerm(_, _, _, Some(drugGroupId), _, _, _, _) =>
-        drugGroupIds.contains(drugGroupId)
-      case ExpressionTerm(_, label, _, _, Some(statementTemplate), _, _, _) =>
-        selectedStatementTermLabels.contains(label)
-      case ExpressionTerm(_, _, _, _, _, _, Some(comparisonOperator), Some(comparedAge)) =>
-        compareAge(comparisonOperator, comparedAge)
-    })).toMap
-
-    new ConditionExpressionParser(variableMap)
-  }
+      new ConditionExpressionParser(variableMap)
+    }
 
   private def compareAge(comparisonOperator: String, comparedAge: Int) = {
     val userAge = age.getOrElse(0)
@@ -130,28 +136,15 @@ case class UserSession(
     }
   }
 
-  private def replacePlaceholders(template: String)(implicit s: Session): Seq[String] = {
-    val typesProducts = medicationProducts.flatMap(p => p.genericTypes.map(t => (t, p)))
-    val groupsProducts = medicationProducts.flatMap { p =>
-      p.genericTypes.flatMap(_.drugGroups).map(g => (g, p))
-    }
+  private def buildPlaceholderReplacer()(implicit ec: ExecutionContext): DBIO[PlaceholderReplacer] =
+    for {
+      products <- medicationProducts.valueAction
+    } yield {
+      val typeProductMap = medicationProducts.flatMap(p => p.genericTypes.map(t => (t, p))).toMap
+      val groupProductMap = medicationProducts.flatMap(p => p.genericTypes.flatMap(_.drugGroups).map(g => (g, p))).toMap
 
-    """\{\{(type|group)\(([^\)]+)\)\}\}""".r.findFirstMatchIn(template) match {
-      case Some(m) => m.group(1).toLowerCase match {
-        case "type" =>
-          typesProducts
-            .filter(x => x._1.name.toLowerCase == m.group(2).toLowerCase)
-            .map { x => template.replaceAll(s"""\\{\\{type\\(${m.group(2)}\\)\\}\\}""", x._2.name) }
-            .flatMap(replacePlaceholders)
-        case "group" =>
-          groupsProducts
-            .filter(x => x._1.name.toLowerCase == m.group(2).toLowerCase)
-            .map { x => template.replaceAll(s"""\\{\\{group\\(${m.group(2)}\\)\\}\\}""", x._2.name) }
-            .flatMap(replacePlaceholders)
-      }
-      case _ => List(template)
+      new PlaceholderReplacer(typeProductMap, groupProductMap)
     }
-  }
 }
 
 object UserSession extends EntityCompanion[UserSessions, UserSession, UserToken] {
@@ -159,6 +152,8 @@ object UserSession extends EntityCompanion[UserSessions, UserSession, UserToken]
   val medicationProducts = toManyThrough[MedicationProducts, Drugs, MedicationProduct]
   val statementTermsUserSessions = toMany[StatementTermsUserSessions, StatementTermUserSession]
   val selectedStatementTerms = toManyThrough[ExpressionTerms, StatementTermsUserSessions, ExpressionTerm]
+  val genericTypes = medicationProducts compose MedicationProduct.genericTypes
+  val drugGroups = genericTypes compose GenericType.drugGroups
 
   def generateToken(len: Int = 12): UserToken = {
     val rand = new scala.util.Random(System.nanoTime)
@@ -172,8 +167,33 @@ object UserSession extends EntityCompanion[UserSessions, UserSession, UserToken]
     UserToken(sb.toString())
   }
 
-  def create(token: UserToken = generateToken()): DBIO[UserSession] = {
+  def create(token: UserToken = generateToken())(implicit ec: ExecutionContext): DBIO[UserSession] = {
     val newUserSession = UserSession(token, None)
     insert(newUserSession).map(_ => newUserSession)
+  }
+}
+
+class PlaceholderReplacer(
+   typeProductMap: Map[GenericType, MedicationProduct],
+   groupProductMap: Map[DrugGroup, MedicationProduct])
+{
+  def replacePlaceholders(template: String): Seq[String] = {
+    """\{\{(type|group)\(([^\)]+)\)\}\}""".r.findFirstMatchIn(template) match {
+      case Some(m) => m.group(1).toLowerCase match {
+        case "type" =>
+          typeProductMap
+            .filter(x => x._1.name.toLowerCase == m.group(2).toLowerCase)
+            .map { x => template.replaceAll(s"""\\{\\{type\\(${m.group(2)}\\)\\}\\}""", x._2.name) }
+            .flatMap(replacePlaceholders)
+            .toList
+        case "group" =>
+          groupProductMap
+            .filter(x => x._1.name.toLowerCase == m.group(2).toLowerCase)
+            .map { x => template.replaceAll(s"""\\{\\{group\\(${m.group(2)}\\)\\}\\}""", x._2.name) }
+            .flatMap(replacePlaceholders)
+            .toList
+      }
+      case _ => List(template)
+    }
   }
 }

@@ -1,4 +1,4 @@
-@(userToken: UserToken, generalInformationForm: Form[UserSession])
+@(userToken: UserToken, generalInformationForm: Form[UserSession])(implicit messages: Messages)
 
 @decisionAid("Algemeen", Step.GeneralInformation) {
     @helper.form(routes.StepsController.saveGeneralInformation()) {

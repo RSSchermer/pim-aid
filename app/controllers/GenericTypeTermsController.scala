@@ -3,10 +3,14 @@ package controllers
 import play.api.mvc._
 import play.api.data._
 import play.api.data.Forms._
-import play.api.db.slick._
+import play.api.Play.current
+import play.api.i18n.Messages.Implicits._
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 import views._
 import models._
+import models.meta.Profile._
+import models.meta.Profile.driver.api._
 import models.ExpressionTermConversions._
 
 object GenericTypeTermsController extends Controller {
@@ -25,54 +29,68 @@ object GenericTypeTermsController extends Controller {
     )(GenericTypeTerm.apply)(GenericTypeTerm.unapply)
   )
 
-  def list = DBAction { implicit rs =>
-    Ok(html.genericTypeTerms.list(GenericTypeTerm.list))
-  }
-
-  def create = DBAction { implicit rs =>
-    Ok(html.genericTypeTerms.create(genericTypeTermForm))
-  }
-
-  def save = DBAction { implicit rs =>
-    genericTypeTermForm.bindFromRequest.fold(
-      formWithErrors => BadRequest(html.genericTypeTerms.create(formWithErrors)),
-      drugTypeTerm => {
-        ExpressionTerm.insert(drugTypeTerm)
-        Redirect(routes.GenericTypeTermsController.list())
-          .flashing("success" -> "The expression term was created successfully.")
-      }
-    )
-  }
-
-  def edit(id: Long) = DBAction { implicit rs =>
-    GenericTypeTerm.find(ExpressionTermID(id)) match {
-      case Some(term) =>
-        Ok(html.genericTypeTerms.edit(ExpressionTermID(id), genericTypeTermForm.fill(term)))
-      case _ => NotFound
+  def list = Action.async { implicit rs =>
+    db.run(GenericTypeTerm.all.include(GenericTypeTerm.genericType).result).map { terms =>
+      Ok(html.genericTypeTerms.list(terms))
     }
   }
 
-  def update(id: Long) = DBAction { implicit rs =>
+  def create = Action.async { implicit rs =>
+    db.run(GenericType.all.result).map { genericTypes =>
+      Ok(html.genericTypeTerms.create(genericTypes, genericTypeTermForm))
+    }
+  }
+
+  def save = Action.async { implicit rs =>
     genericTypeTermForm.bindFromRequest.fold(
-      formWithErrors => BadRequest(html.genericTypeTerms.edit(ExpressionTermID(id), formWithErrors)),
-      term => {
-        GenericTypeTerm.update(term)
-        Redirect(routes.GenericTypeTermsController.list())
-          .flashing("success" -> "The expression term was updated successfully.")
-      }
+      formWithErrors =>
+        db.run(GenericType.all.result).map { genericTypes =>
+          BadRequest(html.genericTypeTerms.create(genericTypes, formWithErrors))
+        },
+      drugTypeTerm =>
+        db.run(GenericTypeTerm.insert(drugTypeTerm)).map { _ =>
+          Redirect(routes.GenericTypeTermsController.list())
+            .flashing("success" -> "The expression term was created successfully.")
+        }
     )
   }
 
-  def remove(id: Long) = DBAction { implicit rs =>
-    GenericTypeTerm.find(ExpressionTermID(id)) match {
+  def edit(id: Long) = Action.async { implicit rs =>
+    db.run(for {
+      termOption <- GenericTypeTerm.one(ExpressionTermID(id)).result
+      genericTypes <- GenericType.all.result
+    } yield termOption match {
+      case Some(term) =>
+        Ok(html.genericTypeTerms.edit(ExpressionTermID(id), genericTypes, genericTypeTermForm.fill(term)))
+      case _ => NotFound
+    })
+  }
+
+  def update(id: Long) = Action.async { implicit rs =>
+    genericTypeTermForm.bindFromRequest.fold(
+      formWithErrors =>
+        db.run(GenericType.all.result).map { genericTypes =>
+          BadRequest(html.genericTypeTerms.edit(ExpressionTermID(id), genericTypes, formWithErrors))
+        },
+      term =>
+        db.run(GenericTypeTerm.update(term)).map { _ =>
+          Redirect(routes.GenericTypeTermsController.list())
+            .flashing("success" -> "The expression term was updated successfully.")
+        }
+    )
+  }
+
+  def remove(id: Long) = Action.async { implicit rs =>
+    db.run(GenericTypeTerm.one(ExpressionTermID(id)).result).map {
       case Some(term) => Ok(html.genericTypeTerms.remove(term))
       case _ => NotFound
     }
   }
 
-  def delete(id: Long) = DBAction { implicit rs =>
-    GenericTypeTerm.delete(ExpressionTermID(id))
-    Redirect(routes.GenericTypeTermsController.list())
-      .flashing("success" -> "The expression term was deleted successfully.")
+  def delete(id: Long) = Action.async { implicit rs =>
+    db.run(GenericTypeTerm.delete(ExpressionTermID(id))).map { _ =>
+      Redirect(routes.GenericTypeTermsController.list())
+        .flashing("success" -> "The expression term was deleted successfully.")
+    }
   }
 }

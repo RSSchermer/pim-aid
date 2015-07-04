@@ -1,18 +1,21 @@
 package controllers
 
-import constraints.{MedicationProductTemplateConstraint, ConditionExpressionConstraint}
 import play.api.mvc._
 import play.api.data._
 import play.api.data.Forms._
-import play.api.db.slick._
-import play.api.db.slick.Session
+import play.api.Play.current
+import play.api.i18n.Messages.Implicits._
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 import views._
 import models._
+import models.meta.Profile._
+import models.meta.Profile.driver.api._
 import models.ExpressionTermConversions._
+import constraints.{MedicationProductTemplateConstraint, ConditionExpressionConstraint}
 
 object StatementTermsController extends Controller {
-  def statementTermForm(implicit s: Session) = Form(
+  def statementTermForm = Form(
     mapping(
       "id" -> optional(longNumber.transform(
         (id: Long) => ExpressionTermID(id),
@@ -28,54 +31,68 @@ object StatementTermsController extends Controller {
     )(StatementTerm.apply)(StatementTerm.unapply)
   )
 
-  def list = DBAction { implicit rs =>
-    Ok(html.statementTerms.list(StatementTerm.list))
-  }
-
-  def create = DBAction { implicit rs =>
-    Ok(html.statementTerms.create(statementTermForm))
-  }
-
-  def save = DBAction { implicit rs =>
-    statementTermForm.bindFromRequest.fold(
-      formWithErrors => BadRequest(html.statementTerms.create(formWithErrors)),
-      statementTerm => {
-        ExpressionTerm.insert(statementTerm)
-        Redirect(routes.StatementTermsController.list())
-          .flashing("success" -> "The expression term was created successfully.")
-      }
-    )
-  }
-
-  def edit(id: Long) = DBAction { implicit rs =>
-    StatementTerm.find(ExpressionTermID(id)) match {
-      case Some(term) =>
-        Ok(html.statementTerms.edit(ExpressionTermID(id), statementTermForm.fill(term)))
-      case _ => NotFound
+  def list = Action.async { implicit rs =>
+    db.run(StatementTerm.all.result).map { terms =>
+      Ok(html.statementTerms.list(terms))
     }
   }
 
-  def update(id: Long) = DBAction { implicit rs =>
+  def create = Action.async { implicit rs =>
+    db.run(ExpressionTerm.all.result).map { terms =>
+      Ok(html.statementTerms.create(terms, statementTermForm))
+    }
+  }
+
+  def save = Action.async { implicit rs =>
     statementTermForm.bindFromRequest.fold(
-      formWithErrors => BadRequest(html.statementTerms.edit(ExpressionTermID(id), formWithErrors)),
-      term => {
-        StatementTerm.update(term)
-        Redirect(routes.StatementTermsController.list())
-          .flashing("success" -> "The expression term was updated successfully.")
-      }
+      formWithErrors =>
+        db.run(ExpressionTerm.all.result).map { terms =>
+          BadRequest(html.statementTerms.create(terms, formWithErrors))
+        },
+      statementTerm =>
+        db.run(StatementTerm.insert(statementTerm)).map { _ =>
+          Redirect(routes.StatementTermsController.list())
+            .flashing("success" -> "The expression term was created successfully.")
+        }
     )
   }
 
-  def remove(id: Long) = DBAction { implicit rs =>
-    StatementTerm.find(ExpressionTermID(id)) match {
+  def edit(id: Long) = Action.async { implicit rs =>
+    db.run(for {
+      termOption <- StatementTerm.one(ExpressionTermID(id)).result
+      terms <- ExpressionTerm.all.result
+    } yield termOption match {
+      case Some(term) =>
+        Ok(html.statementTerms.edit(ExpressionTermID(id), terms, statementTermForm.fill(term)))
+      case _ => NotFound
+    })
+  }
+
+  def update(id: Long) = Action.async { implicit rs =>
+    statementTermForm.bindFromRequest.fold(
+      formWithErrors =>
+        db.run(ExpressionTerm.all.result).map { terms =>
+          BadRequest(html.statementTerms.edit(ExpressionTermID(id), terms, formWithErrors))
+        },
+      term =>
+        db.run(StatementTerm.update(term)).map { _ =>
+          Redirect(routes.StatementTermsController.list())
+            .flashing("success" -> "The expression term was updated successfully.")
+        }
+    )
+  }
+
+  def remove(id: Long) = Action.async { implicit rs =>
+    db.run(StatementTerm.one(ExpressionTermID(id)).result).map {
       case Some(term) => Ok(html.statementTerms.remove(term))
       case _ => NotFound
     }
   }
 
-  def delete(id: Long) = DBAction { implicit rs =>
-    StatementTerm.delete(ExpressionTermID(id))
-    Redirect(routes.StatementTermsController.list())
-      .flashing("success" -> "The expression term was deleted successfully.")
+  def delete(id: Long) = Action.async { implicit rs =>
+    db.run(StatementTerm.delete(ExpressionTermID(id))).map { _ =>
+      Redirect(routes.StatementTermsController.list())
+        .flashing("success" -> "The expression term was deleted successfully.")
+    }
   }
 }

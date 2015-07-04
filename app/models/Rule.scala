@@ -1,5 +1,7 @@
 package models
 
+import scala.concurrent.ExecutionContext
+
 import models.meta.Profile._
 import models.meta.Schema._
 import models.meta.Profile.driver.api._
@@ -21,10 +23,13 @@ case class Rule(
 object Rule extends EntityCompanion[Rules, Rule, RuleID] {
   val suggestionTemplates = toManyThrough[SuggestionTemplates, RulesSuggestionTemplates, SuggestionTemplate]
 
-  override protected def afterSave(ruleId: RuleID, rule: Rule): DBIO[Unit] = {
-    val tableQuery = TableQuery[ExpressionTermsRules]
+  override protected def afterSave(ruleId: RuleID, rule: Rule)(implicit ec: ExecutionContext): DBIO[Unit] = {
+    val tq = TableQuery[ExpressionTermsRules]
+    val deleteOld = tq.filter(_.ruleId === ruleId).delete
+    val insertNew = for {
+      terms <- ExpressionTerm.all.filter(_.label inSetBind rule.conditionExpression.expressionTermLabels).result
+    } yield DBIO.sequence(terms.map(t => tq += (t.id.get, ruleId)))
 
-    tableQuery.filter(_.ruleId === ruleId).delete >>
-    DBIO.sequence(rule.conditionExpression.expressionTerms.map(t => tableQuery += (t.id.get, ruleId)))
+    deleteOld >> insertNew >> DBIO.successful(())
   }
 }

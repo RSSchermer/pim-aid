@@ -1,4 +1,5 @@
-@(genericTypeTerm: Seq[ExpressionTerm])(implicit flash: play.api.mvc.Flash, s: play.api.db.slick.Session)
+@(genericTypeTerm: Seq[ExpressionTerm])(implicit flash: Flash, ec: ExecutionContext)
+
 
 @expressionTerms("Generic type term list", "genericTypeTerms") {
     @flash.get("success").map { message =>

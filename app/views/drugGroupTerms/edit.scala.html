@@ -1,7 +1,11 @@
-@(id: ExpressionTermID, drugGroupTermForm: Form[DrugGroupTerm])(implicit session: play.api.db.slick.Session)
+@(
+    id: ExpressionTermID,
+    drugGroups: Seq[DrugGroup],
+    drugGroupTermForm: Form[DrugGroupTerm]
+)(implicit messages: Messages)
 
 @expressionTerms("Editing a drug group term", "drugGroupTerms") {
     <h1>Editing a drug group term</h1>
 
-    @drugGroupTerms.form(drugGroupTermForm, routes.DrugGroupTermsController.update(id.value))
+    @drugGroupTerms.form(drugGroups, drugGroupTermForm, routes.DrugGroupTermsController.update(id.value))
 }
