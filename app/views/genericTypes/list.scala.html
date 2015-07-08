@@ -20,8 +20,8 @@
             @for(genericType <- genericTypes){
                 <tr>
                     <td>@genericType.name</td>
-                    <td><a href="@routes.GenericTypesController.edit(genericType.id.get.value)">Edit</a></td>
-                    <td><a href="@routes.GenericTypesController.remove(genericType.id.get.value)">Delete</a></td>
+                    <td><a href="@routes.GenericTypesController.edit(genericType.id.get)">Edit</a></td>
+                    <td><a href="@routes.GenericTypesController.remove(genericType.id.get)">Delete</a></td>
                 </tr>
             }
         </tbody>

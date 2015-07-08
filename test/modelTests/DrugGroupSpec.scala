@@ -1,17 +1,22 @@
 package modelTests
 
-import org.scalatestplus.play._
-import play.api.db.slick.DB
+import org.scalatest.{FunSpec, Matchers}
+
+import scala.concurrent.ExecutionContext.Implicits.global
+
 import models._
+import models.meta.Profile.driver.api._
 
-class DrugGroupSpec extends PlaySpec with OneAppPerSuite {
-  "The DrugGroup companion object" must {
-    "retrieve a DrugGroup by name (not case-sensitive)" in {
-      DB.withTransaction { implicit session =>
-        val dgId = DrugGroup.insert(DrugGroup(None, "Some Group"))
-        DrugGroup.findByName("some group").get.id.get mustBe dgId
-
-        session.rollback()
+class DrugGroupSpec extends FunSpec with DBSpec with Matchers {
+  describe("The DrugGroup companion object") {
+    it("retrieves a DrugGroup by name (not case-sensitive)") {
+      rollback {
+        for {
+          referenceID <- DrugGroup.insert(DrugGroup(None, "Some Group"))
+          retrievedID <- DrugGroup.hasName("some group").map(_.id).result.headOption
+        } yield {
+          retrievedID.get shouldBe referenceID
+        }
       }
     }
   }

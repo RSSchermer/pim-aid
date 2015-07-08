@@ -51,27 +51,29 @@ object RulesController extends Controller {
         },
       rule =>
         db.run(Rule.insert(rule)).map { id =>
-          Redirect(routes.RuleSuggestionTemplatesController.list(id.value))
+          Redirect(routes.RuleSuggestionTemplatesController.list(id))
             .flashing("success" -> "The rule was created successfully.")
         }
     )
   }
 
-  def edit(id: Long) = Action.async { implicit rs =>
+  def edit(id: RuleID) = Action.async { implicit rs =>
     db.run(for {
-      ruleOption <- Rule.one(RuleID(id)).result
+      ruleOption <- Rule.one(id).result
       terms <- ExpressionTerm.all.result
     } yield ruleOption match {
-      case Some(rule) => Ok(html.rules.edit(RuleID(id), terms, ruleForm.fill(rule)))
-      case _ => NotFound
+      case Some(rule) =>
+        Ok(html.rules.edit(id, terms, ruleForm.fill(rule)))
+      case _ =>
+        NotFound
     })
   }
 
-  def update(id: Long) = Action.async { implicit rs =>
+  def update(id: RuleID) = Action.async { implicit rs =>
     ruleForm.bindFromRequest.fold(
       formWithErrors =>
         db.run(ExpressionTerm.all.result).map { terms =>
-          BadRequest(html.rules.edit(RuleID(id), terms, formWithErrors))
+          BadRequest(html.rules.edit(id, terms, formWithErrors))
         },
       rule =>
         db.run(Rule.update(rule)).map { _ =>
@@ -81,15 +83,17 @@ object RulesController extends Controller {
     )
   }
 
-  def remove(id: Long) = Action.async { implicit rs =>
-    db.run(Rule.one(RuleID(id)).result).map {
-      case Some(rule) => Ok(html.rules.remove(rule))
-      case _ => NotFound
+  def remove(id: RuleID) = Action.async { implicit rs =>
+    db.run(Rule.one(id).result).map {
+      case Some(rule) =>
+        Ok(html.rules.remove(rule))
+      case _ =>
+        NotFound
     }
   }
 
-  def delete(id: Long) = Action.async { implicit rs =>
-    db.run(Rule.delete(RuleID(id))).map { _ =>
+  def delete(id: RuleID) = Action.async { implicit rs =>
+    db.run(Rule.delete(id)).map { _ =>
       Redirect(routes.RulesController.list())
         .flashing("success" -> "The rule was deleted successfully.")
     }

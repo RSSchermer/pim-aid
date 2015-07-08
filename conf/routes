@@ -21,7 +21,7 @@ GET           /assets/*file                                                     
 # Drugs
 GET           /drugs                                                                           controllers.DrugsController.list
 POST          /drugs                                                                           controllers.DrugsController.save
-DELETE        /drugs/:id                                                                       controllers.DrugsController.delete(id: Long)
+DELETE        /drugs/:id                                                                       controllers.DrugsController.delete(id: models.DrugID)
 
 # Admin
 GET           /admin                                                                           controllers.RulesController.list
@@ -30,97 +30,97 @@ GET           /admin                                                            
 GET           /admin/rules                                                                     controllers.RulesController.list
 GET           /admin/rules/new                                                                 controllers.RulesController.create
 POST          /admin/rules                                                                     controllers.RulesController.save
-GET           /admin/rules/:id/edit                                                            controllers.RulesController.edit(id: Long)
-POST          /admin/rules/:id                                                                 controllers.RulesController.update(id: Long)
-GET           /admin/rules/:id/delete                                                          controllers.RulesController.remove(id: Long)
-POST          /admin/rules/:id/delete                                                          controllers.RulesController.delete(id: Long)
+GET           /admin/rules/:id/edit                                                            controllers.RulesController.edit(id: models.RuleID)
+POST          /admin/rules/:id                                                                 controllers.RulesController.update(id: models.RuleID)
+GET           /admin/rules/:id/delete                                                          controllers.RulesController.remove(id: models.RuleID)
+POST          /admin/rules/:id/delete                                                          controllers.RulesController.delete(id: models.RuleID)
 
 # Rule suggestion templates
-GET           /admin/rules/:ruleId/suggestions                                                 controllers.RuleSuggestionTemplatesController.list(ruleId: Long)
-POST          /admin/rules/:ruleId/suggestions                                                 controllers.RuleSuggestionTemplatesController.save(ruleId: Long)
-GET           /admin/rules/:ruleId/suggestions/:suggestionTemplateId/delete                    controllers.RuleSuggestionTemplatesController.remove(ruleId: Long, suggestionTemplateId: Long)
-POST          /admin/rules/:ruleId/suggestions/:suggestionTemplateId/delete                    controllers.RuleSuggestionTemplatesController.delete(ruleId: Long, suggestionTemplateId: Long)
+GET           /admin/rules/:ruleId/suggestions                                                 controllers.RuleSuggestionTemplatesController.list(ruleId: models.RuleID)
+POST          /admin/rules/:ruleId/suggestions                                                 controllers.RuleSuggestionTemplatesController.save(ruleId: models.RuleID)
+GET           /admin/rules/:ruleId/suggestions/:suggestionTemplateId/delete                    controllers.RuleSuggestionTemplatesController.remove(ruleId: models.RuleID, suggestionTemplateId: models.SuggestionTemplateID)
+POST          /admin/rules/:ruleId/suggestions/:suggestionTemplateId/delete                    controllers.RuleSuggestionTemplatesController.delete(ruleId: models.RuleID, suggestionTemplateId: models.SuggestionTemplateID)
 
 # Suggestion templates
 GET           /admin/suggestions                                                               controllers.SuggestionTemplatesController.list
 GET           /admin/suggestions/new                                                           controllers.SuggestionTemplatesController.create
 POST          /admin/suggestions                                                               controllers.SuggestionTemplatesController.save
-GET           /admin/suggestions/:id/edit                                                      controllers.SuggestionTemplatesController.edit(id: Long)
-POST          /admin/suggestions/:id                                                           controllers.SuggestionTemplatesController.update(id: Long)
-GET           /admin/suggestions/:id/delete                                                    controllers.SuggestionTemplatesController.remove(id: Long)
-POST          /admin/suggestions/:id/delete                                                    controllers.SuggestionTemplatesController.delete(id: Long)
+GET           /admin/suggestions/:id/edit                                                      controllers.SuggestionTemplatesController.edit(id: models.SuggestionTemplateID)
+POST          /admin/suggestions/:id                                                           controllers.SuggestionTemplatesController.update(id: models.SuggestionTemplateID)
+GET           /admin/suggestions/:id/delete                                                    controllers.SuggestionTemplatesController.remove(id: models.SuggestionTemplateID)
+POST          /admin/suggestions/:id/delete                                                    controllers.SuggestionTemplatesController.delete(id: models.SuggestionTemplateID)
 
 # Drug groups
 GET           /admin/drug_groups                                                               controllers.DrugGroupsController.list
 GET           /admin/drug_groups/new                                                           controllers.DrugGroupsController.create
 POST          /admin/drug_groups                                                               controllers.DrugGroupsController.save
-GET           /admin/drug_groups/:id/edit                                                      controllers.DrugGroupsController.edit(id: Long)
-POST          /admin/drug_groups/:id                                                           controllers.DrugGroupsController.update(id: Long)
-GET           /admin/drug_groups/:id/delete                                                    controllers.DrugGroupsController.remove(id: Long)
-POST          /admin/drug_groups/:id/delete                                                    controllers.DrugGroupsController.delete(id: Long)
+GET           /admin/drug_groups/:id/edit                                                      controllers.DrugGroupsController.edit(id: models.DrugGroupID)
+POST          /admin/drug_groups/:id                                                           controllers.DrugGroupsController.update(id: models.DrugGroupID)
+GET           /admin/drug_groups/:id/delete                                                    controllers.DrugGroupsController.remove(id: models.DrugGroupID)
+POST          /admin/drug_groups/:id/delete                                                    controllers.DrugGroupsController.delete(id: models.DrugGroupID)
 
 # Drug group generic types
-GET           /admin/drug_groups/:drugGroupId/generic_types                                    controllers.DrugGroupGenericTypesController.list(drugGroupId: Long)
-POST          /admin/drug_groups/:drugGroupId/generic_types                                    controllers.DrugGroupGenericTypesController.save(drugGroupId: Long)
-GET           /admin/drug_groups/:drugGroupId/generic_types/:genericTypeId/delete              controllers.DrugGroupGenericTypesController.remove(drugGroupId: Long, genericTypeId: Long)
-POST          /admin/drug_groups/:drugGroupId/generic_types/:genericTypeId/delete              controllers.DrugGroupGenericTypesController.delete(drugGroupId: Long, genericTypeId: Long)
+GET           /admin/drug_groups/:drugGroupId/generic_types                                    controllers.DrugGroupGenericTypesController.list(drugGroupId: models.DrugGroupID)
+POST          /admin/drug_groups/:drugGroupId/generic_types                                    controllers.DrugGroupGenericTypesController.save(drugGroupId: models.DrugGroupID)
+GET           /admin/drug_groups/:drugGroupId/generic_types/:genericTypeId/delete              controllers.DrugGroupGenericTypesController.remove(drugGroupId: models.DrugGroupID, genericTypeId: models.GenericTypeID)
+POST          /admin/drug_groups/:drugGroupId/generic_types/:genericTypeId/delete              controllers.DrugGroupGenericTypesController.delete(drugGroupId: models.DrugGroupID, genericTypeId: models.GenericTypeID)
 
 # Generic types
 GET           /admin/generic_types                                                             controllers.GenericTypesController.list
 GET           /admin/generic_types/new                                                         controllers.GenericTypesController.create
 POST          /admin/generic_types                                                             controllers.GenericTypesController.save
-GET           /admin/generic_types/:id/edit                                                    controllers.GenericTypesController.edit(id: Long)
-POST          /admin/generic_types/:id                                                         controllers.GenericTypesController.update(id: Long)
-GET           /admin/generic_types/:id/delete                                                  controllers.GenericTypesController.remove(id: Long)
-POST          /admin/generic_types/:id/delete                                                  controllers.GenericTypesController.delete(id: Long)
+GET           /admin/generic_types/:id/edit                                                    controllers.GenericTypesController.edit(id: models.GenericTypeID)
+POST          /admin/generic_types/:id                                                         controllers.GenericTypesController.update(id: models.GenericTypeID)
+GET           /admin/generic_types/:id/delete                                                  controllers.GenericTypesController.remove(id: models.GenericTypeID)
+POST          /admin/generic_types/:id/delete                                                  controllers.GenericTypesController.delete(id: models.GenericTypeID)
 
 # Medication products
 GET           /admin/medication_products                                                       controllers.MedicationProductsController.list
 GET           /admin/medication_products/new                                                   controllers.MedicationProductsController.create
 POST          /admin/medication_products                                                       controllers.MedicationProductsController.save
-GET           /admin/medication_products/:id/edit                                              controllers.MedicationProductsController.edit(id: Long)
-POST          /admin/medication_products/:id                                                   controllers.MedicationProductsController.update(id: Long)
-GET           /admin/medication_products/:id/delete                                            controllers.MedicationProductsController.remove(id: Long)
-POST          /admin/medication_products/:id/delete                                            controllers.MedicationProductsController.delete(id: Long)
+GET           /admin/medication_products/:id/edit                                              controllers.MedicationProductsController.edit(id: models.MedicationProductID)
+POST          /admin/medication_products/:id                                                   controllers.MedicationProductsController.update(id: models.MedicationProductID)
+GET           /admin/medication_products/:id/delete                                            controllers.MedicationProductsController.remove(id: models.MedicationProductID)
+POST          /admin/medication_products/:id/delete                                            controllers.MedicationProductsController.delete(id: models.MedicationProductID)
 
 # Medication product generic types
-GET           /admin/medication_products/:productId/generic_types                              controllers.MedicationProductGenericTypesController.list(productId: Long)
-POST          /admin/medication_products/:productId/generic_types                              controllers.MedicationProductGenericTypesController.save(productId: Long)
-GET           /admin/medication_products/:productId/generic_types/:genericTypeId/delete        controllers.MedicationProductGenericTypesController.remove(productId: Long, genericTypeId: Long)
-POST          /admin/medication_products/:productId/generic_types/:genericTypeId/delete        controllers.MedicationProductGenericTypesController.delete(productId: Long, genericTypeId: Long)
+GET           /admin/medication_products/:productId/generic_types                              controllers.MedicationProductGenericTypesController.list(productId: models.MedicationProductID)
+POST          /admin/medication_products/:productId/generic_types                              controllers.MedicationProductGenericTypesController.save(productId: models.MedicationProductID)
+GET           /admin/medication_products/:productId/generic_types/:genericTypeId/delete        controllers.MedicationProductGenericTypesController.remove(productId: models.MedicationProductID, genericTypeId: models.GenericTypeID)
+POST          /admin/medication_products/:productId/generic_types/:genericTypeId/delete        controllers.MedicationProductGenericTypesController.delete(productId: models.MedicationProductID, genericTypeId: models.GenericTypeID)
 
 # Generic type terms
 GET           /admin/generic_type_terms                                                        controllers.GenericTypeTermsController.list
 GET           /admin/generic_type_terms/new                                                    controllers.GenericTypeTermsController.create
 POST          /admin/generic_type_terms                                                        controllers.GenericTypeTermsController.save
-GET           /admin/generic_type_terms/:id/edit                                               controllers.GenericTypeTermsController.edit(id: Long)
-POST          /admin/generic_type_terms/:id                                                    controllers.GenericTypeTermsController.update(id: Long)
-GET           /admin/generic_type_terms/:id/delete                                             controllers.GenericTypeTermsController.remove(id: Long)
-POST          /admin/generic_type_terms/:id/delete                                             controllers.GenericTypeTermsController.delete(id: Long)
+GET           /admin/generic_type_terms/:id/edit                                               controllers.GenericTypeTermsController.edit(id: models.ExpressionTermID)
+POST          /admin/generic_type_terms/:id                                                    controllers.GenericTypeTermsController.update(id: models.ExpressionTermID)
+GET           /admin/generic_type_terms/:id/delete                                             controllers.GenericTypeTermsController.remove(id: models.ExpressionTermID)
+POST          /admin/generic_type_terms/:id/delete                                             controllers.GenericTypeTermsController.delete(id: models.ExpressionTermID)
 
 # Drug group terms
 GET           /admin/drug_group_terms                                                          controllers.DrugGroupTermsController.list
 GET           /admin/drug_group_terms/new                                                      controllers.DrugGroupTermsController.create
 POST          /admin/drug_group_terms                                                          controllers.DrugGroupTermsController.save
-GET           /admin/drug_group_terms/:id/edit                                                 controllers.DrugGroupTermsController.edit(id: Long)
-POST          /admin/drug_group_terms/:id                                                      controllers.DrugGroupTermsController.update(id: Long)
-GET           /admin/drug_group_terms/:id/delete                                               controllers.DrugGroupTermsController.remove(id: Long)
-POST          /admin/drug_group_terms/:id/delete                                               controllers.DrugGroupTermsController.delete(id: Long)
+GET           /admin/drug_group_terms/:id/edit                                                 controllers.DrugGroupTermsController.edit(id: models.ExpressionTermID)
+POST          /admin/drug_group_terms/:id                                                      controllers.DrugGroupTermsController.update(id: models.ExpressionTermID)
+GET           /admin/drug_group_terms/:id/delete                                               controllers.DrugGroupTermsController.remove(id: models.ExpressionTermID)
+POST          /admin/drug_group_terms/:id/delete                                               controllers.DrugGroupTermsController.delete(id: models.ExpressionTermID)
 
 # Statement terms
 GET           /admin/statement_terms                                                           controllers.StatementTermsController.list
 GET           /admin/statement_terms/new                                                       controllers.StatementTermsController.create
 POST          /admin/statement_terms                                                           controllers.StatementTermsController.save
-GET           /admin/statement_terms/:id/edit                                                  controllers.StatementTermsController.edit(id: Long)
-POST          /admin/statement_terms/:id                                                       controllers.StatementTermsController.update(id: Long)
-GET           /admin/statement_terms/:id/delete                                                controllers.StatementTermsController.remove(id: Long)
-POST          /admin/statement_terms/:id/delete                                                controllers.StatementTermsController.delete(id: Long)
+GET           /admin/statement_terms/:id/edit                                                  controllers.StatementTermsController.edit(id: models.ExpressionTermID)
+POST          /admin/statement_terms/:id                                                       controllers.StatementTermsController.update(id: models.ExpressionTermID)
+GET           /admin/statement_terms/:id/delete                                                controllers.StatementTermsController.remove(id: models.ExpressionTermID)
+POST          /admin/statement_terms/:id/delete                                                controllers.StatementTermsController.delete(id: models.ExpressionTermID)
 
 # Age terms
 GET           /admin/age_terms                                                                 controllers.AgeTermsController.list
 GET           /admin/age_terms/new                                                             controllers.AgeTermsController.create
 POST          /admin/age_terms                                                                 controllers.AgeTermsController.save
-GET           /admin/age_terms/:id/edit                                                        controllers.AgeTermsController.edit(id: Long)
-POST          /admin/age_terms/:id                                                             controllers.AgeTermsController.update(id: Long)
-GET           /admin/age_terms/:id/delete                                                      controllers.AgeTermsController.remove(id: Long)
-POST          /admin/age_terms/:id/delete                                                      controllers.AgeTermsController.delete(id: Long)
+GET           /admin/age_terms/:id/edit                                                        controllers.AgeTermsController.edit(id: models.ExpressionTermID)
+POST          /admin/age_terms/:id                                                             controllers.AgeTermsController.update(id: models.ExpressionTermID)
+GET           /admin/age_terms/:id/delete                                                      controllers.AgeTermsController.remove(id: models.ExpressionTermID)
+POST          /admin/age_terms/:id/delete                                                      controllers.AgeTermsController.delete(id: models.ExpressionTermID)

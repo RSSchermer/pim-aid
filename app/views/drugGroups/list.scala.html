@@ -19,9 +19,9 @@
         <tbody>
             @for(dg <- drugGroups){
                 <tr>
-                    <td><a href="@routes.DrugGroupGenericTypesController.list(dg.id.get.value)">@dg.name</a></td>
-                    <td><a href="@routes.DrugGroupsController.edit(dg.id.get.value)">Edit</a></td>
-                    <td><a href="@routes.DrugGroupsController.remove(dg.id.get.value)">Delete</a></td>
+                    <td><a href="@routes.DrugGroupGenericTypesController.list(dg.id.get)">@dg.name</a></td>
+                    <td><a href="@routes.DrugGroupsController.edit(dg.id.get)">Edit</a></td>
+                    <td><a href="@routes.DrugGroupsController.remove(dg.id.get)">Delete</a></td>
                 </tr>
             }
         </tbody>

@@ -49,18 +49,19 @@ object SuggestionTemplatesController extends Controller {
     )
   }
 
-  def edit(id: Long) = Action.async { implicit rs =>
-    db.run(SuggestionTemplate.one(SuggestionTemplateID(id)).result).map {
+  def edit(id: SuggestionTemplateID) = Action.async { implicit rs =>
+    db.run(SuggestionTemplate.one(id).result).map {
       case Some(suggestionTemplate) =>
-        Ok(html.suggestionTemplates.edit(suggestionTemplate.id.get, suggestionTemplateForm.fill(suggestionTemplate)))
-      case _ => NotFound
+        Ok(html.suggestionTemplates.edit(id, suggestionTemplateForm.fill(suggestionTemplate)))
+      case _ =>
+        NotFound
     }
   }
 
-  def update(id: Long) = Action.async { implicit rs =>
+  def update(id: SuggestionTemplateID) = Action.async { implicit rs =>
     suggestionTemplateForm.bindFromRequest.fold(
       formWithErrors =>
-        Future.successful(BadRequest(html.suggestionTemplates.edit(SuggestionTemplateID(id), formWithErrors))),
+        Future.successful(BadRequest(html.suggestionTemplates.edit(id, formWithErrors))),
       suggestionTemplate =>
         db.run(SuggestionTemplate.update(suggestionTemplate)).map { _ =>
           Redirect(routes.SuggestionTemplatesController.list())
@@ -69,15 +70,17 @@ object SuggestionTemplatesController extends Controller {
     )
   }
 
-  def remove(id: Long) = Action.async { implicit rs =>
-    db.run(SuggestionTemplate.one(SuggestionTemplateID(id)).result).map {
-      case Some(suggestionTemplate) => Ok(html.suggestionTemplates.remove(suggestionTemplate))
-      case _ => NotFound
+  def remove(id: SuggestionTemplateID) = Action.async { implicit rs =>
+    db.run(SuggestionTemplate.one(id).result).map {
+      case Some(suggestionTemplate) =>
+        Ok(html.suggestionTemplates.remove(suggestionTemplate))
+      case _ =>
+        NotFound
     }
   }
 
-  def delete(id: Long) = Action.async { implicit rs =>
-    db.run(SuggestionTemplate.delete(SuggestionTemplateID(id))).map { _ =>
+  def delete(id: SuggestionTemplateID) = Action.async { implicit rs =>
+    db.run(SuggestionTemplate.delete(id)).map { _ =>
       Redirect(routes.SuggestionTemplatesController.list())
         .flashing("success" -> "The suggestion was deleted successfully.")
     }

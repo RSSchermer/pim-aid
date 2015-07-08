@@ -38,8 +38,8 @@ object Schema {
 
     def * = (id.?, userInput, userToken, resolvedMedicationProductId) <>((Drug.apply _).tupled, Drug.unapply)
 
-    def resolvedMedicationProduct = foreignKey("DRUGS_RESOLVED_MEDICATION_PRODUCT_FK", resolvedMedicationProductId,
-      TableQuery[MedicationProducts])(_.id)
+    def resolvedMedicationProduct =
+      foreignKey("DRUGS_RESOLVED_MEDICATION_PRODUCT_FK", resolvedMedicationProductId, TableQuery[MedicationProducts])(_.id.?)
     def userSession = foreignKey("DRUGS_USER_SESSION_FK", userToken, TableQuery[UserSessions])(_.id)
   }
 
@@ -57,8 +57,8 @@ object Schema {
       ((ExpressionTerm.apply _).tupled, ExpressionTerm.unapply)
 
     def labelIndex = index("EXPRESSION_TERMS_LABEL_INDEX", label, unique = true)
-    def drugGroup = foreignKey("EXPRESSION_TERMS_DRUG_GROUP_FK", drugGroupId, TableQuery[DrugGroups])(_.id)
-    def drugType = foreignKey("EXPRESSION_TERMS_DRUG_TYPE_FK", genericTypeId, TableQuery[GenericTypes])(_.id)
+    def drugGroup = foreignKey("EXPRESSION_TERMS_DRUG_GROUP_FK", drugGroupId, TableQuery[DrugGroups])(_.id.?)
+    def drugType = foreignKey("EXPRESSION_TERMS_DRUG_TYPE_FK", genericTypeId, TableQuery[GenericTypes])(_.id.?)
   }
 
   class ExpressionTermsRules(tag: Tag) extends Table[(ExpressionTermID, RuleID)](tag, "EXPRESSION_TERMS_RULES") {

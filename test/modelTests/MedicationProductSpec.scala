@@ -1,40 +1,37 @@
 package modelTests
 
-import org.scalatestplus.play._
-import play.api.db.slick.DB
+import org.scalatest.{FunSpec, Matchers}
+
+import scala.concurrent.ExecutionContext.Implicits.global
+
 import models._
+import models.meta.Profile.driver.api._
 
-class MedicationProductSpec extends PlaySpec with OneAppPerSuite {
-  "The MedicationProduct companion object" must {
-    "retrieve a MedicationProduct by name (not case-sensitive)" in {
-      DB.withTransaction { implicit session =>
-        val mpId = MedicationProduct.insert(MedicationProduct(None, "Some Product"))
-        MedicationProduct.findByName("some product").get.id.get mustBe mpId
-
-        session.rollback()
+class MedicationProductSpec extends FunSpec with DBSpec with Matchers {
+  describe("The MedicationProduct companion object") {
+    it("retrieves a MedicationProduct by name (not case-sensitive)") {
+      rollback {
+        for {
+          referenceID <- MedicationProduct.insert(MedicationProduct(None, "Some Product"))
+          retrievedID <- MedicationProduct.hasName("some product").map(_.id).result.headOption
+        } yield {
+          retrievedID.get shouldBe referenceID
+        }
       }
     }
 
-    "retrieve a MedicationProduct by user input with white-space pollution (not case-sensitive)" in {
-      DB.withTransaction { implicit session =>
-        val mpId = MedicationProduct.insert(MedicationProduct(None, "Some Product"))
-        MedicationProduct.findByUserInput("   some    product ").get.id.get mustBe mpId
+    it("proposes the best matching alternatives for user input") {
+      rollback {
+        for {
+          _ <- MedicationProduct.insert(MedicationProduct(None, "Metoprolol"))
+          _ <- MedicationProduct.insert(MedicationProduct(None, "Propanolol"))
+          _ <- MedicationProduct.insert(MedicationProduct(None, "Metaclamide"))
+          _ <- MedicationProduct.insert(MedicationProduct(None, "Enalapril"))
 
-        session.rollback()
-      }
-    }
-
-    "propose the best matching alternatives for user input" in {
-      DB.withTransaction { implicit session =>
-        MedicationProduct.insert(MedicationProduct(None, "Metoprolol"))
-        MedicationProduct.insert(MedicationProduct(None, "Propanolol"))
-        MedicationProduct.insert(MedicationProduct(None, "Metaclamide"))
-        MedicationProduct.insert(MedicationProduct(None, "Enalapril"))
-
-        MedicationProduct.findAlternatives("metaprolol", 0.3, 3) must contain
-          inOrderOnly("Metoprolol", "Metaclamide", "Propanolol")
-
-        session.rollback()
+          alternatives <- MedicationProduct.findAlternatives("metaprolol", 0.3, 3)
+        } yield {
+          alternatives.map(_.name) should contain inOrderOnly("Metoprolol", "Metaclamide", "Propanolol")
+        }
       }
     }
   }

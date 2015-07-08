@@ -1,35 +1,41 @@
 package modelTests
 
-import org.scalatestplus.play._
-import play.api.db.slick.DB
+import org.scalatest.{FunSpec, Matchers}
+
+import scala.concurrent.ExecutionContext.Implicits.global
+
 import models._
-import models.meta.Profile.driver.simple._
+import models.meta.Profile.driver.api._
 import models.meta.Schema._
 
-class RuleSpec extends PlaySpec with OneAppPerSuite {
-  "A Rule" must {
-    "create links with the expression terms referenced in its condition" in {
-      DB.withTransaction { implicit session =>
-        val termId = ExpressionTerm.insert(ExpressionTerm(None, "some_term", None, None, None, None, Some(">="), Some(65)))
-        val ruleId = Rule.insert(Rule(None, "Some rule", ConditionExpression("[some_term]"), None, None, None))
-        TableQuery[ExpressionTermsRules].filter(_.ruleId === ruleId).filter(_.expressionTermId === termId)
-          .length.run mustBe 1
-
-        session.rollback()
+class RuleSpec extends FunSpec with DBSpec with Matchers {
+  describe("A Rule") {
+    it("creates links to the expression terms referenced in its condition") {
+      rollback {
+        for {
+          termId <- ExpressionTerm.insert(ExpressionTerm(None, "some_term", None, None, None, None, Some(">="), Some(65)))
+          ruleId <- Rule.insert(Rule(None, "Some rule", ConditionExpression("[some_term]"), None, None, None))
+          linkCount <- TableQuery[ExpressionTermsRules].filter(x => x.ruleId === ruleId && x.expressionTermId === termId).length.result
+        } yield {
+          linkCount shouldBe 1
+        }
       }
     }
 
-    "remove links with expression terms that are no longer referenced in its condition" in {
-      DB.withTransaction { implicit session =>
-        val termId = ExpressionTerm.insert(ExpressionTerm(None, "some_term", None, None, None, None, Some(">="), Some(65)))
+    it("removes links to expression terms that are no longer referenced in its condition") {
+      rollback {
         val rule = Rule(None, "Some rule", ConditionExpression("[some_term]"), None, None, None)
-        val ruleId = Rule.insert(rule)
 
-        Rule.update(rule.copy(id = Some(ruleId), conditionExpression = ConditionExpression("true")))
-        TableQuery[ExpressionTermsRules].filter(_.ruleId === ruleId).filter(_.expressionTermId === termId)
-          .length.run mustBe 0
+        for {
+          termId <- ExpressionTerm.insert(ExpressionTerm(None, "some_term", None, None, None, None, Some(">="), Some(65)))
+          ruleId <- Rule.insert(rule)
 
-        session.rollback()
+          _ <- Rule.update(rule.copy(id = Some(ruleId), conditionExpression = ConditionExpression("true")))
+
+          linkCount <- TableQuery[ExpressionTermsRules].filter(x => x.ruleId === ruleId && x.expressionTermId === termId).length.result
+        } yield {
+          linkCount shouldBe 0
+        }
       }
     }
   }

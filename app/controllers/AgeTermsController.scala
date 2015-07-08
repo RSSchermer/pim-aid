@@ -52,19 +52,19 @@ object AgeTermsController extends Controller {
     )
   }
 
-  def edit(id: Long) = Action.async { implicit rs =>
-    db.run(AgeTerm.one(ExpressionTermID(id)).result).map {
+  def edit(id: ExpressionTermID) = Action.async { implicit rs =>
+    db.run(AgeTerm.one(id).result).map {
       case Some(term) =>
-        Ok(html.ageTerms.edit(ExpressionTermID(id), ageTermForm.fill(term)))
+        Ok(html.ageTerms.edit(id, ageTermForm.fill(term)))
       case _ =>
         NotFound
     }
   }
 
-  def update(id: Long) = Action.async { implicit rs =>
+  def update(id: ExpressionTermID) = Action.async { implicit rs =>
     ageTermForm.bindFromRequest.fold(
       formWithErrors =>
-        Future.successful(BadRequest(html.ageTerms.edit(ExpressionTermID(id), formWithErrors))),
+        Future.successful(BadRequest(html.ageTerms.edit(id, formWithErrors))),
       term =>
         db.run(AgeTerm.update(term)).map { _ =>
           Redirect(routes.AgeTermsController.list())
@@ -73,15 +73,17 @@ object AgeTermsController extends Controller {
     )
   }
 
-  def remove(id: Long) = Action.async { implicit rs =>
-    db.run(AgeTerm.one(ExpressionTermID(id)).result).map {
-      case Some(term) => Ok(html.ageTerms.remove(term))
-      case _ => NotFound
+  def remove(id: ExpressionTermID) = Action.async { implicit rs =>
+    db.run(AgeTerm.one(id).result).map {
+      case Some(term) =>
+        Ok(html.ageTerms.remove(term))
+      case _ =>
+        NotFound
     }
   }
 
-  def delete(id: Long) = Action.async { implicit rs =>
-    db.run(AgeTerm.delete(ExpressionTermID(id))).map { _ =>
+  def delete(id: ExpressionTermID) = Action.async { implicit rs =>
+    db.run(AgeTerm.delete(id)).map { _ =>
       Redirect(routes.AgeTermsController.list())
         .flashing("success" -> "The expression term was deleted successfully.")
     }

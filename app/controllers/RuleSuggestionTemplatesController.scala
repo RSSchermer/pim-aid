@@ -29,19 +29,20 @@ object RuleSuggestionTemplatesController extends Controller {
     )
   )
 
-  def list(ruleId: Long) = Action.async { implicit rs =>
+  def list(ruleId: RuleID) = Action.async { implicit rs =>
     db.run(for {
-      ruleOption <- Rule.one(RuleID(ruleId)).include(Rule.suggestionTemplates).result
+      ruleOption <- Rule.one(ruleId).include(Rule.suggestionTemplates).result
       suggestionTemplates <- SuggestionTemplate.all.result
     } yield ruleOption match {
       case Some(rule) =>
         Ok(html.ruleSuggestionTemplates.list(rule, suggestionTemplates, ruleSuggestionTemplateForm))
-      case _ => NotFound
+      case _ =>
+        NotFound
     })
   }
 
-  def save(ruleId: Long) = Action.async { implicit rs =>
-    db.run(Rule.one(RuleID(ruleId)).include(Rule.suggestionTemplates).result).flatMap {
+  def save(ruleId: RuleID) = Action.async { implicit rs =>
+    db.run(Rule.one(ruleId).include(Rule.suggestionTemplates).result).flatMap {
       case Some(rule) =>
         ruleSuggestionTemplateForm.bindFromRequest.fold(
           formWithErrors =>
@@ -58,20 +59,22 @@ object RuleSuggestionTemplatesController extends Controller {
     }
   }
 
-  def remove(ruleId: Long, id: Long) = Action.async { implicit rs =>
-    db.run(Rule.one(RuleID(ruleId)).result).flatMap {
+  def remove(ruleId: RuleID, id: SuggestionTemplateID) = Action.async { implicit rs =>
+    db.run(Rule.one(ruleId).result).flatMap {
       case Some(rule) =>
-        db.run(SuggestionTemplate.one(SuggestionTemplateID(id)).result).map {
-          case Some(suggestionTemplate) => Ok(html.ruleSuggestionTemplates.remove(rule, suggestionTemplate))
-          case _ => NotFound
+        db.run(SuggestionTemplate.one(id).result).map {
+          case Some(suggestionTemplate) =>
+            Ok(html.ruleSuggestionTemplates.remove(rule, suggestionTemplate))
+          case _ =>
+            NotFound
         }
       case _ => Future.successful(NotFound)
     }
   }
 
-  def delete(ruleId: Long, id: Long) = Action.async { implicit rs =>
+  def delete(ruleId: RuleID, id: SuggestionTemplateID) = Action.async { implicit rs =>
     val action = TableQuery[RulesSuggestionTemplates]
-      .filter(x => x.ruleId === RuleID(ruleId) && x.suggestionTemplateId === SuggestionTemplateID(id))
+      .filter(x => x.ruleId === ruleId && x.suggestionTemplateId === id)
       .delete
 
     db.run(action).map { _ =>

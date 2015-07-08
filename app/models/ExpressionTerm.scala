@@ -82,7 +82,7 @@ case class GenericTypeTerm(
     genericTypeId: GenericTypeID)
 
 object GenericTypeTerm extends ExpressionTermCompanion {
-  override val all = TableQuery[ExpressionTerms].filter(_.genericTypeId.isNotNull)
+  override val all = TableQuery[ExpressionTerms].filter(_.genericTypeId.isDefined)
 
   val genericType = toOne[GenericTypes, GenericType]
 }
@@ -93,7 +93,7 @@ case class DrugGroupTerm(
     drugGroupId: DrugGroupID)
 
 object DrugGroupTerm extends ExpressionTermCompanion {
-  override val all = TableQuery[ExpressionTerms].filter(_.drugGroupId.isNotNull)
+  override val all = TableQuery[ExpressionTerms].filter(_.drugGroupId.isDefined)
 
   val drugGroup = toOne[DrugGroups, DrugGroup]
 }
@@ -105,7 +105,7 @@ case class StatementTerm(
     displayCondition: Option[ConditionExpression])
 
 object StatementTerm extends ExpressionTermCompanion {
-  override val all = TableQuery[ExpressionTerms].filter(_.statementTemplate.isNotNull)
+  override val all = TableQuery[ExpressionTerms].filter(_.statementTemplate.isDefined)
 
   override protected def afterSave(id: ExpressionTermID, term: ExpressionTerm)
                                   (implicit ec: ExecutionContext)
@@ -131,7 +131,7 @@ case class AgeTerm(
     age: Int)
 
 object AgeTerm extends ExpressionTermCompanion {
-  override val all = TableQuery[ExpressionTerms].filter(_.age.isNotNull)
+  override val all = TableQuery[ExpressionTerms].filter(_.age.isDefined)
 }
 
 object ExpressionTermConversions {

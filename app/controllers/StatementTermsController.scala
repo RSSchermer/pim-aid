@@ -57,22 +57,23 @@ object StatementTermsController extends Controller {
     )
   }
 
-  def edit(id: Long) = Action.async { implicit rs =>
+  def edit(id: ExpressionTermID) = Action.async { implicit rs =>
     db.run(for {
-      termOption <- StatementTerm.one(ExpressionTermID(id)).result
+      termOption <- StatementTerm.one(id).result
       terms <- ExpressionTerm.all.result
     } yield termOption match {
       case Some(term) =>
-        Ok(html.statementTerms.edit(ExpressionTermID(id), terms, statementTermForm.fill(term)))
-      case _ => NotFound
+        Ok(html.statementTerms.edit(id, terms, statementTermForm.fill(term)))
+      case _ =>
+        NotFound
     })
   }
 
-  def update(id: Long) = Action.async { implicit rs =>
+  def update(id: ExpressionTermID) = Action.async { implicit rs =>
     statementTermForm.bindFromRequest.fold(
       formWithErrors =>
         db.run(ExpressionTerm.all.result).map { terms =>
-          BadRequest(html.statementTerms.edit(ExpressionTermID(id), terms, formWithErrors))
+          BadRequest(html.statementTerms.edit(id, terms, formWithErrors))
         },
       term =>
         db.run(StatementTerm.update(term)).map { _ =>
@@ -82,15 +83,17 @@ object StatementTermsController extends Controller {
     )
   }
 
-  def remove(id: Long) = Action.async { implicit rs =>
-    db.run(StatementTerm.one(ExpressionTermID(id)).result).map {
-      case Some(term) => Ok(html.statementTerms.remove(term))
-      case _ => NotFound
+  def remove(id: ExpressionTermID) = Action.async { implicit rs =>
+    db.run(StatementTerm.one(id).result).map {
+      case Some(term) =>
+        Ok(html.statementTerms.remove(term))
+      case _ =>
+        NotFound
     }
   }
 
-  def delete(id: Long) = Action.async { implicit rs =>
-    db.run(StatementTerm.delete(ExpressionTermID(id))).map { _ =>
+  def delete(id: ExpressionTermID) = Action.async { implicit rs =>
+    db.run(StatementTerm.delete(id)).map { _ =>
       Redirect(routes.StatementTermsController.list())
         .flashing("success" -> "The expression term was deleted successfully.")
     }

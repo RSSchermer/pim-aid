@@ -22,8 +22,8 @@
                 <tr>
                     <td>@term.label</td>
                     <td>@term.drugGroup.map(_.name)</td>
-                    <td><a href="@routes.DrugGroupTermsController.edit(term.id.get.value)">Edit</a></td>
-                    <td><a href="@routes.DrugGroupTermsController.remove(term.id.get.value)">Delete</a></td>
+                    <td><a href="@routes.DrugGroupTermsController.edit(term.id.get)">Edit</a></td>
+                    <td><a href="@routes.DrugGroupTermsController.remove(term.id.get)">Delete</a></td>
                 </tr>
             }
         </tbody>

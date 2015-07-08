@@ -17,7 +17,7 @@
 
     <a href="@routes.MedicationProductsController.list()">Back to list</a>
 
-    @b3.form(action = routes.MedicationProductGenericTypesController.save(medicationProduct.id.get.value)) {
+    @b3.form(action = routes.MedicationProductGenericTypesController.save(medicationProduct.id.get)) {
         <fieldset>
             <input type="hidden" name="medicationProductId" value='@medicationProduct.id.get.value'>
             @b3.select(genericTypeMedicationProductForm("genericTypeId"),
@@ -39,7 +39,12 @@
             @for(genericType <- medicationProduct.genericTypes){
                 <tr>
                     <td>@genericType.name</td>
-                    <td><a href="@routes.MedicationProductGenericTypesController.remove(medicationProduct.id.get.value, genericType.id.get.value)">Delete</a></td>
+
+                    <td>
+                        <a href="@routes.MedicationProductGenericTypesController.remove(medicationProduct.id.get, genericType.id.get)">
+                            Delete
+                        </a>
+                    </td>
                 </tr>
             }
         </tbody>

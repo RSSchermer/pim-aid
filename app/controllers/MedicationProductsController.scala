@@ -41,24 +41,25 @@ object MedicationProductsController extends Controller {
         Future.successful(BadRequest(html.medicationProducts.create(formWithErrors))),
       medicationProduct =>
         db.run(MedicationProduct.insert(medicationProduct)).map { id =>
-          Redirect(routes.MedicationProductGenericTypesController.list(id.value))
+          Redirect(routes.MedicationProductGenericTypesController.list(id))
             .flashing("success" -> "The medication product was created successfully.")
         }
     )
   }
 
-  def edit(id: Long) = Action.async { implicit rs =>
-    db.run(MedicationProduct.one(MedicationProductID(id)).result).map {
+  def edit(id: MedicationProductID) = Action.async { implicit rs =>
+    db.run(MedicationProduct.one(id).result).map {
       case Some(medicationProduct) =>
-        Ok(html.medicationProducts.edit(medicationProduct.id.get, medicationProductForm.fill(medicationProduct)))
-      case _ => NotFound
+        Ok(html.medicationProducts.edit(id, medicationProductForm.fill(medicationProduct)))
+      case _ =>
+        NotFound
     }
   }
 
-  def update(id: Long) = Action.async { implicit rs =>
+  def update(id: MedicationProductID) = Action.async { implicit rs =>
     medicationProductForm.bindFromRequest.fold(
       formWithErrors =>
-        Future.successful(BadRequest(html.medicationProducts.edit(MedicationProductID(id), formWithErrors))),
+        Future.successful(BadRequest(html.medicationProducts.edit(id, formWithErrors))),
       medicationProduct =>
         db.run(MedicationProduct.update(medicationProduct)).map { _ =>
           Redirect(routes.MedicationProductsController.list())
@@ -67,15 +68,17 @@ object MedicationProductsController extends Controller {
     )
   }
 
-  def remove(id: Long) = Action.async { implicit rs =>
-    db.run(MedicationProduct.one(MedicationProductID(id)).result).map {
-      case Some(medicationProduct) => Ok(html.medicationProducts.remove(medicationProduct))
-      case _ => NotFound
+  def remove(id: MedicationProductID) = Action.async { implicit rs =>
+    db.run(MedicationProduct.one(id).result).map {
+      case Some(medicationProduct) =>
+        Ok(html.medicationProducts.remove(medicationProduct))
+      case _ =>
+        NotFound
     }
   }
 
-  def delete(id: Long) = Action.async { implicit rs =>
-    db.run(MedicationProduct.delete(MedicationProductID(id))).map { _ =>
+  def delete(id: MedicationProductID) = Action.async { implicit rs =>
+    db.run(MedicationProduct.delete(id)).map { _ =>
       Redirect(routes.MedicationProductsController.list())
         .flashing("success" -> "The drug type was deleted successfully.")
     }

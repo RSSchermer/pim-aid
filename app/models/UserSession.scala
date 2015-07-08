@@ -27,12 +27,15 @@ case class UserSession(
   val drugGroups = many(UserSession.drugGroups)
 
   def buildIndependentStatements()(implicit ec: ExecutionContext): DBIO[Seq[Statement]] = {
-    val selection = selectedStatementTerms.map(_.id).flatten
-
     for {
-      statementTerms <- StatementTerm.all.filter(_.displayCondition.isNull).result
-    } yield statementTerms.map { st =>
-      Statement(st.id.get, st.statementTemplate.getOrElse(""), selection.contains(st.id.get))
+      statementTerms <- StatementTerm.all.filter(_.displayCondition.isEmpty).result
+      selectedTerms <- selectedStatementTerms.valueAction
+    } yield {
+      val selection = selectedTerms.map(_.id).flatten
+
+      statementTerms.map { st =>
+        Statement(st.id.get, st.statementTemplate.getOrElse(""), selection.contains(st.id.get))
+      }
     }
   }
 
@@ -48,11 +51,13 @@ case class UserSession(
 
   def buildConditionalStatements()(implicit ex: ExecutionContext): DBIO[Seq[Statement]] =
     for {
-      conditionalTerms <- StatementTerm.all.filter(_.displayCondition.isNotNull).result
+      conditionalTerms <- StatementTerm.all.filter(_.displayCondition.isDefined).result
       parser <- buildParser()
       placeholderReplacer <- buildPlaceholderReplacer()
-      selection <- statementTermsUserSessions.valueAction
+      stUs <- statementTermsUserSessions.valueAction
     } yield {
+      val selection = stUs.map(x => (x.statementTermID, x.text))
+
       val statements = conditionalTerms
         .filter(t => parser.parse(t.displayCondition.getOrElse(ConditionExpression(""))).getOrElse(false))
         .flatMap { term =>

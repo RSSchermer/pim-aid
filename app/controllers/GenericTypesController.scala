@@ -47,18 +47,19 @@ object GenericTypesController extends Controller {
     )
   }
 
-  def edit(id: Long) = Action.async { implicit rs =>
-    db.run(GenericType.one(GenericTypeID(id)).result).map {
+  def edit(id: GenericTypeID) = Action.async { implicit rs =>
+    db.run(GenericType.one(id).result).map {
       case Some(genericType) =>
-        Ok(html.genericTypes.edit(genericType.id.get, genericTypeForm.fill(genericType)))
-      case _ => NotFound
+        Ok(html.genericTypes.edit(id, genericTypeForm.fill(genericType)))
+      case _ =>
+        NotFound
     }
   }
 
-  def update(id: Long) = Action.async { implicit rs =>
+  def update(id: GenericTypeID) = Action.async { implicit rs =>
     genericTypeForm.bindFromRequest.fold(
       formWithErrors =>
-        Future.successful(BadRequest(html.genericTypes.edit(GenericTypeID(id), formWithErrors))),
+        Future.successful(BadRequest(html.genericTypes.edit(id, formWithErrors))),
       genericType =>
         db.run(GenericType.update(genericType)).map { _ =>
           Redirect(routes.GenericTypesController.list())
@@ -67,15 +68,17 @@ object GenericTypesController extends Controller {
     )
   }
 
-  def remove(id: Long) = Action.async { implicit rs =>
-    db.run(GenericType.one(GenericTypeID(id)).result).map {
-      case Some(genericType) => Ok(html.genericTypes.remove(genericType))
-      case _ => NotFound
+  def remove(id: GenericTypeID) = Action.async { implicit rs =>
+    db.run(GenericType.one(id).result).map {
+      case Some(genericType) =>
+        Ok(html.genericTypes.remove(genericType))
+      case _ =>
+        NotFound
     }
   }
 
-  def delete(id: Long) = Action.async { implicit rs =>
-    db.run(GenericType.delete(GenericTypeID(id))).map { _ =>
+  def delete(id: GenericTypeID) = Action.async { implicit rs =>
+    db.run(GenericType.delete(id)).map { _ =>
       Redirect(routes.GenericTypesController.list())
         .flashing("success" -> "The drug type was deleted successfully.")
     }

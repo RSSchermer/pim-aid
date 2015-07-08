@@ -18,7 +18,7 @@
 
     <pre>@rule.conditionExpression.value</pre>
 
-    @helper.form(action = routes.RuleSuggestionTemplatesController.save(rule.id.get.value)) {
+    @helper.form(action = routes.RuleSuggestionTemplatesController.save(rule.id.get)) {
         <fieldset>
             <input type="hidden" name="ruleId" value='@rule.id.get.value'>
             @b3.select(ruleSuggestionTemplateForm("suggestionTemplateId"),
@@ -41,12 +41,18 @@
             @for(suggestionTemplate <- rule.suggestionTemplates){
                 <tr>
                     <td>
-                        <a href="@routes.SuggestionTemplatesController.edit(suggestionTemplate.id.get.value)">
+                        <a href="@routes.SuggestionTemplatesController.edit(suggestionTemplate.id.get)">
                             @suggestionTemplate.name
                         </a>
                     </td>
+
                     <td>@suggestionTemplate.text</td>
-                    <td><a href="@routes.RuleSuggestionTemplatesController.remove(rule.id.get.value, suggestionTemplate.id.get.value)">Delete</a></td>
+
+                    <td>
+                        <a href="@routes.RuleSuggestionTemplatesController.remove(rule.id.get, suggestionTemplate.id.get)">
+                            Delete
+                        </a>
+                    </td>
                 </tr>
             }
         </tbody>

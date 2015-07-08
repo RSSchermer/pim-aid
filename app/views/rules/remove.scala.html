@@ -9,7 +9,7 @@
         <dt>Note</dt><dd>@rule.note</dd>
     </dl>
 
-    @helper.form(routes.RulesController.delete(rule.id.get.value)) {
+    @helper.form(routes.RulesController.delete(rule.id.get)) {
         <button type="submit" class="btn btn-danger">
             <span class="fa fa-trash"></span> Delete
         </button>

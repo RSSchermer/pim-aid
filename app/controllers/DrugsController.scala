@@ -99,8 +99,8 @@ object DrugsController extends Controller {
     )
   }
 
-  def delete(id: Long) = UserSessionAwareAction.async { implicit rs =>
-    db.run(Drug.delete(DrugID(id))).map { _ =>
+  def delete(id: DrugID) = UserSessionAwareAction.async { implicit rs =>
+    db.run(Drug.delete(id)).map { _ =>
       Ok.withSession("token" -> rs.userSession.token.value)
     }
   }

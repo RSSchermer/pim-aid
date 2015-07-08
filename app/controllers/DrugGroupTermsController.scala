@@ -55,22 +55,23 @@ object DrugGroupTermsController extends Controller {
     )
   }
 
-  def edit(id: Long) = Action.async { implicit rs =>
+  def edit(id: ExpressionTermID) = Action.async { implicit rs =>
     db.run(for {
-      termOption <- DrugGroupTerm.one(ExpressionTermID(id)).include(DrugGroupTerm.drugGroup).result
+      termOption <- DrugGroupTerm.one(id).include(DrugGroupTerm.drugGroup).result
       drugGroups <- DrugGroup.all.result
     } yield termOption match {
       case Some(term) =>
-        Ok(html.drugGroupTerms.edit(ExpressionTermID(id), drugGroups, drugGroupTermForm.fill(term)))
-      case _ => NotFound
+        Ok(html.drugGroupTerms.edit(id, drugGroups, drugGroupTermForm.fill(term)))
+      case _ =>
+        NotFound
     })
   }
 
-  def update(id: Long) = Action.async { implicit rs =>
+  def update(id: ExpressionTermID) = Action.async { implicit rs =>
     drugGroupTermForm.bindFromRequest.fold(
       formWithErrors =>
         db.run(DrugGroup.all.result).map { drugGroups =>
-          BadRequest(html.drugGroupTerms.edit(ExpressionTermID(id), drugGroups, formWithErrors))
+          BadRequest(html.drugGroupTerms.edit(id, drugGroups, formWithErrors))
         },
       term =>
         db.run(DrugGroupTerm.update(term)).map { _ =>
@@ -80,15 +81,17 @@ object DrugGroupTermsController extends Controller {
     )
   }
 
-  def remove(id: Long) = Action.async { implicit rs =>
-    db.run(DrugGroupTerm.one(ExpressionTermID(id)).include(DrugGroupTerm.drugGroup).result).map {
-      case Some(term) => Ok(html.drugGroupTerms.remove(term))
-      case _ => NotFound
+  def remove(id: ExpressionTermID) = Action.async { implicit rs =>
+    db.run(DrugGroupTerm.one(id).include(DrugGroupTerm.drugGroup).result).map {
+      case Some(term) =>
+        Ok(html.drugGroupTerms.remove(term))
+      case _ =>
+        NotFound
     }
   }
 
-  def delete(id: Long) = Action.async { implicit rs =>
-    db.run(DrugGroupTerm.delete(ExpressionTermID(id))).map { _ =>
+  def delete(id: ExpressionTermID) = Action.async { implicit rs =>
+    db.run(DrugGroupTerm.delete(id)).map { _ =>
       Redirect(routes.DrugGroupTermsController.list())
         .flashing("success" -> "The expression term was deleted successfully.")
     }

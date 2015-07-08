@@ -29,9 +29,9 @@ object DrugGroupGenericTypesController extends Controller {
     )
   )
 
-  def list(drugGroupId: Long) = Action.async { implicit rs =>
+  def list(drugGroupId: DrugGroupID) = Action.async { implicit rs =>
     db.run(for {
-      drugGroupOption <- DrugGroup.one(DrugGroupID(drugGroupId)).include(
+      drugGroupOption <- DrugGroup.one(drugGroupId).include(
           DrugGroup.genericTypes.include(
             GenericType.medicationProducts
           )
@@ -40,13 +40,14 @@ object DrugGroupGenericTypesController extends Controller {
     } yield drugGroupOption match{
       case Some(drugGroup) =>
         Ok(html.drugGroupGenericTypes.list(drugGroup, genericTypes, drugGroupGenericTypeForm))
-      case _ => NotFound
+      case _ =>
+        NotFound
     })
 
   }
 
-  def save(drugGroupId: Long) = Action.async { implicit rs =>
-    db.run(DrugGroup.one(DrugGroupID(drugGroupId)).include(
+  def save(drugGroupId: DrugGroupID) = Action.async { implicit rs =>
+    db.run(DrugGroup.one(drugGroupId).include(
       DrugGroup.genericTypes.include(
         GenericType.medicationProducts
       )
@@ -64,24 +65,27 @@ object DrugGroupGenericTypesController extends Controller {
                 .flashing("success" -> "The generic type was successfully added to the drug group.")
             }
         )
-      case _ => Future.successful(NotFound)
+      case _ =>
+        Future.successful(NotFound)
     }
   }
 
-  def remove(drugGroupId: Long, id: Long) = Action.async { implicit rs =>
-    db.run(DrugGroup.one(DrugGroupID(drugGroupId)).result).flatMap {
+  def remove(drugGroupId: DrugGroupID, id: GenericTypeID) = Action.async { implicit rs =>
+    db.run(DrugGroup.one(drugGroupId).result).flatMap {
       case Some(drugGroup) =>
-        db.run(GenericType.one(GenericTypeID(id)).result).map {
-          case Some(genericType) => Ok(html.drugGroupGenericTypes.remove(drugGroup, genericType))
-          case _ => NotFound
+        db.run(GenericType.one(id).result).map {
+          case Some(genericType) =>
+            Ok(html.drugGroupGenericTypes.remove(drugGroup, genericType))
+          case _ =>
+            NotFound
         }
       case _ => Future.successful(NotFound)
     }
   }
 
-  def delete(drugGroupId: Long, id: Long) = Action.async { implicit rs =>
+  def delete(drugGroupId: DrugGroupID, id: GenericTypeID) = Action.async { implicit rs =>
     val action = TableQuery[DrugGroupsGenericTypes]
-      .filter(x => x.drugGroupId === DrugGroupID(drugGroupId) && x.genericTypeId === GenericTypeID(id))
+      .filter(x => x.drugGroupId === drugGroupId && x.genericTypeId === id)
       .delete
 
     db.run(action).map { _ =>

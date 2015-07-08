@@ -8,8 +8,8 @@ libraryDependencies ++= Seq(
   // Database access
   "com.typesafe.play"       %% "play-slick"             % "1.0.0",
   "com.typesafe.play"       %% "play-slick-evolutions"  % "1.0.0",
-  "com.github.rsschermer"   %% "entitytled-core"        % "0.7.0",
-  "postgresql"              %  "postgresql"             % "9.1-901-1.jdbc4",
+  "com.github.rsschermer"   %% "entitytled-core"        % "0.7.1",
+  "org.postgresql"          %  "postgresql"             % "9.4-1201-jdbc41",
 
   // Misc
   "com.adrianhurt"                %% "play-bootstrap3"    % "0.4.2",
@@ -22,10 +22,11 @@ libraryDependencies ++= Seq(
   "org.webjars"   %  "lodash"         % "2.4.1",
   "org.webjars"   %  "angularjs"      % "1.3.0",
   "org.webjars"   %  "restangular"    % "1.3.1",
-  "org.webjars"   %  "select2"        % "3.5.2"//,
+  "org.webjars"   %  "select2"        % "3.5.2",
 
   // Testing
-  //"org.scalatestplus"   %% "play"   % "1.2.0"   % "test"
+  "org.scalatest"       %% "scalatest"  % "2.2.4"     % "test",
+  "org.scalatestplus"   %% "play"       % "1.4.0-M3"  % "test"
 )
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala).settings(
@@ -33,6 +34,8 @@ lazy val root = (project in file(".")).enablePlugins(PlayScala).settings(
 )
 
 includeFilter in (Assets, LessKeys.less) := "*.less"
+
+routesImport += "binders._"
 
 TwirlKeys.templateImports ++= Seq(
   "scala.concurrent.ExecutionContext",

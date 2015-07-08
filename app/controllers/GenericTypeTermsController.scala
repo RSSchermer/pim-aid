@@ -55,22 +55,23 @@ object GenericTypeTermsController extends Controller {
     )
   }
 
-  def edit(id: Long) = Action.async { implicit rs =>
+  def edit(id: ExpressionTermID) = Action.async { implicit rs =>
     db.run(for {
-      termOption <- GenericTypeTerm.one(ExpressionTermID(id)).result
+      termOption <- GenericTypeTerm.one(id).result
       genericTypes <- GenericType.all.result
     } yield termOption match {
       case Some(term) =>
-        Ok(html.genericTypeTerms.edit(ExpressionTermID(id), genericTypes, genericTypeTermForm.fill(term)))
-      case _ => NotFound
+        Ok(html.genericTypeTerms.edit(id, genericTypes, genericTypeTermForm.fill(term)))
+      case _ =>
+        NotFound
     })
   }
 
-  def update(id: Long) = Action.async { implicit rs =>
+  def update(id: ExpressionTermID) = Action.async { implicit rs =>
     genericTypeTermForm.bindFromRequest.fold(
       formWithErrors =>
         db.run(GenericType.all.result).map { genericTypes =>
-          BadRequest(html.genericTypeTerms.edit(ExpressionTermID(id), genericTypes, formWithErrors))
+          BadRequest(html.genericTypeTerms.edit(id, genericTypes, formWithErrors))
         },
       term =>
         db.run(GenericTypeTerm.update(term)).map { _ =>
@@ -80,15 +81,17 @@ object GenericTypeTermsController extends Controller {
     )
   }
 
-  def remove(id: Long) = Action.async { implicit rs =>
-    db.run(GenericTypeTerm.one(ExpressionTermID(id)).result).map {
-      case Some(term) => Ok(html.genericTypeTerms.remove(term))
-      case _ => NotFound
+  def remove(id: ExpressionTermID) = Action.async { implicit rs =>
+    db.run(GenericTypeTerm.one(id).result).map {
+      case Some(term) =>
+        Ok(html.genericTypeTerms.remove(term))
+      case _ =>
+        NotFound
     }
   }
 
-  def delete(id: Long) = Action.async { implicit rs =>
-    db.run(GenericTypeTerm.delete(ExpressionTermID(id))).map { _ =>
+  def delete(id: ExpressionTermID) = Action.async { implicit rs =>
+    db.run(GenericTypeTerm.delete(id)).map { _ =>
       Redirect(routes.GenericTypeTermsController.list())
         .flashing("success" -> "The expression term was deleted successfully.")
     }

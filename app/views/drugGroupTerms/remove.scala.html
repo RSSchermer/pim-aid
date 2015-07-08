@@ -7,7 +7,7 @@
         <dt>Label</dt><dd>@drugGroupTerm.label</dd>
     </dl>
 
-    @helper.form(routes.DrugGroupTermsController.delete(drugGroupTerm.id.get.value)) {
+    @helper.form(routes.DrugGroupTermsController.delete(drugGroupTerm.id.get)) {
         <button type="submit" class="btn btn-danger">
             <span class="fa fa-trash"></span> Delete
         </button>

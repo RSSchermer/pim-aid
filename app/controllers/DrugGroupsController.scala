@@ -41,24 +41,25 @@ object DrugGroupsController extends Controller {
         Future.successful(BadRequest(html.drugGroups.create(formWithErrors))),
       drugGroup =>
         db.run(DrugGroup.insert(drugGroup)).map { id =>
-          Redirect(routes.DrugGroupGenericTypesController.list(id.value))
+          Redirect(routes.DrugGroupGenericTypesController.list(id))
             .flashing("success" -> "The drug group was created successfully.")
         }
     )
   }
 
-  def edit(id: Long) = Action.async { implicit rs =>
-    db.run(DrugGroup.one(DrugGroupID(id)).result).map {
+  def edit(id: DrugGroupID) = Action.async { implicit rs =>
+    db.run(DrugGroup.one(id).result).map {
       case Some(drugGroup) =>
-        Ok(html.drugGroups.edit(DrugGroupID(id), drugGroupForm.fill(drugGroup)))
-      case _ => NotFound
+        Ok(html.drugGroups.edit(id, drugGroupForm.fill(drugGroup)))
+      case _ =>
+        NotFound
     }
   }
 
-  def update(id: Long) = Action.async { implicit rs =>
+  def update(id: DrugGroupID) = Action.async { implicit rs =>
     drugGroupForm.bindFromRequest.fold(
       formWithErrors =>
-        Future.successful(BadRequest(html.drugGroups.edit(DrugGroupID(id), formWithErrors))),
+        Future.successful(BadRequest(html.drugGroups.edit(id, formWithErrors))),
       drugGroup =>
         db.run(DrugGroup.update(drugGroup)).map { _ =>
           Redirect(routes.DrugGroupsController.list())
@@ -67,15 +68,17 @@ object DrugGroupsController extends Controller {
     )
   }
 
-  def remove(id: Long) = Action.async { implicit rs =>
-    db.run(DrugGroup.one(DrugGroupID(id)).result).map {
-      case Some(drugGroup) => Ok(html.drugGroups.remove(drugGroup))
-      case _ => NotFound
+  def remove(id: DrugGroupID) = Action.async { implicit rs =>
+    db.run(DrugGroup.one(id).result).map {
+      case Some(drugGroup) =>
+        Ok(html.drugGroups.remove(drugGroup))
+      case _ =>
+        NotFound
     }
   }
 
-  def delete(id: Long) = Action.async { implicit rs =>
-    db.run(DrugGroup.delete(DrugGroupID(id))).map { _ =>
+  def delete(id: DrugGroupID) = Action.async { implicit rs =>
+    db.run(DrugGroup.delete(id)).map { _ =>
       Redirect(routes.DrugGroupsController.list())
         .flashing("success" -> "The drug group was deleted successfully.")
     }
