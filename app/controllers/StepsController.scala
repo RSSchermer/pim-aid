@@ -86,33 +86,62 @@ object StepsController extends Controller with UserSessionAware {
   }
 
   def conditionalStatementSelection = DBAction { implicit rs =>
-    val statements = currentUserSession(rs).buildConditionalStatements
+    val userSession = UserSession.include(
+      UserSession.medicationProducts.include(
+        MedicationProduct.genericTypes.include(
+          GenericType.drugGroups
+        )
+      )
+    ).find(currentUserSession(rs).token).get
+
+    val statements = userSession.buildConditionalStatements
     Ok(html.steps.conditionalStatementSelection(statements))
       .withSession("token" -> currentUserSession(rs).token.value)
   }
 
   def saveConditionalStatementSelection = DBAction { implicit rs =>
-    val userSession = currentUserSession(rs)
 
     statementSelectionForm.bindFromRequest.fold(
       formWithErrors => {
+        val userSession = UserSession.include(
+          UserSession.medicationProducts.include(
+            MedicationProduct.genericTypes.include(
+              GenericType.drugGroups
+            )
+          )
+        ).find(currentUserSession(rs).token).get
         val statements = userSession.buildConditionalStatements
         BadRequest(html.steps.conditionalStatementSelection(statements))
       },
       statements => {
-        userSession.saveConditionalStatementSelection(statements)
+        currentUserSession(rs).saveConditionalStatementSelection(statements)
         Redirect(routes.StepsController.suggestionList())
       }
     )
   }
 
   def suggestionList = DBAction { implicit rs =>
-    Ok(html.steps.suggestionList(currentUserSession(rs).buildSuggestions))
+    val userSession = UserSession.include(
+      UserSession.medicationProducts.include(
+        MedicationProduct.genericTypes.include(
+          GenericType.drugGroups
+        )
+      )
+    ).find(currentUserSession(rs).token).get
+
+    Ok(html.steps.suggestionList(userSession.buildSuggestions))
       .withSession("token" -> currentUserSession(rs).token.value)
   }
 
   def print = DBAction { implicit rs =>
-    val userSession = currentUserSession(rs)
+    val userSession = UserSession.include(
+      UserSession.medicationProducts.include(
+        MedicationProduct.genericTypes.include(
+          GenericType.drugGroups
+        )
+      )
+    ).find(currentUserSession(rs).token).get
+
     val drugs = userSession.drugs
     val statements = userSession.buildSelectedStatements
     val suggestions = userSession.buildSuggestions
