@@ -35,11 +35,14 @@ lazy val root = (project in file(".")).enablePlugins(PlayScala).settings(
 
 includeFilter in (Assets, LessKeys.less) := "*.less"
 
-routesImport += "binders._"
+routesImport ++= Seq(
+  "binders._",
+  "model.Model._"
+)
 
 TwirlKeys.templateImports ++= Seq(
   "scala.concurrent.ExecutionContext",
-  "models.meta.Profile._"
+  "model.Model._"
 )
 
 fork in run := true

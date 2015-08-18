@@ -7,9 +7,8 @@ import scala.language.postfixOps
 
 import play.api.data.validation.{Constraint, Invalid, Valid}
 
-import models._
-import models.meta.Profile._
-import models.meta.Profile.driver.api._
+import model.Model._
+import model.Model.driver.api._
 
 object MedicationProductTemplateConstraint {
   def apply(implicit ec: ExecutionContext): Constraint[String] = {

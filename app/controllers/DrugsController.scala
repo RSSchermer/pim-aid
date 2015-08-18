@@ -9,9 +9,8 @@ import play.api.libs.json._
 import play.api.libs.functional.syntax._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
-import models._
-import models.meta.Profile._
-import models.meta.Profile.driver.api._
+import model.Model._
+import model.Model.driver.api._
 
 object DrugsController extends Controller {
   case class DrugJson(id: Option[Long],

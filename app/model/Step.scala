@@ -1,4 +1,4 @@
-package models
+package model
 
 object Step extends Enumeration {
   type Step = Value

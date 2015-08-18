@@ -4,9 +4,6 @@ import org.scalatest.{FunSpec, Matchers}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-import models._
-import models.meta.Profile.driver.api._
-
 class MedicationProductSpec extends FunSpec with DBSpec with Matchers {
   describe("The MedicationProduct companion object") {
     it("retrieves a MedicationProduct by name (not case-sensitive)") {

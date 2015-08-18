@@ -4,10 +4,6 @@ import org.scalatest.{FunSpec, Matchers}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-import models._
-import models.meta.Profile.driver.api._
-import models.meta.Schema._
-
 class ExpressionTermSpec extends FunSpec with DBSpec with Matchers {
   describe("An ExpressionTerm companion object") {
     it("retrieves an ExpressionTerm by label (matching case)") {

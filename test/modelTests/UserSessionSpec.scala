@@ -4,10 +4,6 @@ import org.scalatest.{FunSpec, Matchers}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-import models._
-import models.meta.Profile.driver.api._
-import models.meta.Schema._
-
 class UserSessionSpec extends FunSpec with DBSpec with Matchers {
   describe("The UserSession companion object") {
     it("generates a random alphanumeric token of the specified length") {

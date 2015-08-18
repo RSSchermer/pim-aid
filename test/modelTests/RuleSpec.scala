@@ -4,10 +4,6 @@ import org.scalatest.{FunSpec, Matchers}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-import models._
-import models.meta.Profile.driver.api._
-import models.meta.Schema._
-
 class RuleSpec extends FunSpec with DBSpec with Matchers {
   describe("A Rule") {
     it("creates links to the expression terms referenced in its condition") {

@@ -10,8 +10,7 @@ import play.api.i18n.Messages.Implicits._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 import views._
-import models._
-import models.meta.Profile._
+import model.Model._
 import constraints.MedicationProductTemplateConstraint
 
 object SuggestionTemplatesController extends Controller {

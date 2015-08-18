@@ -7,9 +7,6 @@ import scala.concurrent.{Await, ExecutionContext}
 import scala.language.postfixOps
 import scala.util.{Failure, Success}
 
-import models.meta.Schema._
-import models.meta.Profile.driver.api._
-
 trait DBSpec extends BeforeAndAfterAll  {
   self: Suite =>
 

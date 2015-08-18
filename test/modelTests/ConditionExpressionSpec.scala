@@ -2,8 +2,6 @@ package modelTests
 
 import org.scalatest.{FunSpec, Matchers}
 
-import models._
-
 class ConditionExpressionSpec extends FunSpec with Matchers {
   describe("A ConditionExpression") {
     it("identifies the expression terms it uses correctly") {

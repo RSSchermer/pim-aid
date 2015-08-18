@@ -10,10 +10,8 @@ import play.api.i18n.Messages.Implicits._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 import views._
-import models._
-import models.meta.Schema._
-import models.meta.Profile._
-import models.meta.Profile.driver.api._
+import model.Model._
+import model.Model.driver.api._
 
 object MedicationProductGenericTypesController extends Controller {
   val genericTypeMedicationProductForm = Form(
