@@ -66,7 +66,7 @@ trait UserSessionComponent {
       deleteOld >> insertNew >> DBIO.successful(())
     }
 
-    def buildConditionalStatements()(implicit ex: ExecutionContext, db: Database): DBIO[Seq[Statement]] =
+    def buildConditionalStatements()(implicit ex: ExecutionContext): DBIO[Seq[Statement]] =
       for {
         conditionalTerms <- StatementTerm.all.filter(_.displayCondition.isDefined).result
         parser <- buildParser()
