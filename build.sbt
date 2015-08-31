@@ -4,6 +4,8 @@ version := "1.0.0"
 
 scalaVersion := "2.11.6"
 
+resolvers += Resolver.url("Typesafe Ivy releases", url("https://repo.typesafe.com/typesafe/ivy-releases"))(Resolver.ivyStylePatterns)
+
 libraryDependencies ++= Seq(
   // Database access
   "com.typesafe.play"       %% "play-slick"             % "1.0.0",
