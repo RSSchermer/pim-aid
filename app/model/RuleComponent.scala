@@ -30,14 +30,15 @@ trait RuleComponent {
   object Rule extends EntityCompanion[Rules, Rule, RuleID] {
     val suggestionTemplates = toManyThrough[SuggestionTemplates, RulesSuggestionTemplates, SuggestionTemplate]
 
-    override protected def afterSave(ruleId: RuleID, rule: Rule)(implicit ec: ExecutionContext): DBIO[Unit] = {
+    override protected def afterSave(id: RuleID, instance: Rule)(implicit ec: ExecutionContext): DBIO[Unit] = {
       val tq = TableQuery[ExpressionTermsRules]
-      val deleteOld = tq.filter(_.ruleId === ruleId).delete
-      val insertNew = for {
-        terms <- ExpressionTerm.all.filter(_.label inSetBind rule.conditionExpression.expressionTermLabels).result
-      } yield DBIO.sequence(terms.map(t => tq +=(t.id.get, ruleId)))
-
-      deleteOld >> insertNew >> DBIO.successful(())
+      val expressionTermLabels = instance.conditionExpression.expressionTermLabels
+      
+      for {
+        _ <- tq.filter(_.ruleId === id).delete
+        terms <- ExpressionTerm.all.filter(_.label inSetBind expressionTermLabels).result
+        _ <- DBIO.sequence(terms.map(t => tq += (t.id.get, id)))
+      } yield ()
     }
   }
 

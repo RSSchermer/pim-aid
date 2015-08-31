@@ -8,6 +8,7 @@ import scala.concurrent.ExecutionContext
 trait MedicationProductComponent {
   self: Entitytled
     with GenericTypeComponent
+    with DrugGroupComponent
   =>
 
   import driver.api._
@@ -20,10 +21,12 @@ trait MedicationProductComponent {
     extends Entity[MedicationProduct, MedicationProductID]
   {
     val genericTypes = many(MedicationProduct.genericTypes)
+    val drugGroups = many(MedicationProduct.drugGroups)
   }
 
   object MedicationProduct extends EntityCompanion[MedicationProducts, MedicationProduct, MedicationProductID] {
     val genericTypes = toManyThrough[GenericTypes, GenericTypesMedicationProducts, GenericType]
+    val drugGroups = genericTypes compose GenericType.drugGroups
 
     def hasName(name: String): Query[MedicationProducts, MedicationProduct, Seq] =
       all.filter(_.name.toLowerCase === name.toLowerCase)

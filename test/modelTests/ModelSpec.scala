@@ -7,11 +7,32 @@ import scala.concurrent.{Await, ExecutionContext}
 import scala.language.postfixOps
 import scala.util.{Failure, Success}
 
-trait DBSpec extends BeforeAndAfterAll  {
+import entitytled.Entitytled
+
+import slick.driver.H2Driver
+
+import model._
+
+trait ModelSpec extends BeforeAndAfterAll
+  with Entitytled
+  with ConditionExpressionComponent
+  with DrugComponent
+  with DrugGroupComponent
+  with ExpressionTermComponent
+  with GenericTypeComponent
+  with MedicationProductComponent
+  with RuleComponent
+  with SuggestionTemplateComponent
+  with UserSessionComponent
+{
   self: Suite =>
 
+  val driver: H2Driver = H2Driver
+
+  import driver.api._
+  
   def setupDatabase(): Database = {
-    val dbUrl = s"jdbc:h2:mem:${this.getClass.getSimpleName}"
+    val dbUrl = s"jdbc:h2:mem:${this.getClass.getSimpleName};DB_CLOSE_DELAY=-1"
     val db = Database.forURL(dbUrl, driver = "org.h2.Driver")
     db.createSession().force()
 

@@ -66,7 +66,7 @@ trait UserSessionComponent {
       deleteOld >> insertNew >> DBIO.successful(())
     }
 
-    def buildConditionalStatements()(implicit ex: ExecutionContext): DBIO[Seq[Statement]] =
+    def buildConditionalStatements()(implicit ex: ExecutionContext, db: Database): DBIO[Seq[Statement]] =
       for {
         conditionalTerms <- StatementTerm.all.filter(_.displayCondition.isDefined).result
         parser <- buildParser()
@@ -96,7 +96,7 @@ trait UserSessionComponent {
       deleteOld >> insertNew >> DBIO.successful(())
     }
 
-    def buildSuggestions()(implicit ec: ExecutionContext): DBIO[Seq[Suggestion]] =
+    def buildSuggestions()(implicit ec: ExecutionContext, db: Database): DBIO[Seq[Suggestion]] =
       for {
         rules <- Rule.all.include(Rule.suggestionTemplates).result
         parser <- buildParser()
@@ -158,15 +158,19 @@ trait UserSessionComponent {
       }
     }
 
-    private def buildPlaceholderReplacer()(implicit ec: ExecutionContext): DBIO[PlaceholderReplacer] =
+    private def buildPlaceholderReplacer()(implicit ec: ExecutionContext): DBIO[PlaceholderReplacer] = {
+      val medicationProductQuery = UserSession.medicationProducts.queryFor(token)
+
       for {
-        products <- medicationProducts.valueAction
+        productsTypes <- MedicationProduct.genericTypes.innerJoinFor(medicationProductQuery).result
+        productsGroups <- MedicationProduct.drugGroups.innerJoinFor(medicationProductQuery).result
       } yield {
-        val typeProductMap = medicationProducts.flatMap(p => p.genericTypes.map(t => (t, p))).toMap
-        val groupProductMap = medicationProducts.flatMap(p => p.genericTypes.flatMap(_.drugGroups).map(g => (g, p))).toMap
+        val typeProductMap = productsTypes.groupBy(_._2).map(x => (x._1, x._2.map(_._1)))
+        val groupProductMap = productsGroups.groupBy(_._2).map(x => (x._1, x._2.map(_._1)))
 
         new PlaceholderReplacer(typeProductMap, groupProductMap)
       }
+    }
   }
 
   object UserSession extends EntityCompanion[UserSessions, UserSession, UserToken] {
@@ -196,8 +200,8 @@ trait UserSessionComponent {
   }
 
   class PlaceholderReplacer(
-    typeProductMap: Map[GenericType, MedicationProduct],
-    groupProductMap: Map[DrugGroup, MedicationProduct])
+    typeProductMap: Map[GenericType, Seq[MedicationProduct]],
+    groupProductMap: Map[DrugGroup, Seq[MedicationProduct]])
   {
     def replacePlaceholders(template: String): Seq[String] = {
       """\{\{(type|group)\(([^\)]+)\)\}\}""".r.findFirstMatchIn(template) match {
@@ -205,13 +209,17 @@ trait UserSessionComponent {
           case "type" =>
             typeProductMap
               .filter(x => x._1.name.toLowerCase == m.group(2).toLowerCase)
-              .map { x => template.replaceAll( s"""\\{\\{type\\(${m.group(2)}\\)\\}\\}""", x._2.name) }
+              .flatMap { x =>
+                x._2.map(y => template.replaceAll(s"""\\{\\{type\\(${m.group(2)}\\)\\}\\}""", y.name))
+              }
               .flatMap(replacePlaceholders)
               .toList
           case "group" =>
             groupProductMap
               .filter(x => x._1.name.toLowerCase == m.group(2).toLowerCase)
-              .map { x => template.replaceAll( s"""\\{\\{group\\(${m.group(2)}\\)\\}\\}""", x._2.name) }
+              .flatMap { x =>
+                x._2.map(y => template.replaceAll(s"""\\{\\{group\\(${m.group(2)}\\)\\}\\}""", y.name))
+              }
               .flatMap(replacePlaceholders)
               .toList
         }

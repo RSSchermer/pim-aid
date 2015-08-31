@@ -8,7 +8,7 @@ libraryDependencies ++= Seq(
   // Database access
   "com.typesafe.play"       %% "play-slick"             % "1.0.0",
   "com.typesafe.play"       %% "play-slick-evolutions"  % "1.0.0",
-  "com.github.rsschermer"   %% "entitytled-core"        % "0.7.1",
+  "com.github.rsschermer"   %% "entitytled-core"        % "0.7.2",
   "org.postgresql"          %  "postgresql"             % "9.4-1201-jdbc41",
 
   // Misc
@@ -26,7 +26,8 @@ libraryDependencies ++= Seq(
 
   // Testing
   "org.scalatest"       %% "scalatest"  % "2.2.4"     % "test",
-  "org.scalatestplus"   %% "play"       % "1.4.0-M3"  % "test"
+  "org.scalatestplus"   %% "play"       % "1.4.0-M4"  % "test",
+  "com.h2database"      %   "h2"        % "1.4.188"   % "test"
 )
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala).settings(
@@ -45,5 +46,5 @@ TwirlKeys.templateImports ++= Seq(
   "model.Model._"
 )
 
-fork in run := true
+fork in run := false
 fork in Test := false

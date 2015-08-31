@@ -4,7 +4,9 @@ import org.scalatest.{FunSpec, Matchers}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class ExpressionTermSpec extends FunSpec with DBSpec with Matchers {
+class ExpressionTermSpec extends FunSpec with ModelSpec with Matchers {
+  import driver.api._
+
   describe("An ExpressionTerm companion object") {
     it("retrieves an ExpressionTerm by label (matching case)") {
       rollback {
@@ -53,7 +55,7 @@ class ExpressionTermSpec extends FunSpec with DBSpec with Matchers {
 
         for {
           termId <- ExpressionTerm.insert(term)
-          stId <- ExpressionTerm.insert(ExpressionTerm(None, "some_other_term", None, None, Some("template"), Some(ConditionExpression("[some_term] AND true")), None, None))
+          stId <- StatementTerm.insert(ExpressionTerm(None, "some_other_term", None, None, Some("template"), Some(ConditionExpression("[some_term] AND true")), None, None))
 
           _ <- ExpressionTerm.update(term.copy(id = Some(termId), label = "changed_term"))
 
@@ -70,7 +72,7 @@ class ExpressionTermSpec extends FunSpec with DBSpec with Matchers {
       rollback {
         for {
           termId <- ExpressionTerm.insert(ExpressionTerm(None, "some_term", None, None, None, None, Some(">="), Some(65)))
-          stId <- ExpressionTerm.insert(ExpressionTerm(None, "some_other_term", None, None, Some("template"), Some(ConditionExpression("[some_term]")), None, None))
+          stId <- StatementTerm.insert(ExpressionTerm(None, "some_other_term", None, None, Some("template"), Some(ConditionExpression("[some_term]")), None, None))
           linkCount <- TableQuery[ExpressionTermsStatementTerms].filter(x => x.statementTermId === stId && x.expressionTermId === termId).length.result
         } yield {
           linkCount shouldBe 1
@@ -84,9 +86,9 @@ class ExpressionTermSpec extends FunSpec with DBSpec with Matchers {
 
         for {
           termId <- ExpressionTerm.insert(ExpressionTerm(None, "some_term", None, None, None, None, Some(">="), Some(65)))
-          stId <- ExpressionTerm.insert(st)
+          stId <- StatementTerm.insert(st)
 
-          _ <- ExpressionTerm.update(st.copy(id = Some(stId), displayCondition = Some(ConditionExpression("true"))))
+          _ <- StatementTerm.update(st.copy(id = Some(stId), displayCondition = Some(ConditionExpression("true"))))
 
           linkCount <- TableQuery[ExpressionTermsStatementTerms].filter(x => x.statementTermId === stId && x.expressionTermId === termId).length.result
         } yield {

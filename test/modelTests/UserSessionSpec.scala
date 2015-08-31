@@ -4,7 +4,9 @@ import org.scalatest.{FunSpec, Matchers}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class UserSessionSpec extends FunSpec with DBSpec with Matchers {
+class UserSessionSpec extends FunSpec with ModelSpec with Matchers {
+  import driver.api._
+
   describe("The UserSession companion object") {
     it("generates a random alphanumeric token of the specified length") {
       UserSession.generateToken(12).value should fullyMatch regex """[0-9A-z]{12}"""
@@ -111,12 +113,11 @@ class UserSessionSpec extends FunSpec with DBSpec with Matchers {
 
           // Set up user characteristics
           userSession <- UserSession.create()
-          _ <- UserSession.update(userSession.copy(age = Some(70)))
           _ <- Drug.insert(Drug(None, "selokeen", userSession.token, Some(selokeenId)))
           _ <- TableQuery[StatementTermsUserSessions] +=
             StatementTermUserSession(userSession.token, statement1TermId, "statement1", false)
 
-          statements <- userSession.buildConditionalStatements()
+          statements <- userSession.copy(age = Some(70)).buildConditionalStatements()
         } yield {
           statements.map(_.text) should contain theSameElementsAs Seq(
             "betaBlockersTerm",
@@ -212,7 +213,6 @@ class UserSessionSpec extends FunSpec with DBSpec with Matchers {
 
           // Set up user characteristics
           userSession <- UserSession.create()
-          _ <- UserSession.update(userSession.copy(age = Some(70)))
           _ <- Drug.insert(Drug(None, "selokeen", userSession.token, Some(selokeenId)))
           _ <- Drug.insert(Drug(None, "sotalol", userSession.token, Some(sotalolProductId)))
 
@@ -222,7 +222,7 @@ class UserSessionSpec extends FunSpec with DBSpec with Matchers {
             Statement(id2, "olderThan70Term", selected = true)
           ))
 
-          statements <- userSession.buildConditionalStatements()
+          statements <- userSession.copy(age = Some(70)).buildConditionalStatements()
         } yield {
           statements.map(x => (x.text, x.selected)) should contain theSameElementsAs Seq(
             ("I use Selokeen.", true),
@@ -243,8 +243,10 @@ class UserSessionSpec extends FunSpec with DBSpec with Matchers {
           enalaprilId <- GenericType.insert(GenericType(None, "enalapril"))
           selokeenId <- MedicationProduct.insert(MedicationProduct(None, "Selokeen"))
 
-          _ <- TableQuery[DrugGroupsGenericTypes] += (betaBlockersId, metoprololId)
-          _ <- TableQuery[DrugGroupsGenericTypes] += (abeInhibitorsId, enalaprilId)
+          _ <- TableQuery[DrugGroupsGenericTypes] ++= Seq(
+            (betaBlockersId, metoprololId),
+            (abeInhibitorsId, enalaprilId)
+          )
           _ <- TableQuery[GenericTypesMedicationProducts] += (metoprololId, selokeenId)
 
           // Set up expression terms for rule conditions
@@ -278,24 +280,25 @@ class UserSessionSpec extends FunSpec with DBSpec with Matchers {
           s7Id <- SuggestionTemplate.insert(SuggestionTemplate(None, "70_or_older", "70_or_older", None))
           s8Id <- SuggestionTemplate.insert(SuggestionTemplate(None, "80_or_older", "80_or_older", None))
 
-          _ <- TableQuery[RulesSuggestionTemplates] += (r1Id, s1AId)
-          _ <- TableQuery[RulesSuggestionTemplates] += (r1Id, s1BId)
-          _ <- TableQuery[RulesSuggestionTemplates] += (r2Id, s2Id)
-          _ <- TableQuery[RulesSuggestionTemplates] += (r3Id, s3Id)
-          _ <- TableQuery[RulesSuggestionTemplates] += (r4Id, s4Id)
-          _ <- TableQuery[RulesSuggestionTemplates] += (r5Id, s5Id)
-          _ <- TableQuery[RulesSuggestionTemplates] += (r6Id, s6Id)
-          _ <- TableQuery[RulesSuggestionTemplates] += (r7Id, s7Id)
-          _ <- TableQuery[RulesSuggestionTemplates] += (r8Id, s8Id)
+          _ <- TableQuery[RulesSuggestionTemplates] ++= Seq(
+            (r1Id, s1AId),
+            (r1Id, s1BId),
+            (r2Id, s2Id),
+            (r3Id, s3Id),
+            (r4Id, s4Id),
+            (r5Id, s5Id),
+            (r6Id, s6Id),
+            (r7Id, s7Id),
+            (r8Id, s8Id)
+          )
 
           // Set up user characteristics
           userSession <- UserSession.create()
-          _ <- UserSession.update(userSession.copy(age = Some(70)))
           _ <- Drug.insert(Drug(None, "selokeen", userSession.token, Some(selokeenId)))
           _ <- TableQuery[StatementTermsUserSessions] +=
             StatementTermUserSession(userSession.token, statement1TermId, "statement1", false)
 
-          suggestions <- userSession.buildSuggestions()
+          suggestions <- userSession.copy(age = Some(70)).buildSuggestions()
         } yield {
           suggestions.map(_.text) should contain theSameElementsAs Seq(
             "beta_blockers1",

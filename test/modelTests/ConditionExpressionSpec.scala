@@ -2,7 +2,7 @@ package modelTests
 
 import org.scalatest.{FunSpec, Matchers}
 
-class ConditionExpressionSpec extends FunSpec with Matchers {
+class ConditionExpressionSpec extends FunSpec with ModelSpec with Matchers {
   describe("A ConditionExpression") {
     it("identifies the expression terms it uses correctly") {
       val labels = ConditionExpression("[term1] AND [term3]").expressionTermLabels

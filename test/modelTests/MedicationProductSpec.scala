@@ -4,7 +4,9 @@ import org.scalatest.{FunSpec, Matchers}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class MedicationProductSpec extends FunSpec with DBSpec with Matchers {
+class MedicationProductSpec extends FunSpec with ModelSpec with Matchers {
+  import driver.api._
+
   describe("The MedicationProduct companion object") {
     it("retrieves a MedicationProduct by name (not case-sensitive)") {
       rollback {
@@ -21,13 +23,14 @@ class MedicationProductSpec extends FunSpec with DBSpec with Matchers {
       rollback {
         for {
           _ <- MedicationProduct.insert(MedicationProduct(None, "Metoprolol"))
+          _ <- MedicationProduct.insert(MedicationProduct(None, "Testim"))
           _ <- MedicationProduct.insert(MedicationProduct(None, "Propanolol"))
           _ <- MedicationProduct.insert(MedicationProduct(None, "Metaclamide"))
           _ <- MedicationProduct.insert(MedicationProduct(None, "Enalapril"))
 
           alternatives <- MedicationProduct.findAlternatives("metaprolol", 0.3, 3)
         } yield {
-          alternatives.map(_.name) should contain inOrderOnly("Metoprolol", "Metaclamide", "Propanolol")
+          alternatives.map(_.name) should contain inOrderOnly("Metoprolol", "Metaclamide", "Enalapril")
         }
       }
     }

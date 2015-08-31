@@ -4,6 +4,8 @@ import scala.concurrent.ExecutionContext
 
 import entitytled.Entitytled
 
+import scala.language.implicitConversions
+
 trait ExpressionTermComponent {
   self: Entitytled
     with GenericTypeComponent
@@ -38,49 +40,48 @@ trait ExpressionTermComponent {
     def hasLabel(label: String): Query[ExpressionTerms, ExpressionTerm, Seq] =
       all.filter(_.label === label)
 
-    override protected def beforeUpdate(term: ExpressionTerm)
+    override protected def beforeUpdate(instance: ExpressionTerm)
                                        (implicit ec: ExecutionContext)
-    : DBIO[ExpressionTerm] =
-      DBIO.seq(
-        updateDependentRuleConditions(term),
-        updateDependentStatementTermConditions(term)
-      ).map(_ => term)
-
+    : DBIO[ExpressionTerm] = for {
+      _ <- updateDependentRuleConditions(instance)
+      _ <- updateDependentStatementTermConditions(instance)
+    } yield instance
 
     private def updateDependentRuleConditions(term: ExpressionTerm)
                                              (implicit ec: ExecutionContext)
-    : DBIO[Unit] =
-      for {
-        oldLabel <- ExpressionTerm.one(term.id.get).map(_.label).result.headOption
-        rules <- term.dependentRules.valueAction
-      } yield DBIO.sequence(rules.map { r =>
-        val updatedCE = r.conditionExpression.replaceLabel(oldLabel.get, term.label)
+    : DBIO[Unit] = for {
+      oldLabel <- ExpressionTerm.one(term.id.get).map(_.label).result.headOption
+      rules <- term.dependentRules.valueAction
+      _ <- DBIO.sequence(rules.map { rule =>
+        val updatedCE = rule.conditionExpression.replaceLabel(oldLabel.get, term.label)
 
         // Update rule via TableQuery to bypass afterSave hook, because it will look
         // for an expression term with a label which does not yet exist at this time.
-        TableQuery[Rules].update(r.copy(conditionExpression = updatedCE))
+        TableQuery[Rules].filter(_.id === rule.id).update(rule.copy(conditionExpression = updatedCE))
       })
+    } yield ()
 
     private def updateDependentStatementTermConditions(term: ExpressionTerm)
                                                       (implicit ec: ExecutionContext)
-    : DBIO[Unit] =
-      for {
-        oldLabel <- ExpressionTerm.one(term.id.get).map(_.label).result.headOption
-        statementTerms <- term.dependentStatementTerms.valueAction
-      } yield DBIO.sequence(statementTerms.map { statementTerm =>
+    : DBIO[Unit] = for {
+      oldLabel <- ExpressionTerm.one(term.id.get).map(_.label).result.headOption
+      statementTerms <- term.dependentStatementTerms.valueAction
+      _ <- DBIO.sequence(statementTerms.map { statementTerm =>
         val updatedDC = statementTerm.displayCondition.get.replaceLabel(oldLabel.get, term.label)
 
         // Update statement term via TableQuery to bypass afterSave hook, because it will look
         // for an expression term with a label which does not yet exist at this time.
-        TableQuery[ExpressionTerms].update(statementTerm.copy(displayCondition = Some(updatedDC)))
+        TableQuery[ExpressionTerms].filter(_.id === statementTerm.id)
+          .update(statementTerm.copy(displayCondition = Some(updatedDC)))
       })
+    } yield ()
   }
 
   object ExpressionTerm extends ExpressionTermCompanion {
     val dependentStatementTerms = toManyThrough[ExpressionTerms, ExpressionTermsStatementTerms, ExpressionTerm](
-    toQuery = TableQuery[ExpressionTermsStatementTerms] join TableQuery[ExpressionTerms] on (_.statementTermId === _.id),
-    joinCondition = (e: ExpressionTerms, t: (ExpressionTermsStatementTerms, ExpressionTerms)) => e.id === t._1.expressionTermId
-  )
+      toQuery = TableQuery[ExpressionTermsStatementTerms] join TableQuery[ExpressionTerms] on (_.statementTermId === _.id),
+      joinCondition = (e: ExpressionTerms, t: (ExpressionTermsStatementTerms, ExpressionTerms)) => e.id === t._1.expressionTermId
+    )
 
     val dependentRules = toManyThrough[Rules, ExpressionTermsRules, Rule]
   }
@@ -116,18 +117,18 @@ trait ExpressionTermComponent {
   object StatementTerm extends ExpressionTermCompanion {
     override val all = TableQuery[ExpressionTerms].filter(_.statementTemplate.isDefined)
 
-    override protected def afterSave(id: ExpressionTermID, term: ExpressionTerm)
+    override protected def afterSave(id: ExpressionTermID, instance: ExpressionTerm)
                                     (implicit ec: ExecutionContext)
     : DBIO[Unit] =
-      term.displayCondition match {
+      instance.displayCondition match {
         case Some(condition) =>
           val tq = TableQuery[ExpressionTermsStatementTerms]
-          val deleteOld = tq.filter(_.statementTermId === id).delete
-          val insertNew = for {
-            expressionTerms <- ExpressionTerm.all.filter(_.label inSetBind condition.expressionTermLabels).result
-          } yield DBIO.sequence(expressionTerms.map(t => tq +=(t.id.get, id)))
 
-          deleteOld >> insertNew >> DBIO.successful(())
+          for {
+            _ <- tq.filter(_.statementTermId === id).delete
+            expressionTerms <- ExpressionTerm.all.filter(_.label inSetBind condition.expressionTermLabels).result
+            _ <- DBIO.sequence(expressionTerms.map(t => tq += (t.id.get, id)))
+          } yield ()
         case _ =>
           DBIO.successful(())
       }
