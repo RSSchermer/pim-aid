@@ -1,4 +1,4 @@
-@(rules: Seq[Rule])(implicit flash: play.api.mvc.Flash, session: play.api.db.slick.Session)
+@(rules: Seq[Rule])(implicit flash: Flash, messages: Messages, ec: ExecutionContext)
 
 @admin("Rule list", "rules") {
     @flash.get("success").map { message =>
@@ -22,12 +22,18 @@
         <tbody>
             @for(r <- rules){
                 <tr>
-                    <td><a href="@routes.RuleSuggestionTemplatesController.list(r.id.get.value)">@r.name</a></td>
+                    <td><a href="@routes.RuleSuggestionTemplatesController.list(r.id.get)">@r.name</a></td>
                     <td>@r.conditionExpression.value</td>
                     <td>@r.source</td>
-                    <td><a href="@routes.RuleSuggestionTemplatesController.list(r.id.get.value)">@r.suggestionTemplates.length</a></td>
-                    <td><a href="@routes.RulesController.edit(r.id.get.value)">Edit</a></td>
-                    <td><a href="@routes.RulesController.remove(r.id.get.value)">Delete</a></td>
+
+                    <td>
+                        <a href="@routes.RuleSuggestionTemplatesController.list(r.id.get)">
+                        @r.suggestionTemplates.length
+                        </a>
+                    </td>
+
+                    <td><a href="@routes.RulesController.edit(r.id.get)">Edit</a></td>
+                    <td><a href="@routes.RulesController.remove(r.id.get)">Delete</a></td>
                 </tr>
             }
         </tbody>

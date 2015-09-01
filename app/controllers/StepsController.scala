@@ -1,14 +1,19 @@
 package controllers
 
+import scala.concurrent.Future
+
 import play.api.mvc._
 import play.api.data._
 import play.api.data.Forms._
-import play.api.db.slick._
+import play.api.Play.current
+import play.api.i18n.Messages.Implicits._
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 import views._
-import models._
+import model.Model._
+import model.Model.driver.api._
 
-object StepsController extends Controller with UserSessionAware {
+object StepsController extends Controller {
   val generalInformationForm = Form(
     mapping(
       "userToken" -> nonEmptyText.transform(
@@ -35,8 +40,8 @@ object StepsController extends Controller with UserSessionAware {
     )(x => x)(x => Some(x))
   )
 
-  def generalInformation = DBAction { implicit rs =>
-    currentUserSession(rs) match {
+  def generalInformation = UserSessionAwareAction { implicit rs =>
+    rs.userSession match {
       case session@UserSession(token, Some(age)) =>
         Ok(html.steps.generalInformation(token, generalInformationForm.fill(session)))
           .withSession("token" -> token.value)
@@ -46,107 +51,78 @@ object StepsController extends Controller with UserSessionAware {
     }
   }
 
-  def saveGeneralInformation = DBAction { implicit rs =>
-    val token = currentUserSession(rs).token
+  def saveGeneralInformation = UserSessionAwareAction.async { implicit rs =>
+    val token = rs.userSession.token
 
     generalInformationForm.bindFromRequest.fold(
-      formWithErrors => BadRequest(html.steps.generalInformation(token, formWithErrors)),
-      userSession => {
-        UserSession.update(userSession)
-        Redirect(routes.StepsController.medicationList())
-      }
+      formWithErrors =>
+        Future.successful(BadRequest(html.steps.generalInformation(token, formWithErrors))),
+      userSession =>
+        db.run(UserSession.update(userSession)).map { _ =>
+          Redirect(routes.StepsController.medicationList())
+        }
     )
   }
 
-  def medicationList = DBAction { implicit rs =>
-    Ok(html.steps.medicationList())
-      .withSession("token" -> currentUserSession(rs).token.value)
+  def medicationList = UserSessionAwareAction { implicit rs =>
+    Ok(html.steps.medicationList()).withSession("token" -> rs.userSession.token.value)
   }
 
-  def independentStatementSelection = DBAction { implicit rs =>
-    val statements = currentUserSession(rs).buildIndependentStatements
-
-    Ok(html.steps.independentStatementSelection(statements))
-      .withSession("token" -> currentUserSession(rs).token.value)
+  def independentStatementSelection = UserSessionAwareAction.async { implicit rs =>
+    db.run(rs.userSession.buildIndependentStatements()).map { statements =>
+      Ok(html.steps.independentStatementSelection(statements))
+        .withSession("token" -> rs.userSession.token.value)
+    }
   }
 
-  def saveIndependentStatementSelection = DBAction { implicit rs =>
-    val userSession = currentUserSession(rs)
-
+  def saveIndependentStatementSelection = UserSessionAwareAction.async { implicit rs =>
     statementSelectionForm.bindFromRequest.fold(
-      formWithErrors => {
-        val statements = userSession.buildIndependentStatements
-        BadRequest(html.steps.independentStatementSelection(statements))
-      },
-      statements => {
-        userSession.saveIndependentStatementSelection(statements)
-        Redirect(routes.StepsController.conditionalStatementSelection())
-      }
+      formWithErrors =>
+        db.run(rs.userSession.buildIndependentStatements()).map { statements =>
+          BadRequest(html.steps.independentStatementSelection(statements))
+        },
+      statements =>
+        db.run(rs.userSession.saveIndependentStatementSelection(statements)).map { _ =>
+          Redirect(routes.StepsController.conditionalStatementSelection())
+        }
     )
   }
 
-  def conditionalStatementSelection = DBAction { implicit rs =>
-    val userSession = UserSession.include(
-      UserSession.medicationProducts.include(
-        MedicationProduct.genericTypes.include(
-          GenericType.drugGroups
-        )
-      )
-    ).find(currentUserSession(rs).token).get
-
-    val statements = userSession.buildConditionalStatements
-    Ok(html.steps.conditionalStatementSelection(statements))
-      .withSession("token" -> currentUserSession(rs).token.value)
+  def conditionalStatementSelection = UserSessionAwareAction.async { implicit rs =>
+    db.run(rs.userSession.buildConditionalStatements()).map { statements =>
+      Ok(html.steps.conditionalStatementSelection(statements))
+        .withSession("token" -> rs.userSession.token.value)
+    }
   }
 
-  def saveConditionalStatementSelection = DBAction { implicit rs =>
-
+  def saveConditionalStatementSelection = UserSessionAwareAction.async { implicit rs =>
     statementSelectionForm.bindFromRequest.fold(
-      formWithErrors => {
-        val userSession = UserSession.include(
-          UserSession.medicationProducts.include(
-            MedicationProduct.genericTypes.include(
-              GenericType.drugGroups
-            )
-          )
-        ).find(currentUserSession(rs).token).get
-        val statements = userSession.buildConditionalStatements
-        BadRequest(html.steps.conditionalStatementSelection(statements))
-      },
-      statements => {
-        currentUserSession(rs).saveConditionalStatementSelection(statements)
-        Redirect(routes.StepsController.suggestionList())
-      }
+      formWithErrors =>
+        db.run(rs.userSession.buildConditionalStatements()).map { statements =>
+          BadRequest(html.steps.conditionalStatementSelection(statements))
+        },
+      statements =>
+        db.run(rs.userSession.saveConditionalStatementSelection(statements)).map { _ =>
+          Redirect(routes.StepsController.suggestionList())
+        }
     )
   }
 
-  def suggestionList = DBAction { implicit rs =>
-    val userSession = UserSession.include(
-      UserSession.medicationProducts.include(
-        MedicationProduct.genericTypes.include(
-          GenericType.drugGroups
-        )
-      )
-    ).find(currentUserSession(rs).token).get
-
-    Ok(html.steps.suggestionList(userSession.buildSuggestions))
-      .withSession("token" -> currentUserSession(rs).token.value)
+  def suggestionList = UserSessionAwareAction.async { implicit rs =>
+    db.run(rs.userSession.buildSuggestions()).map { suggestions =>
+      Ok(html.steps.suggestionList(suggestions))
+        .withSession("token" -> rs.userSession.token.value)
+    }
   }
 
-  def print = DBAction { implicit rs =>
-    val userSession = UserSession.include(
-      UserSession.medicationProducts.include(
-        MedicationProduct.genericTypes.include(
-          GenericType.drugGroups
-        )
-      )
-    ).find(currentUserSession(rs).token).get
-
-    val drugs = userSession.drugs
-    val statements = userSession.buildSelectedStatements
-    val suggestions = userSession.buildSuggestions
-
-    Ok(html.steps.print(drugs, statements, suggestions))
-      .withSession("token" -> userSession.token.value)
+  def print = UserSessionAwareAction.async { implicit rs =>
+    db.run(for{
+      drugs <- rs.userSession.drugs.valueAction
+      statements <- rs.userSession.buildSelectedStatements()
+      suggestions <- rs.userSession.buildSuggestions()
+    } yield {
+      Ok(html.steps.print(drugs, statements, suggestions))
+        .withSession("token" -> rs.userSession.token.value)
+    })
   }
 }

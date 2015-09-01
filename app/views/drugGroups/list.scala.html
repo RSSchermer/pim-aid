@@ -1,4 +1,4 @@
-@(drugGroups: Seq[DrugGroup])(implicit flash: play.api.mvc.Flash)
+@(drugGroups: Seq[DrugGroup])(implicit flash: Flash)
 
 @admin("Drug group list", "drugGroups") {
     @flash.get("success").map { message =>
@@ -19,23 +19,13 @@
         <tbody>
             @for(dg <- drugGroups){
                 <tr>
-                    <td><a href="@routes.DrugGroupGenericTypesController.list(dg.id.get.value)">@dg.name</a></td>
-                    <td><a href="@routes.DrugGroupsController.edit(dg.id.get.value)">Edit</a></td>
-                    <td><a href="@routes.DrugGroupsController.remove(dg.id.get.value)">Delete</a></td>
+                    <td><a href="@routes.DrugGroupGenericTypesController.list(dg.id.get)">@dg.name</a></td>
+                    <td><a href="@routes.DrugGroupsController.edit(dg.id.get)">Edit</a></td>
+                    <td><a href="@routes.DrugGroupsController.remove(dg.id.get)">Delete</a></td>
                 </tr>
             }
         </tbody>
     </table>
 
     <a class="btn btn-primary" href="@routes.DrugGroupsController.create()">Add new drug group</a>
-
-    @helper.form(action = routes.DrugGroupsController.importFtkGroup(), 'enctype -> "multipart/form-data") {
-
-        <input type="file" name="ftkGroupPage">
-
-        <p>
-            <button class="btn btn-primary" type="submit">Import from FTK group page html</button>
-        </p>
-
-    }
 }

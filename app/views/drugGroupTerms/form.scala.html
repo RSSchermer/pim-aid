@@ -1,4 +1,8 @@
-@(drugGroupTermForm: Form[DrugGroupTerm], action: Call)(implicit session: play.api.db.slick.Session)
+@(
+    drugGroups: Seq[DrugGroup],
+    drugGroupTermForm: Form[DrugGroupTerm],
+    action: Call
+)(implicit messages: Messages)
 
 @implicitFieldConstructor = @{ b3.horizontal.fieldConstructor("col-md-3", "col-md-9") }
 
@@ -7,7 +11,7 @@
         <input type="hidden" name="id" value="@drugGroupTermForm("id").value">
         @b3.text(drugGroupTermForm("label"), '_label -> "Label")
         @b3.select(drugGroupTermForm("drugGroupId"),
-            DrugGroup.list.map(dt => dt.id.get.value.toString -> dt.name),
+            drugGroups.map(dt => dt.id.get.value.toString -> dt.name),
             '_label -> "Drug Group", 'class -> "searchable-select")
     </fieldset>
 

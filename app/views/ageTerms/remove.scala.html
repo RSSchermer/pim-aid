@@ -1,4 +1,4 @@
-@(ageTerm: ExpressionTerm)(implicit session: play.api.db.slick.Session)
+@(ageTerm: ExpressionTerm)(implicit ec: ExecutionContext)
 
 @expressionTerms("Deleting a age term", "ageTerms") {
     <h1>Are you sure you want to delete this expression term?</h1>
@@ -7,30 +7,30 @@
         <dt>Label</dt><dd>@ageTerm.label</dd>
     </dl>
 
-    @if(ageTerm.dependentRules.length > 0) {
+    @if(ageTerm.dependentRules.nonEmpty) {
         <div class="alert alert-warning">
             <p>This term cannot be deleted, there are still rules that depend on it:</p>
             <ul>
             @for(rule <- ageTerm.dependentRules) {
-                <li><a href="@routes.RulesController.edit(rule.id.get.value)">@rule.name</a></li>
+                <li><a href="@routes.RulesController.edit(rule.id.get)">@rule.name</a></li>
             }
             </ul>
         </div>
     }
 
-    @if(ageTerm.dependentStatementTerms.length > 0) {
+    @if(ageTerm.dependentStatementTerms.nonEmpty) {
         <div class="alert alert-warning">
             <p>This term cannot be deleted, there are still statement terms that depend on it:</p>
             <ul>
             @for(st <- ageTerm.dependentStatementTerms) {
-                <li><a href="@routes.StatementTermsController.edit(st.id.get.value)">@st.label</a></li>
+                <li><a href="@routes.StatementTermsController.edit(st.id.get)">@st.label</a></li>
             }
             </ul>
         </div>
     }
 
-    @if(ageTerm.dependentStatementTerms.length == 0 && ageTerm.dependentRules.length == 0) {
-        @helper.form(routes.AgeTermsController.delete(ageTerm.id.get.value)) {
+    @if(ageTerm.dependentStatementTerms.isEmpty && ageTerm.dependentRules.isEmpty) {
+        @helper.form(routes.AgeTermsController.delete(ageTerm.id.get)) {
             <button type="submit" class="btn btn-danger">
                 <span class="fa fa-trash"></span> Delete
             </button>

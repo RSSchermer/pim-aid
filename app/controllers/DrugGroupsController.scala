@@ -1,19 +1,17 @@
 package controllers
 
+import scala.concurrent.Future
+
 import play.api.mvc._
 import play.api.data._
 import play.api.data.Forms._
-import play.api.db.slick._
 import play.api.Play.current
-import com.google.common.base.Charsets
-import com.google.common.io._
-import org.apache.commons.lang3.StringEscapeUtils.unescapeHtml4
-import org.htmlcleaner.HtmlCleaner
+import play.api.i18n.Messages.Implicits._
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 import views._
-import models._
-import models.meta.Schema._
-import models.meta.Profile.driver.simple._
+import model.Model._
+import model.Model.driver.api._
 
 object DrugGroupsController extends Controller {
   val drugGroupForm = Form(
@@ -26,130 +24,62 @@ object DrugGroupsController extends Controller {
     )(DrugGroup.apply)(DrugGroup.unapply)
   )
 
-  def list = DBAction { implicit rs =>
-    Ok(html.drugGroups.list(DrugGroup.list))
+  def list = Action.async { implicit rs =>
+    db.run(DrugGroup.all.result).map { drugGroups =>
+      Ok(html.drugGroups.list(drugGroups))
+    }
   }
 
   def create = Action {
     Ok(html.drugGroups.create(drugGroupForm))
   }
 
-  def save = DBAction { implicit rs =>
+  def save = Action.async { implicit rs =>
     drugGroupForm.bindFromRequest.fold(
-      formWithErrors => BadRequest(html.drugGroups.create(formWithErrors)),
-      drugGroup => {
-        val id = DrugGroup.insert(drugGroup)
-
-        Redirect(routes.DrugGroupGenericTypesController.list(id.value))
-          .flashing("success" -> "The drug group was created successfully.")
-      }
+      formWithErrors =>
+        Future.successful(BadRequest(html.drugGroups.create(formWithErrors))),
+      drugGroup =>
+        db.run(DrugGroup.insert(drugGroup)).map { id =>
+          Redirect(routes.DrugGroupGenericTypesController.list(id))
+            .flashing("success" -> "The drug group was created successfully.")
+        }
     )
   }
 
-  def edit(id: Long) = DBAction { implicit rs =>
-    DrugGroup.find(DrugGroupID(id)) match {
+  def edit(id: DrugGroupID) = Action.async { implicit rs =>
+    db.run(DrugGroup.one(id).result).map {
       case Some(drugGroup) =>
-        Ok(html.drugGroups.edit(DrugGroupID(id), drugGroupForm.fill(drugGroup)))
-      case _ => NotFound
+        Ok(html.drugGroups.edit(id, drugGroupForm.fill(drugGroup)))
+      case _ =>
+        NotFound
     }
   }
 
-  def update(id: Long) = DBAction { implicit rs =>
+  def update(id: DrugGroupID) = Action.async { implicit rs =>
     drugGroupForm.bindFromRequest.fold(
-      formWithErrors => BadRequest(html.drugGroups.edit(DrugGroupID(id), formWithErrors)),
-      drugGroup => {
-        DrugGroup.update(drugGroup)
-        Redirect(routes.DrugGroupsController.list())
-          .flashing("success" -> "The drug group was updated successfully.")
-      }
+      formWithErrors =>
+        Future.successful(BadRequest(html.drugGroups.edit(id, formWithErrors))),
+      drugGroup =>
+        db.run(DrugGroup.update(drugGroup)).map { _ =>
+          Redirect(routes.DrugGroupsController.list())
+            .flashing("success" -> "The drug group was updated successfully.")
+        }
     )
   }
 
-  def remove(id: Long) = DBAction { implicit rs =>
-    DrugGroup.find(DrugGroupID(id)) match {
-      case Some(drugGroup) => Ok(html.drugGroups.remove(drugGroup))
-      case _ => NotFound
+  def remove(id: DrugGroupID) = Action.async { implicit rs =>
+    db.run(DrugGroup.one(id).result).map {
+      case Some(drugGroup) =>
+        Ok(html.drugGroups.remove(drugGroup))
+      case _ =>
+        NotFound
     }
   }
 
-  def delete(id: Long) = DBAction { implicit rs =>
-    DrugGroup.delete(DrugGroupID(id))
-    Redirect(routes.DrugGroupsController.list())
-      .flashing("success" -> "The drug group was deleted successfully.")
-  }
-
-  def importFtkGroup = DBAction(parse.multipartFormData) { implicit rs =>
-    // TODO: decide what to do with this ugly java scraping code
-    rs.body.file("ftkGroupPage").map { ftkGroupPage =>
-      val contents = Files.toString(ftkGroupPage.ref.file, Charsets.UTF_8)
-      val cleaner = new HtmlCleaner()
-      val root = cleaner.clean(contents)
-
-      try {
-        val searchResults = root.findElementByAttValue("class", "searchresults", true, true)
-        val groupName = unescapeHtml4(searchResults.findElementByName("h1", true).getText.toString).trim
-
-        val drugGroupId: DrugGroupID = DrugGroup.findByName(groupName) match {
-          case Some(drugGroup) => drugGroup.id.get
-          case _ => DrugGroup.insert(DrugGroup(None, groupName))
-        }
-
-        searchResults.getElementsByName("ul", true).foreach { listNode =>
-          val items = listNode.getElementsByName("li", false)
-          val m = """([^\(]+).*""".r.findFirstMatchIn(items.head.findElementByName("a", true).getText.toString).get
-          val genericTypeName = unescapeHtml4(m.group(1)).replaceAll("\\/", " / ").trim
-
-          val genericTypeId = GenericType.findByName(genericTypeName) match {
-            case Some(genericType) => genericType.id.get
-            case _ => GenericType.insert(GenericType(None, genericTypeName))
-          }
-
-          if (!TableQuery[DrugGroupsGenericTypes]
-            .filter(x => x.drugGroupId === drugGroupId && x.genericTypeId === genericTypeId).exists.run
-          ) {
-            TableQuery[DrugGroupsGenericTypes].insert((drugGroupId, genericTypeId))
-          }
-
-          val genericMedicationProductId = MedicationProduct.findByName(genericTypeName) match {
-            case Some(product) => product.id.get
-            case _ => MedicationProduct.insert(MedicationProduct(None, genericTypeName))
-          }
-
-          if (!TableQuery[GenericTypesMedicationProducts]
-            .filter(x => x.genericTypeId === genericTypeId && x.medicationProductId === genericMedicationProductId)
-            .exists.run
-          ) {
-            TableQuery[GenericTypesMedicationProducts].insert((genericTypeId, genericMedicationProductId))
-          }
-
-          items.tail.foreach { medicationProductItem =>
-            val medicationProductName = unescapeHtml4(medicationProductItem.getText.toString)
-              .replaceAll("\\/", " / ").trim
-
-            val medicationProductId = MedicationProduct.findByName(medicationProductName) match {
-              case Some(product) => product.id.get
-              case _ => MedicationProduct.insert(MedicationProduct(None, medicationProductName))
-            }
-
-            if (!TableQuery[GenericTypesMedicationProducts]
-              .filter(x => x.genericTypeId === genericTypeId && x.medicationProductId === medicationProductId)
-              .exists.run
-            ) {
-              TableQuery[GenericTypesMedicationProducts].insert((genericTypeId, medicationProductId))
-            }
-          }
-        }
-
-        Redirect(routes.DrugGroupsController.list())
-          .flashing("success" -> "The FTK group was imported successfully.")
-      } catch {
-        case e: NullPointerException =>
-          Redirect(routes.DrugGroupsController.list())
-            .flashing("error" -> "Invalid HTML file, does not contain the expected elements.")
-      }
-    }.getOrElse {
+  def delete(id: DrugGroupID) = Action.async { implicit rs =>
+    db.run(DrugGroup.delete(id)).map { _ =>
       Redirect(routes.DrugGroupsController.list())
-        .flashing("error" -> "Must specify a file for upload.")
+        .flashing("success" -> "The drug group was deleted successfully.")
     }
   }
 }

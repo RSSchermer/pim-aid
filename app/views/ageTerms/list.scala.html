@@ -1,4 +1,4 @@
-@(ageTerms: Seq[ExpressionTerm])(implicit flash: play.api.mvc.Flash)
+@(ageTerms: Seq[ExpressionTerm])(implicit flash: Flash)
 
 @expressionTerms("Age term list", "ageTerms") {
     @flash.get("success").map { message =>
@@ -24,8 +24,8 @@
                 <td>@ageTerm.label</td>
                 <td>@ageTerm.comparisonOperator</td>
                 <td>@ageTerm.age</td>
-                <td><a href="@routes.AgeTermsController.edit(ageTerm.id.get.value)">Edit</a></td>
-                <td><a href="@routes.AgeTermsController.remove(ageTerm.id.get.value)">Delete</a></td>
+                <td><a href="@routes.AgeTermsController.edit(ageTerm.id.get)">Edit</a></td>
+                <td><a href="@routes.AgeTermsController.remove(ageTerm.id.get)">Delete</a></td>
             </tr>
         }
         </tbody>

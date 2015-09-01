@@ -1,7 +1,8 @@
 @(
     medicationProduct: MedicationProduct,
+    genericTypes: Seq[GenericType],
     genericTypeMedicationProductForm: Form[(GenericTypeID, MedicationProductID)]
-)(implicit flash: play.api.mvc.Flash, session: play.api.db.slick.Session)
+)(implicit flash: Flash, messages: Messages, ec: ExecutionContext)
 
 @import b3.inline.fieldConstructor
 
@@ -16,11 +17,11 @@
 
     <a href="@routes.MedicationProductsController.list()">Back to list</a>
 
-    @b3.form(action = routes.MedicationProductGenericTypesController.save(medicationProduct.id.get.value)) {
+    @b3.form(action = routes.MedicationProductGenericTypesController.save(medicationProduct.id.get)) {
         <fieldset>
             <input type="hidden" name="medicationProductId" value='@medicationProduct.id.get.value'>
             @b3.select(genericTypeMedicationProductForm("genericTypeId"),
-                GenericType.list.map(gt => gt.id.get.value.toString -> gt.name),
+                genericTypes.map(gt => gt.id.get.value.toString -> gt.name),
                 'class -> "searchable-select")
             @b3.submit('class -> "btn btn-primary"){ <span class="fa fa-plus"></span> Add generic type }
         </fieldset>
@@ -38,7 +39,12 @@
             @for(genericType <- medicationProduct.genericTypes){
                 <tr>
                     <td>@genericType.name</td>
-                    <td><a href="@routes.MedicationProductGenericTypesController.remove(medicationProduct.id.get.value, genericType.id.get.value)">Delete</a></td>
+
+                    <td>
+                        <a href="@routes.MedicationProductGenericTypesController.remove(medicationProduct.id.get, genericType.id.get)">
+                            Delete
+                        </a>
+                    </td>
                 </tr>
             }
         </tbody>

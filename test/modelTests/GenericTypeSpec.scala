@@ -1,17 +1,21 @@
 package modelTests
 
-import org.scalatestplus.play._
-import play.api.db.slick.DB
-import models._
+import org.scalatest.{FunSpec, Matchers}
 
-class GenericTypeSpec extends PlaySpec with OneAppPerSuite {
-  "The GenericType companion object" must {
-    "retrieve a GenericType by name (not case-sensitive)" in {
-      DB.withTransaction { implicit session =>
-        val gtId = GenericType.insert(GenericType(None, "Some Type"))
-        GenericType.findByName("some type").get.id.get mustBe gtId
+import scala.concurrent.ExecutionContext.Implicits.global
 
-        session.rollback()
+class GenericTypeSpec extends FunSpec with ModelSpec with Matchers {
+  import driver.api._
+
+  describe("The GenericType companion object") {
+    it("retrieves a GenericType by name (not case-sensitive)") {
+      rollback {
+        for {
+          referenceID <- GenericType.insert(GenericType(None, "Some Type"))
+          retrievedID <- GenericType.hasName("some type").map(_.id).result.headOption
+        } yield {
+          retrievedID.get shouldBe referenceID
+        }
       }
     }
   }

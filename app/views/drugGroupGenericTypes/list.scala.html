@@ -1,7 +1,8 @@
 @(
     drugGroup: DrugGroup,
+    genericTypes: Seq[GenericType],
     drugGroupGenericTypeForm: Form[(DrugGroupID, GenericTypeID)]
-)(implicit flash: play.api.mvc.Flash, session: play.api.db.slick.Session)
+)(implicit flash: Flash, messages: Messages, ec: ExecutionContext)
 
 @import b3.inline.fieldConstructor
 
@@ -16,11 +17,11 @@
 
     <a href="@routes.DrugGroupsController.list()">Back to list</a>
 
-    @b3.form(action = routes.DrugGroupGenericTypesController.save(drugGroup.id.get.value)) {
+    @b3.form(action = routes.DrugGroupGenericTypesController.save(drugGroup.id.get)) {
         <fieldset>
             <input type="hidden" name="drugGroupId" value='@drugGroup.id.get.value'>
             @b3.select(drugGroupGenericTypeForm("genericTypeId"),
-                GenericType.list.map(gt => gt.id.get.value.toString -> gt.name),
+                genericTypes.map(gt => gt.id.get.value.toString -> gt.name),
                 'class -> "searchable-select")
             @b3.submit('class -> "btn btn-primary"){ <span class="fa fa-plus"></span> Add generic type }
         </fieldset>
@@ -45,7 +46,12 @@
                             }
                         </ul>
                     </td>
-                    <td><a href="@routes.DrugGroupGenericTypesController.remove(drugGroup.id.get.value, genericType.id.get.value)">Delete</a></td>
+
+                    <td>
+                        <a href="@routes.DrugGroupGenericTypesController.remove(drugGroup.id.get, genericType.id.get)">
+                            Delete
+                        </a>
+                    </td>
                 </tr>
             }
         </tbody>

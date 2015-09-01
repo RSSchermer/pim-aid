@@ -1,4 +1,4 @@
-@(drugGroupTerms: Seq[ExpressionTerm])(implicit flash: play.api.mvc.Flash, s: play.api.db.slick.Session)
+@(drugGroupTerms: Seq[ExpressionTerm])(implicit flash: Flash, ec: ExecutionContext)
 
 @expressionTerms("Drug group term list", "drugGroupTerms") {
     @flash.get("success").map { message =>
@@ -22,8 +22,8 @@
                 <tr>
                     <td>@term.label</td>
                     <td>@term.drugGroup.map(_.name)</td>
-                    <td><a href="@routes.DrugGroupTermsController.edit(term.id.get.value)">Edit</a></td>
-                    <td><a href="@routes.DrugGroupTermsController.remove(term.id.get.value)">Delete</a></td>
+                    <td><a href="@routes.DrugGroupTermsController.edit(term.id.get)">Edit</a></td>
+                    <td><a href="@routes.DrugGroupTermsController.remove(term.id.get)">Delete</a></td>
                 </tr>
             }
         </tbody>

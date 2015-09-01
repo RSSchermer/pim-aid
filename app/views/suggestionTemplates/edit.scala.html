@@ -1,7 +1,10 @@
-@(suggestionTemplateId: SuggestionTemplateID, suggestionTemplateForm: Form[SuggestionTemplate])
+@(
+    suggestionTemplateId: SuggestionTemplateID,
+    suggestionTemplateForm: Form[SuggestionTemplate]
+)(implicit messages: Messages)
 
 @admin("Editing a suggestion", "suggestionTemplates") {
     <h1>Editing a suggestion</h1>
 
-    @suggestionTemplates.form(suggestionTemplateForm, routes.SuggestionTemplatesController.update(suggestionTemplateId.value))
+    @suggestionTemplates.form(suggestionTemplateForm, routes.SuggestionTemplatesController.update(suggestionTemplateId))
 }

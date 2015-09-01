@@ -1,14 +1,17 @@
 package controllers
 
+import scala.concurrent.Future
+
 import play.api.mvc._
 import play.api.data._
 import play.api.data.Forms._
-import play.api.db.slick._
+import play.api.Play.current
+import play.api.i18n.Messages.Implicits._
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 import views._
-import models._
-import models.meta.Schema._
-import models.meta.Profile.driver.simple._
+import model.Model._
+import model.Model.driver.api._
 
 object RuleSuggestionTemplatesController extends Controller {
   val ruleSuggestionTemplateForm = Form(
@@ -24,46 +27,57 @@ object RuleSuggestionTemplatesController extends Controller {
     )
   )
 
-  def list(ruleId: Long) = DBAction { implicit rs =>
-    Rule.include(Rule.suggestionTemplates).find(RuleID(ruleId)) match {
+  def list(ruleId: RuleID) = Action.async { implicit rs =>
+    db.run(for {
+      ruleOption <- Rule.one(ruleId).include(Rule.suggestionTemplates).result
+      suggestionTemplates <- SuggestionTemplate.all.result
+    } yield ruleOption match {
       case Some(rule) =>
-        Ok(html.ruleSuggestionTemplates.list(rule, ruleSuggestionTemplateForm))
-      case _ => NotFound
-    }
+        Ok(html.ruleSuggestionTemplates.list(rule, suggestionTemplates, ruleSuggestionTemplateForm))
+      case _ =>
+        NotFound
+    })
   }
 
-  def save(ruleId: Long) = DBAction { implicit rs =>
-    Rule.find(RuleID(ruleId)) match {
+  def save(ruleId: RuleID) = Action.async { implicit rs =>
+    db.run(Rule.one(ruleId).include(Rule.suggestionTemplates).result).flatMap {
       case Some(rule) =>
         ruleSuggestionTemplateForm.bindFromRequest.fold(
           formWithErrors =>
-            BadRequest(html.ruleSuggestionTemplates.list(rule, formWithErrors)),
-          ruleSuggestionTemplate => {
-            TableQuery[RulesSuggestionTemplates].insert(ruleSuggestionTemplate)
-            Redirect(routes.RuleSuggestionTemplatesController.list(ruleId))
-              .flashing("success" -> "The suggestion was successfully added to the rule.")
-          }
+            db.run(SuggestionTemplate.all.result).map { suggestionTemplates =>
+              BadRequest(html.ruleSuggestionTemplates.list(rule, suggestionTemplates, formWithErrors))
+            },
+          ruleSuggestionTemplate =>
+            db.run(TableQuery[RulesSuggestionTemplates] += ruleSuggestionTemplate).map { _ =>
+              Redirect(routes.RuleSuggestionTemplatesController.list(ruleId))
+                .flashing("success" -> "The suggestion was successfully added to the rule.")
+            }
         )
-      case _ => NotFound
+      case _ => Future.successful(NotFound)
     }
   }
 
-  def remove(ruleId: Long, id: Long) = DBAction { implicit rs =>
-    Rule.find(RuleID(ruleId)) match {
+  def remove(ruleId: RuleID, id: SuggestionTemplateID) = Action.async { implicit rs =>
+    db.run(Rule.one(ruleId).result).flatMap {
       case Some(rule) =>
-        SuggestionTemplate.find(SuggestionTemplateID(id)) match {
-          case Some(suggestionTemplate) => Ok(html.ruleSuggestionTemplates.remove(rule, suggestionTemplate))
-          case _ => NotFound
+        db.run(SuggestionTemplate.one(id).result).map {
+          case Some(suggestionTemplate) =>
+            Ok(html.ruleSuggestionTemplates.remove(rule, suggestionTemplate))
+          case _ =>
+            NotFound
         }
-      case _ => NotFound
+      case _ => Future.successful(NotFound)
     }
   }
 
-  def delete(ruleId: Long, id: Long) = DBAction { implicit rs =>
-    TableQuery[RulesSuggestionTemplates]
-      .filter(_.ruleId === RuleID(ruleId)).filter(_.suggestionTemplateId === SuggestionTemplateID(id))
+  def delete(ruleId: RuleID, id: SuggestionTemplateID) = Action.async { implicit rs =>
+    val action = TableQuery[RulesSuggestionTemplates]
+      .filter(x => x.ruleId === ruleId && x.suggestionTemplateId === id)
       .delete
-    Redirect(routes.RuleSuggestionTemplatesController.list(ruleId))
-      .flashing("success" -> "The suggestion was successfully removed from the rule.")
+
+    db.run(action).map { _ =>
+      Redirect(routes.RuleSuggestionTemplatesController.list(ruleId))
+        .flashing("success" -> "The suggestion was successfully removed from the rule.")
+    }
   }
 }

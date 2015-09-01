@@ -1,13 +1,17 @@
 package controllers
 
+import scala.concurrent.Future
+
 import play.api.mvc._
 import play.api.data._
 import play.api.data.Forms._
-import play.api.db.slick._
+import play.api.Play.current
+import play.api.i18n.Messages.Implicits._
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 import views._
-import models._
-import models.ExpressionTermConversions._
+import model.Model._
+import model.Model.driver.api._
 
 object AgeTermsController extends Controller {
   val ageTermForm = Form(
@@ -24,53 +28,62 @@ object AgeTermsController extends Controller {
     )(AgeTerm.apply)(AgeTerm.unapply)
   )
 
-  def list = DBAction { implicit rs =>
-    Ok(html.ageTerms.list(AgeTerm.list))
+  def list = Action.async { implicit rs =>
+    db.run(AgeTerm.all.result).map { ageTerms =>
+      Ok(html.ageTerms.list(ageTerms))
+    }
   }
 
-  def create = DBAction { implicit rs =>
+  def create = Action { implicit rs =>
     Ok(html.ageTerms.create(ageTermForm))
   }
 
-  def save = DBAction { implicit rs =>
+  def save = Action.async { implicit rs =>
     ageTermForm.bindFromRequest.fold(
-      formWithErrors => BadRequest(html.ageTerms.create(formWithErrors)),
-      ageTerm => {
-        ExpressionTerm.insert(ageTerm)
-        Redirect(routes.AgeTermsController.list())
-          .flashing("success" -> "The expression term was created successfully.")
-      }
+      formWithErrors =>
+        Future.successful(BadRequest(html.ageTerms.create(formWithErrors))),
+      ageTerm =>
+        db.run(AgeTerm.insert(ageTerm)).map { _ =>
+          Redirect(routes.AgeTermsController.list())
+            .flashing("success" -> "The expression term was created successfully.")
+        }
     )
   }
 
-  def edit(id: Long) = DBAction { implicit rs =>
-    AgeTerm.find(ExpressionTermID(id)) match {
-      case Some(term) => Ok(html.ageTerms.edit(ExpressionTermID(id), ageTermForm.fill(term)))
-      case _ => NotFound
+  def edit(id: ExpressionTermID) = Action.async { implicit rs =>
+    db.run(AgeTerm.one(id).result).map {
+      case Some(term) =>
+        Ok(html.ageTerms.edit(id, ageTermForm.fill(term)))
+      case _ =>
+        NotFound
     }
   }
 
-  def update(id: Long) = DBAction { implicit rs =>
+  def update(id: ExpressionTermID) = Action.async { implicit rs =>
     ageTermForm.bindFromRequest.fold(
-      formWithErrors => BadRequest(html.ageTerms.edit(ExpressionTermID(id), formWithErrors)),
-      term => {
-        AgeTerm.update(term)
-        Redirect(routes.AgeTermsController.list())
-          .flashing("success" -> "The expression term was updated successfully.")
-      }
+      formWithErrors =>
+        Future.successful(BadRequest(html.ageTerms.edit(id, formWithErrors))),
+      term =>
+        db.run(AgeTerm.update(term)).map { _ =>
+          Redirect(routes.AgeTermsController.list())
+            .flashing("success" -> "The expression term was updated successfully.")
+        }
     )
   }
 
-  def remove(id: Long) = DBAction { implicit rs =>
-    AgeTerm.find(ExpressionTermID(id)) match {
-      case Some(term) => Ok(html.ageTerms.remove(term))
-      case _ => NotFound
+  def remove(id: ExpressionTermID) = Action.async { implicit rs =>
+    db.run(AgeTerm.one(id).result).map {
+      case Some(term) =>
+        Ok(html.ageTerms.remove(term))
+      case _ =>
+        NotFound
     }
   }
 
-  def delete(id: Long) = DBAction { implicit rs =>
-    AgeTerm.delete(ExpressionTermID(id))
-    Redirect(routes.AgeTermsController.list())
-      .flashing("success" -> "The expression term was deleted successfully.")
+  def delete(id: ExpressionTermID) = Action.async { implicit rs =>
+    db.run(AgeTerm.delete(id)).map { _ =>
+      Redirect(routes.AgeTermsController.list())
+        .flashing("success" -> "The expression term was deleted successfully.")
+    }
   }
 }

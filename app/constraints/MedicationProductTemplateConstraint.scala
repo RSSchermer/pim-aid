@@ -1,13 +1,19 @@
 package constraints
 
-import models._
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Await
+import scala.concurrent.duration._
+import scala.language.postfixOps
+
 import play.api.data.validation.{Constraint, Invalid, Valid}
-import play.api.db.slick._
+
+import model.Model._
+import model.Model.driver.api._
 
 object MedicationProductTemplateConstraint {
-  def apply(implicit s: Session): Constraint[String] = {
-    val groupNames = DrugGroup.list.map(_.name.toLowerCase)
-    val typeNames = GenericType.list.map(_.name.toLowerCase)
+  def apply(implicit ec: ExecutionContext): Constraint[String] = {
+    val groupNames = Await.result(db.run(DrugGroup.all.map(_.name.toLowerCase).result), 10 seconds)
+    val typeNames = Await.result(db.run(GenericType.all.map(_.name.toLowerCase).result), 10 seconds)
 
     Constraint[String]("constraints.medicationProductTemplate")({ template =>
       """\{\{(type|group)\(([^\)]+)\)\}\}""".r.findAllMatchIn(template).map(m => {

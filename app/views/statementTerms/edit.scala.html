@@ -1,7 +1,11 @@
-@(id: ExpressionTermID, statementTermForm: Form[StatementTerm])(implicit session: play.api.db.slick.Session)
+@(
+    id: ExpressionTermID,
+    terms: Seq[ExpressionTerm],
+    statementTermForm: Form[StatementTerm]
+)(implicit messages: Messages)
 
 @expressionTerms("Editing a statement term", "statementTerms") {
     <h1>Editing a statement term</h1>
 
-    @statementTerms.form(statementTermForm, routes.StatementTermsController.update(id.value))
+    @statementTerms.form(terms, statementTermForm, routes.StatementTermsController.update(id))
 }

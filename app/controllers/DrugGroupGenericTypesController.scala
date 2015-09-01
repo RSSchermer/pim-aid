@@ -1,14 +1,17 @@
 package controllers
 
+import scala.concurrent.Future
+
 import play.api.mvc._
 import play.api.data._
 import play.api.data.Forms._
-import play.api.db.slick._
+import play.api.Play.current
+import play.api.i18n.Messages.Implicits._
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 import views._
-import models._
-import models.meta.Schema._
-import models.meta.Profile.driver.simple._
+import model.Model._
+import model.Model.driver.api._
 
 object DrugGroupGenericTypesController extends Controller {
   val drugGroupGenericTypeForm = Form(
@@ -24,50 +27,68 @@ object DrugGroupGenericTypesController extends Controller {
     )
   )
 
-  def list(drugGroupId: Long) = DBAction { implicit rs =>
-    DrugGroup
-      .include(DrugGroup.genericTypes.include(GenericType.medicationProducts))
-      .find(DrugGroupID(drugGroupId)) match {
-        case Some(drugGroup) =>
-          Ok(html.drugGroupGenericTypes.list(drugGroup, drugGroupGenericTypeForm))
-        case _ => NotFound
-      }
+  def list(drugGroupId: DrugGroupID) = Action.async { implicit rs =>
+    db.run(for {
+      drugGroupOption <- DrugGroup.one(drugGroupId).include(
+          DrugGroup.genericTypes.include(
+            GenericType.medicationProducts
+          )
+        ).result
+      genericTypes <- GenericType.all.result
+    } yield drugGroupOption match{
+      case Some(drugGroup) =>
+        Ok(html.drugGroupGenericTypes.list(drugGroup, genericTypes, drugGroupGenericTypeForm))
+      case _ =>
+        NotFound
+    })
+
   }
 
-  def save(drugGroupId: Long) = DBAction { implicit rs =>
-    DrugGroup.find(DrugGroupID(drugGroupId)) match {
+  def save(drugGroupId: DrugGroupID) = Action.async { implicit rs =>
+    db.run(DrugGroup.one(drugGroupId).include(
+      DrugGroup.genericTypes.include(
+        GenericType.medicationProducts
+      )
+    ).result).flatMap {
       case Some(drugGroup) =>
         drugGroupGenericTypeForm.bindFromRequest.fold(
-          formWithErrors =>
-            BadRequest(html.drugGroupGenericTypes.list(drugGroup, formWithErrors)),
-          drugGroupGenericType => {
-            TableQuery[DrugGroupsGenericTypes].insert(drugGroupGenericType)
-
-            Redirect(routes.DrugGroupGenericTypesController.list(drugGroupId))
-              .flashing("success" -> "The generic type was successfully added to the drug group.")
-          }
+          formWithErrors => {
+            db.run(GenericType.all.result).map { genericTypes =>
+              BadRequest(html.drugGroupGenericTypes.list(drugGroup, genericTypes, formWithErrors))
+            }
+          },
+          drugGroupGenericType =>
+            db.run(TableQuery[DrugGroupsGenericTypes] += drugGroupGenericType).map { _=>
+              Redirect(routes.DrugGroupGenericTypesController.list(drugGroupId))
+                .flashing("success" -> "The generic type was successfully added to the drug group.")
+            }
         )
-      case _ => NotFound
+      case _ =>
+        Future.successful(NotFound)
     }
   }
 
-  def remove(drugGroupId: Long, id: Long) = DBAction { implicit rs =>
-    DrugGroup.find(DrugGroupID(drugGroupId)) match {
+  def remove(drugGroupId: DrugGroupID, id: GenericTypeID) = Action.async { implicit rs =>
+    db.run(DrugGroup.one(drugGroupId).result).flatMap {
       case Some(drugGroup) =>
-        GenericType.find(GenericTypeID(id)) match {
-          case Some(genericType) => Ok(html.drugGroupGenericTypes.remove(drugGroup, genericType))
-          case _ => NotFound
+        db.run(GenericType.one(id).result).map {
+          case Some(genericType) =>
+            Ok(html.drugGroupGenericTypes.remove(drugGroup, genericType))
+          case _ =>
+            NotFound
         }
-      case _ => NotFound
+      case _ => Future.successful(NotFound)
     }
   }
 
-  def delete(drugGroupId: Long, id: Long) = DBAction { implicit rs =>
-    TableQuery[DrugGroupsGenericTypes]
-      .filter(x => x.drugGroupId === DrugGroupID(drugGroupId) && x.genericTypeId === GenericTypeID(id))
+  def delete(drugGroupId: DrugGroupID, id: GenericTypeID) = Action.async { implicit rs =>
+    val action = TableQuery[DrugGroupsGenericTypes]
+      .filter(x => x.drugGroupId === drugGroupId && x.genericTypeId === id)
       .delete
 
-    Redirect(routes.DrugGroupGenericTypesController.list(drugGroupId))
-      .flashing("success" -> "The generic type was succesfully removed from the drug group.")
+    db.run(action).map { _ =>
+      Redirect(routes.DrugGroupGenericTypesController.list(drugGroupId))
+        .flashing("success" -> "The generic type was succesfully removed from the drug group.")
+    }
   }
 }

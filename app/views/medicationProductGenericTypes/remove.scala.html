@@ -7,12 +7,12 @@
         <dt>GenericType</dt><dd>@genericType.name</dd>
     </dl>
 
-    @helper.form(routes.MedicationProductGenericTypesController.delete(medicationProduct.id.get.value, genericType.id.get.value)) {
+    @helper.form(routes.MedicationProductGenericTypesController.delete(medicationProduct.id.get, genericType.id.get)) {
         <button type="submit" class="btn btn-danger">
             <span class="fa fa-trash"></span> Delete
         </button>
 
-        <a href="@routes.MedicationProductGenericTypesController.list(medicationProduct.id.get.value)" class="btn btn-default">
+        <a href="@routes.MedicationProductGenericTypesController.list(medicationProduct.id.get)" class="btn btn-default">
             <span class="fa fa-close"></span> Cancel
         </a>
     }

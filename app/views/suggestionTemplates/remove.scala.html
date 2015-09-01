@@ -9,7 +9,7 @@
         <dt>Explanatory Note</dt><dd>@suggestionTemplate.explanatoryNote</dd>
     </dl>
 
-    @helper.form(routes.SuggestionTemplatesController.delete(suggestionTemplate.id.get.value)) {
+    @helper.form(routes.SuggestionTemplatesController.delete(suggestionTemplate.id.get)) {
         <button type="submit" class="btn btn-danger">
             <span class="fa fa-trash"></span> Delete
         </button>

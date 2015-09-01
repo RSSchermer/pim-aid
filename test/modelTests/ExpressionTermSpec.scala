@@ -1,89 +1,99 @@
 package modelTests
 
-import org.scalatestplus.play._
-import play.api.db.slick.DB
-import models._
-import models.meta.Profile.driver.simple._
-import models.meta.Schema._
+import org.scalatest.{FunSpec, Matchers}
 
-class ExpressionTermSpec extends PlaySpec with OneAppPerSuite {
-  "An ExpressionTerm companion object" must {
-    "retrieve an ExpressionTerm by label (matching case)" in {
-      DB.withTransaction { implicit session =>
-        val termId = ExpressionTerm.insert(ExpressionTerm(None, "some_term", None, None, None, None, Some(">="), Some(65)))
-        ExpressionTerm.findByLabel("some_term").get.id.get mustBe termId
+import scala.concurrent.ExecutionContext.Implicits.global
 
-        session.rollback()
+class ExpressionTermSpec extends FunSpec with ModelSpec with Matchers {
+  import driver.api._
+
+  describe("An ExpressionTerm companion object") {
+    it("retrieves an ExpressionTerm by label (matching case)") {
+      rollback {
+        for {
+          referenceID <- ExpressionTerm.insert(ExpressionTerm(None, "some_term", None, None, None, None, Some(">="), Some(65)))
+          retrievedID <- ExpressionTerm.hasLabel("some_term").map(_.id).result.headOption
+        } yield {
+          retrievedID.get shouldBe referenceID
+        }
       }
     }
 
-    "not retrieve an ExpressionTerm by label (non-matching case)" in {
-      DB.withTransaction { implicit session =>
-        ExpressionTerm.insert(ExpressionTerm(None, "some_term", None, None, None, None, Some(">="), Some(65)))
-        ExpressionTerm.findByLabel("Some_term") mustBe None
-
-        session.rollback()
-      }
-    }
-  }
-
-  "An ExpressionTerm" must {
-    "should update dependent rule condition expression" in {
-      DB.withTransaction { implicit session =>
-        val term = ExpressionTerm(None, "some_term", None, None, None, None, Some(">="), Some(65))
-        val termId = ExpressionTerm.insert(term)
-        val ruleId = Rule.insert(Rule(None, "Some rule", ConditionExpression("[some_term] AND true"), None, None, None))
-
-        ExpressionTerm.update(term.copy(id = Some(termId), label = "changed_term"))
-
-        Rule.find(ruleId).get.conditionExpression.value mustBe "[changed_term] AND true"
-
-        session.rollback()
-      }
-    }
-
-    "should update dependent statement term display condition" in {
-      DB.withTransaction { implicit session =>
-        val term = ExpressionTerm(None, "some_term", None, None, None, None, Some(">="), Some(65))
-        val termId = ExpressionTerm.insert(term)
-        val stId = ExpressionTerm.insert(ExpressionTerm(None, "some_other_term", None, None, Some("template"), Some(ConditionExpression("[some_term] AND true")), None, None))
-
-        ExpressionTerm.update(term.copy(id = Some(termId), label = "changed_term"))
-
-        StatementTerm.find(stId).get.displayCondition.get.value mustBe "[changed_term] AND true"
-
-        session.rollback()
+    it("does not retrieve an ExpressionTerm by label (non-matching case)") {
+      rollback {
+        for {
+          referenceID <- ExpressionTerm.insert(ExpressionTerm(None, "some_term", None, None, None, None, Some(">="), Some(65)))
+          retrievedID <- ExpressionTerm.hasLabel("Some_term").map(_.id).result.headOption
+        } yield {
+          retrievedID shouldBe None
+        }
       }
     }
   }
 
-  "A StatementTerm" must {
-    "create links with the expression terms referenced in its display condition" in {
-      DB.withTransaction { implicit session =>
-        val termId = ExpressionTerm.insert(ExpressionTerm(None, "some_term", None, None, None, None, Some(">="), Some(65)))
-        val stId = ExpressionTerm.insert(ExpressionTerm(None, "some_other_term", None, None, Some("template"), Some(ConditionExpression("[some_term]")), None, None))
-        TableQuery[ExpressionTermsStatementTerms]
-          .filter(_.statementTermId === stId)
-          .filter(_.expressionTermId === termId)
-          .length.run mustBe 1
+  describe("An ExpressionTerm") {
+    it("updates dependent rule condition expressions when updated") {
+      rollback {
+        val term = ExpressionTerm(None, "some_term", None, None, None, None, Some(">="), Some(65))
 
-        session.rollback()
+        for {
+          termId <- ExpressionTerm.insert(term)
+          ruleId <- Rule.insert(Rule(None, "Some rule", ConditionExpression("[some_term] AND true"), None, None, None))
+
+          _ <- ExpressionTerm.update(term.copy(id = Some(termId), label = "changed_term"))
+
+          dependentRule <- Rule.one(ruleId).result
+        } yield {
+          dependentRule.get.conditionExpression.value shouldBe "[changed_term] AND true"
+        }
       }
     }
 
-    "remove links with expression terms that are no longer referenced in its display condition" in {
-      DB.withTransaction { implicit session =>
-        val termId = ExpressionTerm.insert(ExpressionTerm(None, "some_term", None, None, None, None, Some(">="), Some(65)))
+    it("updates dependent statement term display conditions when updated") {
+      rollback {
+        val term = ExpressionTerm(None, "some_term", None, None, None, None, Some(">="), Some(65))
+
+        for {
+          termId <- ExpressionTerm.insert(term)
+          stId <- StatementTerm.insert(ExpressionTerm(None, "some_other_term", None, None, Some("template"), Some(ConditionExpression("[some_term] AND true")), None, None))
+
+          _ <- ExpressionTerm.update(term.copy(id = Some(termId), label = "changed_term"))
+
+          dependentStatementTerm <- StatementTerm.one(stId).result
+        } yield {
+          dependentStatementTerm.get.displayCondition.get.value shouldBe "[changed_term] AND true"
+        }
+      }
+    }
+  }
+
+  describe("A StatementTerm") {
+    it("creates links to the expression terms referenced in its display condition") {
+      rollback {
+        for {
+          termId <- ExpressionTerm.insert(ExpressionTerm(None, "some_term", None, None, None, None, Some(">="), Some(65)))
+          stId <- StatementTerm.insert(ExpressionTerm(None, "some_other_term", None, None, Some("template"), Some(ConditionExpression("[some_term]")), None, None))
+          linkCount <- TableQuery[ExpressionTermsStatementTerms].filter(x => x.statementTermId === stId && x.expressionTermId === termId).length.result
+        } yield {
+          linkCount shouldBe 1
+        }
+      }
+    }
+
+    it("removes links to expression terms that are no longer referenced in its display condition") {
+      rollback {
         val st = ExpressionTerm(None, "some_other_term", None, None, Some("template"), Some(ConditionExpression("[some_term]")), None, None)
-        val stId = ExpressionTerm.insert(st)
 
-        ExpressionTerm.update(st.copy(id = Some(stId), displayCondition = Some(ConditionExpression("true"))))
-        TableQuery[ExpressionTermsStatementTerms]
-          .filter(_.statementTermId === stId)
-          .filter(_.expressionTermId === termId)
-          .length.run mustBe 0
+        for {
+          termId <- ExpressionTerm.insert(ExpressionTerm(None, "some_term", None, None, None, None, Some(">="), Some(65)))
+          stId <- StatementTerm.insert(st)
 
-        session.rollback()
+          _ <- StatementTerm.update(st.copy(id = Some(stId), displayCondition = Some(ConditionExpression("true"))))
+
+          linkCount <- TableQuery[ExpressionTermsStatementTerms].filter(x => x.statementTermId === stId && x.expressionTermId === termId).length.result
+        } yield {
+          linkCount shouldBe 0
+        }
       }
     }
   }

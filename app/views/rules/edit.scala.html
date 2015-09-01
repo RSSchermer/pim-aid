@@ -1,8 +1,8 @@
-@(ruleId: RuleID, ruleForm: Form[Rule])(implicit session: play.api.db.slick.Session)
+@(ruleId: RuleID, expressionTerms: Seq[ExpressionTerm], ruleForm: Form[Rule])(implicit messages: Messages)
 
 
 @admin("Editing a rule", "rules") {
     <h1>Editing a rule</h1>
 
-    @rules.form(ruleForm, routes.RulesController.update(ruleId.value))
+    @rules.form(expressionTerms, ruleForm, routes.RulesController.update(ruleId))
 }

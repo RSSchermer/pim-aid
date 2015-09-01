@@ -1,7 +1,8 @@
 @(
     rule: Rule,
+    suggestionTemplates: Seq[SuggestionTemplate],
     ruleSuggestionTemplateForm: Form[(RuleID, SuggestionTemplateID)]
-)(implicit flash: play.api.mvc.Flash, session: play.api.db.slick.Session)
+)(implicit flash: Flash, messages: Messages, ec: ExecutionContext)
 
 @import b3.inline.fieldConstructor
 
@@ -17,11 +18,11 @@
 
     <pre>@rule.conditionExpression.value</pre>
 
-    @helper.form(action = routes.RuleSuggestionTemplatesController.save(rule.id.get.value)) {
+    @helper.form(action = routes.RuleSuggestionTemplatesController.save(rule.id.get)) {
         <fieldset>
             <input type="hidden" name="ruleId" value='@rule.id.get.value'>
             @b3.select(ruleSuggestionTemplateForm("suggestionTemplateId"),
-                SuggestionTemplate.list.map(gt => gt.id.get.value.toString -> gt.name),
+                suggestionTemplates.map(gt => gt.id.get.value.toString -> gt.name),
                 'class -> "searchable-select")
             @b3.submit('class -> "btn btn-primary"){ <span class="fa fa-plus"></span> Add suggestion }
         </fieldset>
@@ -40,12 +41,18 @@
             @for(suggestionTemplate <- rule.suggestionTemplates){
                 <tr>
                     <td>
-                        <a href="@routes.SuggestionTemplatesController.edit(suggestionTemplate.id.get.value)">
+                        <a href="@routes.SuggestionTemplatesController.edit(suggestionTemplate.id.get)">
                             @suggestionTemplate.name
                         </a>
                     </td>
+
                     <td>@suggestionTemplate.text</td>
-                    <td><a href="@routes.RuleSuggestionTemplatesController.remove(rule.id.get.value, suggestionTemplate.id.get.value)">Delete</a></td>
+
+                    <td>
+                        <a href="@routes.RuleSuggestionTemplatesController.remove(rule.id.get, suggestionTemplate.id.get)">
+                            Delete
+                        </a>
+                    </td>
                 </tr>
             }
         </tbody>

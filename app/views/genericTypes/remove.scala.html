@@ -7,7 +7,7 @@
         <dt>Name</dt><dd>@genericType.name</dd>
     </dl>
 
-    @helper.form(routes.GenericTypesController.delete(genericType.id.get.value)) {
+    @helper.form(routes.GenericTypesController.delete(genericType.id.get)) {
         <button type="submit" class="btn btn-danger">
             <span class="fa fa-trash"></span> Delete
         </button>
