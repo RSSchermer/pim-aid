@@ -8,8 +8,8 @@ import play.api.i18n.Messages.Implicits._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 import views._
-import model.Model._
-import model.Model.driver.api._
+import model.PIMAidDbContext._
+import model.PIMAidDbContext.driver.api._
 
 object DrugGroupTermsController extends Controller {
   val drugGroupTermForm = Form(

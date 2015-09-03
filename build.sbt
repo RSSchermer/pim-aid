@@ -32,20 +32,18 @@ libraryDependencies ++= Seq(
   "com.h2database"      %   "h2"        % "1.4.188"   % "test"
 )
 
-lazy val root = (project in file(".")).enablePlugins(PlayScala).settings(
-  javaOptions in Test += "-Dconfig.file=conf/test.conf"
-)
+lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
 includeFilter in (Assets, LessKeys.less) := "*.less"
 
 routesImport ++= Seq(
   "binders._",
-  "model.Model._"
+  "model.PIMAidDbContext._"
 )
 
 TwirlKeys.templateImports ++= Seq(
   "scala.concurrent.ExecutionContext",
-  "model.Model._"
+  "model.PIMAidDbContext._"
 )
 
 fork in run := false

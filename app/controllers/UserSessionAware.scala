@@ -5,7 +5,7 @@ import scala.concurrent.Future
 import play.api.mvc._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
-import model.Model._
+import model.PIMAidDbContext._
 
 class UserSessionAwareRequest[A](val userSession: UserSession, request: Request[A]) extends WrappedRequest[A](request)
 

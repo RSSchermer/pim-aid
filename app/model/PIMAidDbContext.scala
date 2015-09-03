@@ -7,7 +7,7 @@ import play.api.db.slick.DatabaseConfigProvider
 
 import slick.driver.JdbcProfile
 
-trait Model extends Entitytled
+trait PIMAidDbContext extends Entitytled
   with ConditionExpressionComponent
   with DrugComponent
   with DrugGroupComponent
@@ -25,4 +25,4 @@ trait Model extends Entitytled
   implicit val db = dbConfig.db
 }
 
-object Model extends Model
+object PIMAidDbContext extends PIMAidDbContext

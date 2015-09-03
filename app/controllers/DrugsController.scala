@@ -9,8 +9,8 @@ import play.api.libs.json._
 import play.api.libs.functional.syntax._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
-import model.Model._
-import model.Model.driver.api._
+import model.PIMAidDbContext._
+import model.PIMAidDbContext.driver.api._
 
 object DrugsController extends Controller {
   case class DrugJson(id: Option[Long],
@@ -54,7 +54,7 @@ object DrugsController extends Controller {
 
     rs.body.validate[DrugJson].fold(
       errors =>
-        Future.successful(BadRequest(Json.obj("status" ->"KO", "message" -> JsError.toFlatJson(errors)))
+        Future.successful(BadRequest(Json.obj("status" ->"KO", "message" -> JsError.toJson(errors)))
           .withSession("token" -> token.value)),
       {
         case DrugJson(_, userInput, Some(resolvedProductId), resolvedDrugTypeName, _) =>
