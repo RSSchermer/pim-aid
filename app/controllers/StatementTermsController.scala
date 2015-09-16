@@ -8,8 +8,8 @@ import play.api.i18n.Messages.Implicits._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 import views._
-import model.Model._
-import model.Model.driver.api._
+import model.PIMAidDBContext._
+import model.PIMAidDBContext.driver.api._
 import constraints.{MedicationProductTemplateConstraint, ConditionExpressionConstraint}
 
 object StatementTermsController extends Controller {

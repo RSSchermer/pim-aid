@@ -2,7 +2,7 @@ package binders
 
 import play.api.mvc.PathBindable
 
-import model.Model._
+import model.PIMAidDBContext._
 
 object `package` {
   implicit def drugIDPathBindable(implicit longBinder: PathBindable[Long]) = 

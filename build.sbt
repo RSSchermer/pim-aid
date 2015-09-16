@@ -40,12 +40,12 @@ includeFilter in (Assets, LessKeys.less) := "*.less"
 
 routesImport ++= Seq(
   "binders._",
-  "model.Model._"
+  "model.PIMAidDBContext._"
 )
 
 TwirlKeys.templateImports ++= Seq(
   "scala.concurrent.ExecutionContext",
-  "model.Model._"
+  "model.PIMAidDBContext._"
 )
 
 fork in run := false
