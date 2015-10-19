@@ -13,9 +13,8 @@ trait DrugGroupComponent {
 
   case class DrugGroup(
       id: Option[DrugGroupID],
-      name: String)(implicit includes: Includes[DrugGroup])
-    extends Entity[DrugGroup, DrugGroupID]
-  {
+      name: String
+  )(implicit includes: Includes[DrugGroup]) extends Entity[DrugGroup, DrugGroupID] {
     val genericTypes = many(DrugGroup.genericTypes)
   }
 

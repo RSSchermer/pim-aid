@@ -21,9 +21,8 @@ trait RuleComponent {
       conditionExpression: ConditionExpression,
       source: Option[String],
       formalizationReference: Option[String],
-      note: Option[String])(implicit includes: Includes[Rule])
-    extends Entity[Rule, RuleID]
-  {
+      note: Option[String]
+  )(implicit includes: Includes[Rule]) extends Entity[Rule, RuleID] {
     val suggestionTemplates = many(Rule.suggestionTemplates)
   }
 

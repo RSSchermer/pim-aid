@@ -27,16 +27,17 @@ trait ExpressionTermComponent {
       statementTemplate: Option[String],
       displayCondition: Option[ConditionExpression],
       comparisonOperator: Option[String],
-      age: Option[Int])(implicit includes: Includes[ExpressionTerm])
-    extends Entity[ExpressionTerm, ExpressionTermID]
-  {
+      age: Option[Int]
+  )(implicit includes: Includes[ExpressionTerm]) extends Entity[ExpressionTerm, ExpressionTermID] {
     val genericType = one(GenericTypeTerm.genericType)
     val drugGroup = one(DrugGroupTerm.drugGroup)
     val dependentStatementTerms = many(ExpressionTerm.dependentStatementTerms)
     val dependentRules = many(ExpressionTerm.dependentRules)
   }
 
-  abstract class ExpressionTermCompanion extends EntityCompanion[ExpressionTerms, ExpressionTerm, ExpressionTermID] {
+  abstract class ExpressionTermCompanion
+    extends EntityCompanion[ExpressionTerms, ExpressionTerm, ExpressionTermID]
+  {
     def hasLabel(label: String): Query[ExpressionTerms, ExpressionTerm, Seq] =
       all.filter(_.label === label)
 

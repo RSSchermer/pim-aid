@@ -31,9 +31,8 @@ trait UserSessionComponent {
 
   case class UserSession(
       token: UserToken,
-      age: Option[Int])(implicit includes: Includes[UserSession])
-    extends Entity[UserSession, UserToken]
-  {
+      age: Option[Int]
+  )(implicit includes: Includes[UserSession]) extends Entity[UserSession, UserToken] {
     val id = Some(token)
 
     val drugs = many(UserSession.drugs)

@@ -8,9 +8,9 @@ resolvers += Resolver.url("Typesafe Ivy releases", url("https://repo.typesafe.co
 
 libraryDependencies ++= Seq(
   // Database access
-  "com.typesafe.play"       %% "play-slick"             % "1.0.0",
-  "com.typesafe.play"       %% "play-slick-evolutions"  % "1.0.0",
-  "com.github.rsschermer"   %% "entitytled-core"        % "0.7.2",
+  "com.typesafe.play"       %% "play-slick"             % "1.1.0",
+  "com.typesafe.play"       %% "play-slick-evolutions"  % "1.1.0",
+  "com.github.rsschermer"   %% "entitytled-core"        % "0.8.0",
   "org.postgresql"          %  "postgresql"             % "9.4-1201-jdbc41",
 
   // Misc
@@ -29,7 +29,7 @@ libraryDependencies ++= Seq(
   // Testing
   "org.scalatest"       %% "scalatest"  % "2.2.4"     % "test",
   "org.scalatestplus"   %% "play"       % "1.4.0-M4"  % "test",
-  "com.h2database"      %   "h2"        % "1.4.188"   % "test"
+  "com.h2database"      %  "h2"         % "1.4.188"   % "test"
 )
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala).settings(

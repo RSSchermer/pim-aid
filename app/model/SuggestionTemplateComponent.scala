@@ -15,9 +15,8 @@ trait SuggestionTemplateComponent {
       id: Option[SuggestionTemplateID],
       name: String,
       text: String,
-      explanatoryNote: Option[String])(implicit includes: Includes[SuggestionTemplate])
-    extends Entity[SuggestionTemplate, SuggestionTemplateID]
-  {
+      explanatoryNote: Option[String]
+  )(implicit includes: Includes[SuggestionTemplate]) extends Entity[SuggestionTemplate, SuggestionTemplateID] {
     val rules = many(SuggestionTemplate.rules)
   }
 

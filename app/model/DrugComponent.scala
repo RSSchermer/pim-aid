@@ -16,16 +16,15 @@ trait DrugComponent {
       id: Option[DrugID],
       userInput: String,
       userToken: UserToken,
-      resolvedMedicationProductId: Option[MedicationProductID])(implicit includes: Includes[Drug])
-    extends Entity[Drug, DrugID]
-  {
+      resolvedMedicationProductId: Option[MedicationProductID]
+  )(implicit includes: Includes[Drug]) extends Entity[Drug, DrugID] {
     val userSession = one(Drug.userSession)
     val resolvedMedicationProduct = one(Drug.resolvedMedicationProduct)
   }
 
   object Drug extends EntityCompanion[Drugs, Drug, DrugID] {
-    val userSession = toOne[self.UserSessions, self.UserSession]
-    val resolvedMedicationProduct = toOne[self.MedicationProducts, self.MedicationProduct]
+    val userSession = toOne[UserSessions, UserSession]
+    val resolvedMedicationProduct = toOne[MedicationProducts, MedicationProduct]
   }
 
   class Drugs(tag: Tag) extends EntityTable[Drug, DrugID](tag, "DRUGS") {

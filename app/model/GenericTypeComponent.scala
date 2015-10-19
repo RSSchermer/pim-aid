@@ -14,9 +14,8 @@ trait GenericTypeComponent {
 
   case class GenericType(
       id: Option[GenericTypeID],
-      name: String)(implicit includes: Includes[GenericType])
-    extends Entity[GenericType, GenericTypeID]
-  {
+      name: String
+  )(implicit includes: Includes[GenericType]) extends Entity[GenericType, GenericTypeID] {
     val medicationProducts = many(GenericType.medicationProducts)
     val drugGroups = many(GenericType.drugGroups)
   }
