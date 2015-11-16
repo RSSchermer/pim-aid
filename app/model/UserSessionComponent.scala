@@ -50,7 +50,7 @@ trait UserSessionComponent {
         val selection = selectedTerms.map(_.id).flatten
 
         statementTerms.map { st =>
-          Statement(st.id.get, st.statementTemplate.getOrElse(""), selection.contains(st.id.get))
+          Statement(st.id.get, st.statementTemplate.getOrElse(""), selected = selection.contains(st.id.get))
         }
       }
     }
@@ -58,7 +58,7 @@ trait UserSessionComponent {
     def saveIndependentStatementSelection(statements: Seq[Statement])(implicit ex: ExecutionContext): DBIO[Unit] = {
       val tq = TableQuery[StatementTermsUserSessions]
       val deleteOld = tq.filter(x => x.userSessionToken === token && x.conditional === false).delete
-      val insertNew = DBIO.sequence(statements.filter(_.selected == true).map { s =>
+      val insertNew = DBIO.sequence(statements.filter(_.selected).map { s =>
         tq += StatementTermUserSession(token, s.termID, s.text, conditional = false)
       })
 
@@ -78,7 +78,7 @@ trait UserSessionComponent {
           .filter(t => parser.parse(t.displayCondition.getOrElse(ConditionExpression(""))).getOrElse(false))
           .flatMap { term =>
             placeholderReplacer.replacePlaceholders(term.statementTemplate.getOrElse("")).map { text =>
-              Statement(term.id.get, text, selection.contains((term.id.get, text)))
+              Statement(term.id.get, text, selected = selection.contains((term.id.get, text)))
             }
           }
 
@@ -88,7 +88,7 @@ trait UserSessionComponent {
     def saveConditionalStatementSelection(statements: Seq[Statement])(implicit ec: ExecutionContext): DBIO[Unit] = {
       val tq = TableQuery[StatementTermsUserSessions]
       val deleteOld = tq.filter(x => x.userSessionToken === token && x.conditional === true).delete
-      val insertNew = DBIO.sequence(statements.filter(_.selected == true).map { s =>
+      val insertNew = DBIO.sequence(statements.filter(_.selected).map { s =>
         tq += StatementTermUserSession(token, s.termID, s.text, conditional = true)
       })
 
